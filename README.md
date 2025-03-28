@@ -35,6 +35,21 @@ pip install -r requirements.txt
 ```
 
 3. Configure the application:
+
+   **Option 1: Using credentials.yaml (recommended for development)**
+   - Copy the `credentials.yaml.example` file to `credentials.yaml`
+   - Edit the file with your actual API keys and connection details:
+     ```yaml
+     redmine:
+       url: "https://your-redmine-instance.example.com"
+       api_key: "your_redmine_api_key_here"
+     
+     openai:
+       api_key: "your_openai_api_key_here"
+     ```
+   - **Important**: The `credentials.yaml` file is excluded from version control by `.gitignore` to prevent accidentally committing sensitive information.
+
+   **Option 2: Using the web interface**
    - Navigate to the settings page in the web interface
    - Enter your Redmine URL and API key
    - Enter your OpenAI API key
@@ -122,6 +137,14 @@ docker-compose up -d
 ```
 
 This will start both the Redmine container and the MCP extension, with all necessary connections pre-configured.
+
+### Configuration for Development
+
+For local development, use the `credentials.yaml` file to store your API keys and connection details. The repository includes a `.gitignore` file that prevents this file from being committed to version control, ensuring your sensitive information remains private.
+
+1. Copy `credentials.yaml.example` to `credentials.yaml`
+2. Edit with your actual development credentials
+3. The application will automatically read from this file when available
 
 ## Contributing
 

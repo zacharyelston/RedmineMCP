@@ -4,6 +4,12 @@ This document outlines planned enhancements and features for the Redmine Model C
 
 ## High Priority
 
+- [ ] **Credentials Management System**
+  - Create a credentials.yaml file template for storing API keys and connection details
+  - Implement system to load credentials from the YAML file
+  - Add credentials.yaml to .gitignore to prevent accidental commits
+  - Update documentation with instructions on credential configuration
+
 - [ ] **Redmine Development Container**
   - Create a Docker container with a pre-configured Redmine instance for development
   - Include automatic setup of test projects, users, and issues
