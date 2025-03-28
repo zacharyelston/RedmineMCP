@@ -1,8 +1,14 @@
+"""
+Utility functions for the Redmine MCP Extension.
+"""
+
 import os
 import yaml
-from datetime import datetime, timedelta
-from app import db
-from models import RateLimitTracker, Config
+import logging
+from datetime import datetime
+from models import Config, RateLimitTracker, db
+
+logger = logging.getLogger(__name__)
 
 def is_rate_limited(api_name, rate_limit_per_minute):
     """
@@ -15,31 +21,15 @@ def is_rate_limited(api_name, rate_limit_per_minute):
     Returns:
         bool: True if rate limited, False otherwise
     """
-    now = datetime.utcnow()
-    minute_start = now.replace(second=0, microsecond=0)
+    # Get or create the tracker
+    tracker = RateLimitTracker.get_or_create(api_name)
     
-    # Get or create tracker
-    tracker = RateLimitTracker.query.filter_by(api_name=api_name).first()
+    # Check if we've exceeded the limit
+    if tracker.count >= rate_limit_per_minute:
+        logger.warning(f"{api_name} API rate limit exceeded. Count: {tracker.count}, Limit: {rate_limit_per_minute}")
+        return True
     
-    if not tracker:
-        # Create new tracker
-        tracker = RateLimitTracker(
-            api_name=api_name,
-            count=0,
-            reset_at=minute_start + timedelta(minutes=1)
-        )
-        db.session.add(tracker)
-        db.session.commit()
-    
-    # Check if reset time has passed
-    if now >= tracker.reset_at:
-        tracker.count = 0
-        tracker.reset_at = minute_start + timedelta(minutes=1)
-        db.session.commit()
-        return False
-    
-    # Check if rate limit exceeded
-    return tracker.count >= rate_limit_per_minute
+    return False
 
 def add_api_call(api_name):
     """
@@ -48,23 +38,14 @@ def add_api_call(api_name):
     Args:
         api_name (str): The name of the API ('redmine' or 'claude')
     """
-    tracker = RateLimitTracker.query.filter_by(api_name=api_name).first()
+    # Get or create the tracker
+    tracker = RateLimitTracker.get_or_create(api_name)
     
-    if not tracker:
-        now = datetime.utcnow()
-        minute_start = now.replace(second=0, microsecond=0)
-        
-        # Create new tracker
-        tracker = RateLimitTracker(
-            api_name=api_name,
-            count=1,
-            reset_at=minute_start + timedelta(minutes=1)
-        )
-        db.session.add(tracker)
-    else:
-        tracker.count += 1
-    
+    # Increment the counter
+    tracker.count += 1
     db.session.commit()
+    
+    logger.debug(f"Recorded API call to {api_name}. New count: {tracker.count}")
 
 def load_credentials():
     """
@@ -73,21 +54,22 @@ def load_credentials():
     Returns:
         dict: The loaded credentials or None if file not found
     """
-    credentials_path = os.path.join(os.getcwd(), 'credentials.yaml')
-    
-    # Check if credentials file exists
-    if not os.path.exists(credentials_path):
-        return None
-    
-    # Load credentials from file
     try:
-        with open(credentials_path, 'r') as file:
+        # Check if credentials.yaml exists
+        if not os.path.exists('credentials.yaml'):
+            logger.warning("credentials.yaml not found")
+            return None
+        
+        # Load credentials from the file
+        with open('credentials.yaml', 'r') as file:
             credentials = yaml.safe_load(file)
+        
+        logger.info("Credentials loaded from file")
         return credentials
+    
     except Exception as e:
-        print(f"Error loading credentials: {e}")
+        logger.error(f"Error loading credentials: {str(e)}")
         return None
-
 
 def update_config_from_credentials():
     """
@@ -96,66 +78,49 @@ def update_config_from_credentials():
     Returns:
         tuple: (bool, str) - Success status and message
     """
-    credentials = load_credentials()
-    
-    if not credentials:
-        return False, "Credentials file not found or invalid."
-    
     try:
-        # Get or create config
+        # Load credentials from file
+        credentials = load_credentials()
+        
+        if not credentials:
+            return False, "No credentials file found"
+        
+        # Get required fields
+        redmine_url = credentials.get('redmine_url')
+        redmine_api_key = credentials.get('redmine_api_key')
+        claude_api_key = credentials.get('claude_api_key')
+        rate_limit = credentials.get('rate_limit_per_minute', 60)
+        
+        if not redmine_url or not redmine_api_key or not claude_api_key:
+            return False, "Required credentials are missing in the file"
+        
+        # Update or create configuration in the database
         config = Config.query.first()
-        if not config:
+        
+        if config:
+            # Update existing config
+            config.redmine_url = redmine_url
+            config.redmine_api_key = redmine_api_key
+            config.claude_api_key = claude_api_key
+            config.rate_limit_per_minute = rate_limit
+            config.updated_at = datetime.utcnow()
+        else:
+            # Create new config
             config = Config(
-                redmine_url="",
-                redmine_api_key="",
-                claude_api_key="",
-                rate_limit_per_minute=60
+                redmine_url=redmine_url,
+                redmine_api_key=redmine_api_key,
+                claude_api_key=claude_api_key,
+                rate_limit_per_minute=rate_limit
             )
             db.session.add(config)
         
-        # Update config from credentials
-        # First, check for the new flat format (used in setup scripts)
-        if 'redmine_url' in credentials:
-            config.redmine_url = credentials['redmine_url']
-        
-        if 'redmine_api_key' in credentials:
-            config.redmine_api_key = credentials['redmine_api_key']
-        
-        if 'claude_api_key' in credentials:
-            config.claude_api_key = credentials['claude_api_key']
-        
-        # For backward compatibility with older credential files
-        if 'openai_api_key' in credentials:
-            config.claude_api_key = credentials['openai_api_key'] 
-            print("Warning: Using openai_api_key from credentials as claude_api_key. Please update your credentials file.")
-        
-        if 'rate_limit_per_minute' in credentials:
-            config.rate_limit_per_minute = credentials['rate_limit_per_minute']
-        
-        # Also check for the nested format (for backward compatibility)
-        if 'redmine' in credentials:
-            if 'url' in credentials['redmine']:
-                config.redmine_url = credentials['redmine']['url']
-            if 'api_key' in credentials['redmine']:
-                config.redmine_api_key = credentials['redmine']['api_key']
-        
-        if 'claude' in credentials and 'api_key' in credentials['claude']:
-            config.claude_api_key = credentials['claude']['api_key']
-            
-        # Backward compatibility with older nested format
-        if 'openai' in credentials and 'api_key' in credentials['openai']:
-            config.claude_api_key = credentials['openai']['api_key']
-            print("Warning: Using nested openai.api_key from credentials as claude_api_key. Please update your credentials file.")
-        
-        if 'rate_limits' in credentials and 'redmine_per_minute' in credentials['rate_limits']:
-            config.rate_limit_per_minute = credentials['rate_limits']['redmine_per_minute']
-        
         db.session.commit()
-        return True, "Configuration updated successfully from credentials.yaml."
+        logger.info("Configuration updated from credentials file")
+        return True, "Configuration updated successfully"
+    
     except Exception as e:
-        db.session.rollback()
-        return False, f"Error updating configuration: {e}"
-
+        logger.error(f"Error updating configuration: {str(e)}")
+        return False, f"Error updating configuration: {str(e)}"
 
 def create_credentials_file(redmine_url, redmine_api_key, claude_api_key, rate_limit_per_minute=60):
     """
@@ -170,18 +135,33 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key, rate_l
     Returns:
         tuple: (bool, str) - Success status and message
     """
-    # Using the flat format consistent with the setup scripts
-    credentials = {
-        'redmine_url': redmine_url,
-        'redmine_api_key': redmine_api_key,
-        'claude_api_key': claude_api_key,
-        'rate_limit_per_minute': rate_limit_per_minute
-    }
-    
     try:
-        credentials_path = os.path.join(os.getcwd(), 'credentials.yaml')
-        with open(credentials_path, 'w') as file:
+        # Create the credentials dictionary
+        credentials = {
+            'redmine_url': redmine_url,
+            'redmine_api_key': redmine_api_key,
+            'claude_api_key': claude_api_key,
+            'rate_limit_per_minute': rate_limit_per_minute
+        }
+        
+        # Save to the file
+        with open('credentials.yaml', 'w') as file:
             yaml.dump(credentials, file, default_flow_style=False)
-        return True, "Credentials file created successfully."
+        
+        # Also create an example file if it doesn't exist
+        if not os.path.exists('credentials.yaml.example'):
+            with open('credentials.yaml.example', 'w') as file:
+                example = {
+                    'redmine_url': 'https://redmine.example.com',
+                    'redmine_api_key': 'your_redmine_api_key_here',
+                    'claude_api_key': 'your_claude_api_key_here',
+                    'rate_limit_per_minute': 60
+                }
+                yaml.dump(example, file, default_flow_style=False)
+        
+        logger.info("Credentials file created successfully")
+        return True, "Credentials file created successfully"
+    
     except Exception as e:
-        return False, f"Error creating credentials file: {e}"
+        logger.error(f"Error creating credentials file: {str(e)}")
+        return False, f"Error creating credentials file: {str(e)}"

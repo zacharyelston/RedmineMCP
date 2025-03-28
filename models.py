@@ -1,4 +1,8 @@
-from datetime import datetime
+"""
+Database models for the Redmine MCP Extension.
+"""
+
+from datetime import datetime, timedelta
 from app import db
 
 class Config(db.Model):
@@ -11,6 +15,9 @@ class Config(db.Model):
     claude_api_key = db.Column(db.String(256), nullable=False)
     rate_limit_per_minute = db.Column(db.Integer, default=60)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Config id={self.id} updated_at={self.updated_at}>'
 
 class ActionLog(db.Model):
     """
@@ -26,6 +33,9 @@ class ActionLog(db.Model):
     success = db.Column(db.Boolean, default=True)
     error_message = db.Column(db.Text, nullable=True)
 
+    def __repr__(self):
+        return f'<ActionLog id={self.id} action_type={self.action_type} issue_id={self.issue_id} success={self.success}>'
+
 class PromptTemplate(db.Model):
     """
     Stores templates for common LLM prompts
@@ -37,6 +47,9 @@ class PromptTemplate(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    def __repr__(self):
+        return f'<PromptTemplate id={self.id} name={self.name}>'
+
 class RateLimitTracker(db.Model):
     """
     Tracks API calls for rate limiting purposes
@@ -45,3 +58,29 @@ class RateLimitTracker(db.Model):
     api_name = db.Column(db.String(64), nullable=False)  # 'redmine' or 'claude'
     count = db.Column(db.Integer, default=0)
     reset_at = db.Column(db.DateTime, nullable=False)  # When the counter resets
+
+    def __repr__(self):
+        return f'<RateLimitTracker id={self.id} api_name={self.api_name} count={self.count} reset_at={self.reset_at}>'
+
+    @classmethod
+    def get_or_create(cls, api_name):
+        """Get or create a rate limit tracker for the specified API"""
+        tracker = cls.query.filter_by(api_name=api_name).first()
+        
+        now = datetime.utcnow()
+        if not tracker:
+            # Create a new tracker
+            tracker = cls(
+                api_name=api_name,
+                count=0,
+                reset_at=now + timedelta(minutes=1)
+            )
+            db.session.add(tracker)
+            db.session.commit()
+        elif now > tracker.reset_at:
+            # Reset the counter if it's time
+            tracker.count = 0
+            tracker.reset_at = now + timedelta(minutes=1)
+            db.session.commit()
+        
+        return tracker

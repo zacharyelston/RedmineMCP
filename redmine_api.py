@@ -1,5 +1,12 @@
-import requests
+"""
+Redmine API integration for Redmine Extension.
+This module implements the integration with the Redmine REST API.
+"""
+
+import json
 import logging
+import requests
+from urllib.parse import urljoin
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +23,56 @@ class RedmineAPI:
             url (str): The base URL of the Redmine instance (e.g., 'https://redmine.example.com')
             api_key (str): The API key for authentication
         """
-        self.url = url.rstrip('/')  # Remove trailing slash if present
+        # Ensure URL ends with a trailing slash
+        if not url.endswith('/'):
+            url = url + '/'
+        
+        self.base_url = url
         self.api_key = api_key
         self.headers = {
-            'X-Redmine-API-Key': self.api_key,
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
+            "X-Redmine-API-Key": api_key
         }
+        logger.debug(f"Redmine API client initialized with URL: {url}")
+    
+    def _make_request(self, method, endpoint, data=None, params=None):
+        """
+        Make a request to the Redmine API
+        
+        Args:
+            method (str): HTTP method (GET, POST, PUT)
+            endpoint (str): API endpoint (e.g., 'issues.json')
+            data (dict, optional): Data to send in the request body
+            params (dict, optional): Query parameters
+            
+        Returns:
+            dict: The response data
+        """
+        url = urljoin(self.base_url, endpoint)
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=self.headers, params=params)
+            elif method == 'POST':
+                response = requests.post(url, headers=self.headers, json=data)
+            elif method == 'PUT':
+                response = requests.put(url, headers=self.headers, json=data)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+            
+            if response.status_code >= 400:
+                logger.error(f"Redmine API error: {response.status_code} - {response.text}")
+                raise Exception(f"API request failed with status code {response.status_code}: {response.text}")
+            
+            # For successful requests with no content
+            if response.status_code == 204:
+                return {"success": True, "message": "Operation completed successfully"}
+            
+            return response.json()
+        
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error making request to Redmine API: {str(e)}")
+            raise Exception(f"Failed to communicate with Redmine API: {str(e)}")
     
     def get_issues(self, project_id=None, status_id=None, limit=25):
         """
@@ -35,24 +86,21 @@ class RedmineAPI:
         Returns:
             list: List of issue dictionaries
         """
-        params = {'limit': limit}
+        params = {"limit": limit}
+        
         if project_id:
-            params['project_id'] = project_id
+            params["project_id"] = project_id
+        
         if status_id:
-            params['status_id'] = status_id
+            params["status_id"] = status_id
         
-        response = requests.get(
-            f"{self.url}/issues.json",
-            headers=self.headers,
-            params=params
-        )
+        try:
+            response = self._make_request('GET', 'issues.json', params=params)
+            return response.get('issues', [])
         
-        if response.status_code != 200:
-            error_msg = f"Error fetching issues: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return response.json()['issues']
+        except Exception as e:
+            logger.error(f"Error getting issues: {str(e)}")
+            raise Exception(f"Failed to get issues: {str(e)}")
     
     def get_issue(self, issue_id):
         """
@@ -64,18 +112,13 @@ class RedmineAPI:
         Returns:
             dict: The issue data
         """
-        response = requests.get(
-            f"{self.url}/issues/{issue_id}.json",
-            headers=self.headers,
-            params={'include': 'journals,attachments,relations,children,watchers'}
-        )
+        try:
+            response = self._make_request('GET', f'issues/{issue_id}.json')
+            return response.get('issue', {})
         
-        if response.status_code != 200:
-            error_msg = f"Error fetching issue {issue_id}: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return response.json()['issue']
+        except Exception as e:
+            logger.error(f"Error getting issue #{issue_id}: {str(e)}")
+            raise Exception(f"Failed to get issue #{issue_id}: {str(e)}")
     
     def create_issue(self, project_id, subject, description, tracker_id=None, priority_id=None, assigned_to_id=None):
         """
@@ -93,33 +136,31 @@ class RedmineAPI:
             dict: The created issue data
         """
         issue_data = {
-            'issue': {
-                'project_id': project_id,
-                'subject': subject,
-                'description': description
+            "issue": {
+                "project_id": project_id,
+                "subject": subject,
+                "description": description
             }
         }
         
-        # Add optional parameters if provided
+        # Add optional fields if provided
         if tracker_id:
-            issue_data['issue']['tracker_id'] = tracker_id
+            issue_data["issue"]["tracker_id"] = tracker_id
+        
         if priority_id:
-            issue_data['issue']['priority_id'] = priority_id
+            issue_data["issue"]["priority_id"] = priority_id
+        
         if assigned_to_id:
-            issue_data['issue']['assigned_to_id'] = assigned_to_id
+            issue_data["issue"]["assigned_to_id"] = assigned_to_id
         
-        response = requests.post(
-            f"{self.url}/issues.json",
-            headers=self.headers,
-            json=issue_data
-        )
+        try:
+            response = self._make_request('POST', 'issues.json', data=issue_data)
+            logger.info(f"Created issue #{response.get('issue', {}).get('id')}")
+            return response
         
-        if response.status_code not in (201, 200):
-            error_msg = f"Error creating issue: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return response.json()['issue']
+        except Exception as e:
+            logger.error(f"Error creating issue: {str(e)}")
+            raise Exception(f"Failed to create issue: {str(e)}")
     
     def update_issue(self, issue_id, subject=None, description=None, tracker_id=None, 
                     priority_id=None, assigned_to_id=None, status_id=None, notes=None):
@@ -139,40 +180,43 @@ class RedmineAPI:
         Returns:
             dict: Success message
         """
-        issue_data = {'issue': {}}
+        issue_data = {"issue": {}}
         
-        # Only include fields that are provided
+        # Add fields that need to be updated
         if subject:
-            issue_data['issue']['subject'] = subject
+            issue_data["issue"]["subject"] = subject
+        
         if description:
-            issue_data['issue']['description'] = description
+            issue_data["issue"]["description"] = description
+        
         if tracker_id:
-            issue_data['issue']['tracker_id'] = tracker_id
+            issue_data["issue"]["tracker_id"] = tracker_id
+        
         if priority_id:
-            issue_data['issue']['priority_id'] = priority_id
+            issue_data["issue"]["priority_id"] = priority_id
+        
         if assigned_to_id:
-            issue_data['issue']['assigned_to_id'] = assigned_to_id
+            issue_data["issue"]["assigned_to_id"] = assigned_to_id
+        
         if status_id:
-            issue_data['issue']['status_id'] = status_id
+            issue_data["issue"]["status_id"] = status_id
+        
         if notes:
-            issue_data['issue']['notes'] = notes
+            issue_data["issue"]["notes"] = notes
         
-        # If no updates provided, return early
-        if not issue_data['issue']:
-            return {"message": "No updates provided"}
+        # Only proceed if there's something to update
+        if not issue_data["issue"]:
+            logger.warning(f"No updates provided for issue #{issue_id}")
+            return {"success": True, "message": "No updates provided"}
         
-        response = requests.put(
-            f"{self.url}/issues/{issue_id}.json",
-            headers=self.headers,
-            json=issue_data
-        )
+        try:
+            response = self._make_request('PUT', f'issues/{issue_id}.json', data=issue_data)
+            logger.info(f"Updated issue #{issue_id}")
+            return {"success": True, "message": f"Issue #{issue_id} updated successfully"}
         
-        if response.status_code != 204:  # Redmine returns 204 No Content on successful update
-            error_msg = f"Error updating issue {issue_id}: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return {"message": f"Issue {issue_id} updated successfully"}
+        except Exception as e:
+            logger.error(f"Error updating issue #{issue_id}: {str(e)}")
+            raise Exception(f"Failed to update issue #{issue_id}: {str(e)}")
     
     def get_projects(self):
         """
@@ -181,17 +225,13 @@ class RedmineAPI:
         Returns:
             list: List of project dictionaries
         """
-        response = requests.get(
-            f"{self.url}/projects.json",
-            headers=self.headers
-        )
+        try:
+            response = self._make_request('GET', 'projects.json')
+            return response.get('projects', [])
         
-        if response.status_code != 200:
-            error_msg = f"Error fetching projects: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return response.json()['projects']
+        except Exception as e:
+            logger.error(f"Error getting projects: {str(e)}")
+            raise Exception(f"Failed to get projects: {str(e)}")
     
     def get_trackers(self):
         """
@@ -200,17 +240,13 @@ class RedmineAPI:
         Returns:
             list: List of tracker dictionaries
         """
-        response = requests.get(
-            f"{self.url}/trackers.json",
-            headers=self.headers
-        )
+        try:
+            response = self._make_request('GET', 'trackers.json')
+            return response.get('trackers', [])
         
-        if response.status_code != 200:
-            error_msg = f"Error fetching trackers: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return response.json()['trackers']
+        except Exception as e:
+            logger.error(f"Error getting trackers: {str(e)}")
+            raise Exception(f"Failed to get trackers: {str(e)}")
     
     def get_statuses(self):
         """
@@ -219,17 +255,13 @@ class RedmineAPI:
         Returns:
             list: List of status dictionaries
         """
-        response = requests.get(
-            f"{self.url}/issue_statuses.json",
-            headers=self.headers
-        )
+        try:
+            response = self._make_request('GET', 'issue_statuses.json')
+            return response.get('issue_statuses', [])
         
-        if response.status_code != 200:
-            error_msg = f"Error fetching issue statuses: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return response.json()['issue_statuses']
+        except Exception as e:
+            logger.error(f"Error getting statuses: {str(e)}")
+            raise Exception(f"Failed to get statuses: {str(e)}")
     
     def get_priorities(self):
         """
@@ -238,14 +270,10 @@ class RedmineAPI:
         Returns:
             list: List of priority dictionaries
         """
-        response = requests.get(
-            f"{self.url}/enumerations/issue_priorities.json",
-            headers=self.headers
-        )
+        try:
+            response = self._make_request('GET', 'enumerations/issue_priorities.json')
+            return response.get('issue_priorities', [])
         
-        if response.status_code != 200:
-            error_msg = f"Error fetching issue priorities: {response.status_code} - {response.text}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-        
-        return response.json()['issue_priorities']
+        except Exception as e:
+            logger.error(f"Error getting priorities: {str(e)}")
+            raise Exception(f"Failed to get priorities: {str(e)}")

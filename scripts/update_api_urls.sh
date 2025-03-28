@@ -1,59 +1,109 @@
 #!/bin/bash
+# Script to update API URLs in the Redmine MCP Extension
 
-# This script updates the application's configuration to use a local Redmine instance
-# It should be run when you want to test against the Docker container
+# Default values
+NEW_REDMINE_URL=""
+NEW_CLAUDE_URL=""
 
-# Function to read the current credentials file
-read_credentials() {
-  if [ -f "credentials.yaml" ]; then
-    echo "Reading current credentials from credentials.yaml..."
-    REDMINE_URL=$(grep "redmine_url:" credentials.yaml | awk '{print $2}')
-    REDMINE_API_KEY=$(grep "redmine_api_key:" credentials.yaml | awk '{print $2}')
-    OPENAI_API_KEY=$(grep "openai_api_key:" credentials.yaml | awk '{print $2}')
-    RATE_LIMIT=$(grep "rate_limit_per_minute:" credentials.yaml | awk '{print $2}')
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --redmine-url)
+      NEW_REDMINE_URL="$2"
+      shift 2
+      ;;
+    --claude-url)
+      NEW_CLAUDE_URL="$2"
+      shift 2
+      ;;
+    --help)
+      echo "Usage: $0 [--redmine-url NEW_REDMINE_URL] [--claude-url NEW_CLAUDE_URL]"
+      echo ""
+      echo "Updates API URLs in the Redmine MCP Extension."
+      echo ""
+      echo "Options:"
+      echo "  --redmine-url NEW_REDMINE_URL   New Redmine API URL"
+      echo "  --claude-url NEW_CLAUDE_URL     New Claude API URL"
+      echo "  --help                          Show this help message"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
+  esac
+done
+
+# Validate inputs
+if [[ -z "$NEW_REDMINE_URL" && -z "$NEW_CLAUDE_URL" ]]; then
+  echo "❌ Error: At least one URL must be provided"
+  echo "Use --redmine-url or --claude-url to specify the new URL(s)"
+  exit 1
+fi
+
+# Check for credentials file
+if [[ ! -f "credentials.yaml" ]]; then
+  echo "❌ Error: credentials.yaml file not found"
+  echo "Please create the file first using 'cp credentials.yaml.example credentials.yaml'"
+  exit 1
+fi
+
+# Update Redmine URL in credentials.yaml
+if [[ -n "$NEW_REDMINE_URL" ]]; then
+  echo "Updating Redmine URL to: $NEW_REDMINE_URL"
+  
+  # Check if the URL has the correct format
+  if [[ ! "$NEW_REDMINE_URL" =~ ^https?:// ]]; then
+    echo "⚠️ Warning: The Redmine URL should start with http:// or https://"
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      exit 0
+    fi
+  fi
+  
+  # Update the URL in credentials.yaml
+  if grep -q "redmine_url:" credentials.yaml; then
+    sed -i.bak "s|redmine_url:.*|redmine_url: '$NEW_REDMINE_URL'|" credentials.yaml
+    echo "✅ Updated Redmine URL in credentials.yaml"
   else
-    echo "No credentials.yaml file found. Using default values..."
-    REDMINE_URL="http://localhost:3000"
-    REDMINE_API_KEY="your_redmine_api_key_here"
-    OPENAI_API_KEY="your_openai_api_key_here"
-    RATE_LIMIT=60
+    echo "⚠️ Warning: redmine_url entry not found in credentials.yaml"
+    echo "Please check the file format and try again"
   fi
-}
+fi
 
-# Function to update the credentials file
-update_credentials() {
-  echo "Updating credentials for local testing..."
+# Update Claude API URL in llm_api.py
+if [[ -n "$NEW_CLAUDE_URL" ]]; then
+  echo "Updating Claude API URL to: $NEW_CLAUDE_URL"
   
-  read -p "Enter local Redmine URL [http://localhost:3000]: " new_url
-  REDMINE_URL=${new_url:-http://localhost:3000}
-  
-  read -p "Enter Redmine API key: " new_api_key
-  if [ -n "$new_api_key" ]; then
-    REDMINE_API_KEY=$new_api_key
+  # Check if the URL has the correct format
+  if [[ ! "$NEW_CLAUDE_URL" =~ ^https?:// ]]; then
+    echo "⚠️ Warning: The Claude API URL should start with http:// or https://"
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      exit 0
+    fi
   fi
   
-  read -p "Enter OpenAI API key: " new_openai_key
-  if [ -n "$new_openai_key" ]; then
-    OPENAI_API_KEY=$new_openai_key
+  # Update the URL in llm_api.py
+  if [[ -f "llm_api.py" ]]; then
+    if grep -q "API_URL =" llm_api.py; then
+      sed -i.bak "s|API_URL = .*|API_URL = \"$NEW_CLAUDE_URL\"|" llm_api.py
+      echo "✅ Updated Claude API URL in llm_api.py"
+    else
+      echo "⚠️ Warning: API_URL entry not found in llm_api.py"
+      echo "Please check the file format and try again"
+    fi
+  else
+    echo "❌ Error: llm_api.py file not found"
   fi
-  
-  read -p "Enter rate limit per minute [60]: " new_rate_limit
-  RATE_LIMIT=${new_rate_limit:-60}
-  
-  # Create the updated credentials file
-  cat > credentials.yaml << EOL
-redmine_url: $REDMINE_URL
-redmine_api_key: $REDMINE_API_KEY
-openai_api_key: $OPENAI_API_KEY
-rate_limit_per_minute: $RATE_LIMIT
-EOL
-  
-  echo "Updated credentials.yaml file for local testing."
-  echo "You may need to restart the application for changes to take effect."
-}
+fi
 
-# Main script execution
-echo "=== Updating RedmineMCP Configuration for Local Testing ==="
-read_credentials
-update_credentials
-echo "=== Configuration updated ==="
+# Clean up backup files
+find . -name "*.bak" -type f -delete
+
+echo ""
+echo "🎉 API URLs updated successfully."
+echo "You may need to restart the application for changes to take effect."

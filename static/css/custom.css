@@ -1,52 +1,103 @@
-/* Custom styles on top of Bootstrap */
-.log-entry {
-    margin-bottom: 1rem;
-    padding: 0.5rem;
+/* Custom styles for Redmine MCP Extension */
+
+/* Adjust navbar brand size */
+.navbar-brand {
+    font-weight: 500;
+}
+
+/* Add a bit of padding to pre elements for better readability */
+pre {
+    padding: 1rem;
     border-radius: 0.25rem;
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
 }
 
-.log-success {
-    background-color: rgba(40, 167, 69, 0.1);
-    border-left: 4px solid var(--bs-success);
+/* Improve spacing in cards */
+.card-header {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
 }
 
-.log-error {
-    background-color: rgba(220, 53, 69, 0.1);
-    border-left: 4px solid var(--bs-danger);
+/* Add some subtle transitions */
+.btn, .card, .list-group-item {
+    transition: all 0.2s ease-in-out;
 }
 
-.dashboard-stat-card {
-    transition: transform 0.2s;
+.btn:hover {
+    transform: translateY(-1px);
 }
 
-.dashboard-stat-card:hover {
-    transform: translateY(-5px);
+/* Improved table styling */
+.table th {
+    border-top: none;
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
 }
 
-.code-block {
+/* Custom badge colors */
+.badge.bg-analyze {
+    background-color: var(--bs-info);
+}
+
+/* Footer styling */
+footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+/* API endpoint styling */
+.endpoint {
     font-family: monospace;
     background-color: var(--bs-dark);
     color: var(--bs-light);
-    padding: 1rem;
+    padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
-    overflow-x: auto;
-    white-space: pre-wrap;
 }
 
-.template-card {
-    margin-bottom: 1rem;
-    transition: transform 0.2s;
+/* Custom code display areas */
+.code-area {
+    background-color: var(--bs-dark);
+    border-radius: 0.25rem;
+    padding: 1rem;
 }
 
-.template-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.code-area pre {
+    margin-bottom: 0;
+    color: var(--bs-light);
 }
 
-.settings-form .form-group {
-    margin-bottom: 1.5rem;
+/* Adjust modal content for better readability */
+.modal-content {
+    border-radius: 0.5rem;
 }
 
-.api-key-field {
-    font-family: monospace;
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Bootstrap overrides for the dark theme */
+.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+.bg-dark {
+    background-color: #212529 !important;
+}
+
+/* Fix for badge positioning */
+.badge {
+    vertical-align: middle;
+}
+
+/* Improve dropdown styling */
+.dropdown-menu {
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item:hover {
+    background-color: var(--bs-primary);
+    color: white;
 }

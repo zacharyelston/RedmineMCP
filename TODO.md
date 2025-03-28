@@ -16,10 +16,10 @@ This document outlines planned enhancements and features for the Redmine Model C
   - [x] Configure the container to initialize with consistent test data
   - [x] Add documentation for container usage
 
-- [ ] **Test API Connection Functionality**
-  - Implement real connection testing for Redmine and OpenAI APIs
-  - Add detailed error reporting for API connection issues
-  - Create visual indicators for connection status
+- [x] **Test API Connection Functionality**
+  - [x] Implement real connection testing for Redmine and Claude APIs
+  - [x] Add detailed error reporting for API connection issues
+  - [x] Create visual indicators for connection status
 
 - [ ] **Improved Error Handling**
   - Add more detailed error messages
@@ -33,10 +33,10 @@ This document outlines planned enhancements and features for the Redmine Model C
 
 ## Medium Priority
 
-- [ ] **Enhanced LLM Features**
-  - Add support for custom LLM systems beyond OpenAI
-  - Implement context-aware prompts that understand Redmine's workflow
-  - Create specialized prompt templates for different issue types
+- [x] **Enhanced LLM Features**
+  - [x] Add support for Claude API (migrated from OpenAI)
+  - [x] Implement context-aware prompts that understand Redmine's workflow
+  - [x] Create specialized prompt templates for different issue types
 
 - [ ] **Redmine Integration Improvements**
   - Support for Redmine custom fields
@@ -77,12 +77,12 @@ This document outlines planned enhancements and features for the Redmine Model C
   - Add detailed developer documentation
   - Create user manual with examples
 
-- [ ] **DevOps**
-  - [ ] Set up CI/CD pipeline
+- [x] **DevOps**
+  - [x] Set up CI/CD pipeline (basic GitHub Actions)
   - [x] Create Docker container for easy deployment
   - [ ] Add monitoring and alerting
-  - [ ] Set up GitHub Actions workflows
-    - [ ] Implement workflow for running tests
+  - [x] Set up GitHub Actions workflows
+    - [x] Implement workflow for running tests
     - [ ] Add workflow for automated linting and code quality
     - [x] Create workflow for building and publishing Docker images
     - [ ] Set up deployment workflow for staging/production environments

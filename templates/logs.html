@@ -1,161 +1,203 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="display-5 mb-4">
-            <i class="fas fa-list me-2"></i> Action Logs
-        </h1>
-        <p class="lead">
-            View logs of all LLM actions performed on your Redmine instance.
-        </p>
-    </div>
-</div>
-
-<!-- Filters -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card bg-dark">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-filter me-2"></i> Filters
-                </h5>
-            </div>
-            <div class="card-body">
-                <form action="{{ url_for('logs') }}" method="get" class="row g-3">
-                    <div class="col-md-3">
-                        <label for="action_type" class="form-label">Action Type</label>
-                        <select class="form-select" id="action_type" name="action_type">
-                            <option value="">All Actions</option>
-                            <option value="create">Create</option>
-                            <option value="update">Update</option>
-                            <option value="analyze">Analyze</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="">All</option>
-                            <option value="success">Success</option>
-                            <option value="error">Error</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="issue_id" class="form-label">Issue ID</label>
-                        <input type="number" class="form-control" id="issue_id" name="issue_id" placeholder="Issue ID">
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search me-1"></i> Apply Filters
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Logs Table -->
 <div class="row">
-    <div class="col-12">
-        <div class="card bg-dark">
+    <div class="col-lg-10 mx-auto">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Action Logs</h2>
+                <div>
+                    <button class="btn btn-sm btn-light" id="refreshLogsBtn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
             <div class="card-body">
-                {% if logs.items %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <label for="filterAction" class="form-label">Filter by Action:</label>
+                            <select class="form-select form-select-sm d-inline-block w-auto" id="filterAction">
+                                <option value="all">All Actions</option>
+                                <option value="create">Create</option>
+                                <option value="update">Update</option>
+                                <option value="analyze">Analyze</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterStatus" class="form-label">Status:</label>
+                            <select class="form-select form-select-sm d-inline-block w-auto" id="filterStatus">
+                                <option value="all">All</option>
+                                <option value="success">Successful</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
-                    <table class="table table-dark table-hover">
+                    <table class="table table-striped table-hover">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Time</th>
                                 <th>Action</th>
-                                <th>Issue ID</th>
+                                <th>Issue</th>
                                 <th>Status</th>
+                                <th>Time</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for log in logs.items %}
-                            <tr>
+                            <tr class="align-middle {% if not log.success %}table-danger{% endif %}">
                                 <td>{{ log.id }}</td>
-                                <td class="format-date">{{ log.created_at }}</td>
-                                <td>{{ log.action_type }}</td>
+                                <td>
+                                    <span class="badge rounded-pill 
+                                        {% if log.action_type == 'create' %}bg-primary
+                                        {% elif log.action_type == 'update' %}bg-success
+                                        {% elif log.action_type == 'analyze' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ log.action_type }}
+                                    </span>
+                                </td>
                                 <td>
                                     {% if log.issue_id %}
-                                    <a href="#" class="text-info">{{ log.issue_id }}</a>
+                                    <a href="#" class="text-decoration-none">#{{ log.issue_id }}</a>
                                     {% else %}
-                                    -
+                                    <span class="text-muted">—</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if log.success %}
-                                    <span class="badge bg-success">Success</span>
+                                    <span class="text-success">Success</span>
                                     {% else %}
-                                    <span class="badge bg-danger">Failed</span>
+                                    <span class="text-danger">Failed</span>
                                     {% endif %}
                                 </td>
+                                <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info" 
-                                            data-bs-toggle="collapse" 
-                                            data-bs-target="#log-details-{{ log.id }}" 
-                                            aria-expanded="false">
-                                        <i class="fas fa-info-circle"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="modal" data-bs-target="#logDetailsModal"
+                                            onclick="showLogDetails({{ log.id }}, '{{ log.action_type }}', '{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}', 
+                                                                  '{{ log.prompt | replace('\n', ' ') | replace("'", "\\'") }}', 
+                                                                  {% if log.success %}'{{ log.response | replace('\n', ' ') | replace("'", "\\'") }}'{% else %}'{{ log.error_message | replace('\n', ' ') | replace("'", "\\'") }}'{% endif %})">
+                                        View Details
                                     </button>
-                                </td>
-                            </tr>
-                            <tr class="collapse" id="log-details-{{ log.id }}">
-                                <td colspan="6">
-                                    <div class="p-3">
-                                        <h6>Prompt:</h6>
-                                        <div class="code-block mb-3">{{ log.prompt }}</div>
-                                        
-                                        <h6>Response:</h6>
-                                        <div class="code-block mb-3">{{ log.response }}</div>
-                                        
-                                        {% if not log.success and log.error_message %}
-                                        <h6>Error:</h6>
-                                        <div class="code-block mb-3">{{ log.error_message }}</div>
-                                        {% endif %}
-                                        
-                                        <h6>Content:</h6>
-                                        <div class="code-block">{{ log.content }}</div>
-                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                
+
                 <!-- Pagination -->
-                <nav aria-label="Log pagination">
+                <nav aria-label="Log navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
-                        {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if logs.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.logs', page=logs.prev_num) }}">Previous</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Previous</span>
+                        </li>
+                        {% endif %}
+
+                        {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                             {% if page_num %}
-                                {% if page_num == logs.page %}
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">{{ page_num }}</a>
+                                {% if page_num != logs.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('main.logs', page=page_num) }}">{{ page_num }}</a>
                                 </li>
                                 {% else %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('logs', page=page_num) }}">{{ page_num }}</a>
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
                                 </li>
                                 {% endif %}
                             {% else %}
                                 <li class="page-item disabled">
-                                    <a class="page-link" href="#">...</a>
+                                    <span class="page-link">...</span>
                                 </li>
                             {% endif %}
                         {% endfor %}
+
+                        {% if logs.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.logs', page=logs.next_num) }}">Next</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Next</span>
+                        </li>
+                        {% endif %}
                     </ul>
                 </nav>
-                
-                {% else %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> No logs found.
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Log Details Modal -->
+<div class="modal fade" id="logDetailsModal" tabindex="-1" aria-labelledby="logDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logDetailsModalLabel">Log Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p><strong>Action:</strong> <span id="logAction"></span></p>
+                    <p><strong>Time:</strong> <span id="logTime"></span></p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Prompt</h6>
+                    <div class="p-3 bg-light rounded">
+                        <pre id="logPrompt" class="mb-0" style="white-space: pre-wrap;"></pre>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Response</h6>
+                    <div class="p-3 bg-light rounded">
+                        <pre id="logResponse" class="mb-0" style="white-space: pre-wrap;"></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show log details in modal
+function showLogDetails(id, action, time, prompt, response) {
+    document.getElementById('logDetailsModalLabel').textContent = `Log #${id} Details`;
+    document.getElementById('logAction').textContent = action;
+    document.getElementById('logTime').textContent = time;
+    document.getElementById('logPrompt').textContent = prompt;
+    document.getElementById('logResponse').textContent = response;
+}
+
+// Filter functionality would be implemented here in a real application
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('refreshLogsBtn').addEventListener('click', function() {
+        window.location.reload();
+    });
+    
+    // Add filter change handlers
+    document.getElementById('filterAction').addEventListener('change', function() {
+        // This would apply filters in a real implementation
+        console.log('Action filter changed to:', this.value);
+    });
+    
+    document.getElementById('filterStatus').addEventListener('change', function() {
+        // This would apply filters in a real implementation
+        console.log('Status filter changed to:', this.value);
+    });
+});
+</script>
 {% endblock %}

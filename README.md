@@ -14,14 +14,48 @@ This project implements a middleware service that connects Redmine (a popular pr
 - **Web Interface**: Simple dashboard for configuration and monitoring
 - **Rate Limiting**: Built-in protection against API overuse
 - **Comprehensive Logging**: Detailed logs of all AI operations
+- **Docker Integration**: Full Docker support for easy setup and deployment
 
 ## Requirements
 
-- Python 3.9+
-- Redmine instance with API access enabled
+- Python 3.9+ (for local development)
+- Docker and Docker Compose (for containerized setup)
 - Anthropic Claude API key
 
-## Installation
+## Installation and Setup
+
+### Option 1: Docker Setup (Recommended for MCP Integration)
+
+This option sets up both Redmine and the MCP extension in Docker containers, providing a complete environment for development and testing.
+
+1. Clone this repository:
+   ```
+   git clone https://github.com/yourusername/redmine-mcp.git
+   cd redmine-mcp
+   ```
+
+2. Run the setup script to configure the Docker environment:
+   ```bash
+   chmod +x scripts/setup_docker_dev.sh
+   ./scripts/setup_docker_dev.sh
+   ```
+
+3. Edit the `.env` file to add your Claude API key.
+
+4. Start the entire stack:
+   ```bash
+   ./start_mcp_dev.sh
+   ```
+
+The setup includes:
+- A Redmine instance at http://localhost:3000 (admin/admin)
+- The MCP extension at http://localhost:5000
+- Automatic configuration of Redmine API access
+- A sample project for testing
+
+### Option 2: Local Installation
+
+For standalone development without Docker:
 
 1. Clone this repository:
    ```
@@ -31,7 +65,7 @@ This project implements a middleware service that connects Redmine (a popular pr
 
 2. Install required dependencies:
    ```
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
 3. Create configuration:
@@ -41,19 +75,27 @@ This project implements a middleware service that connects Redmine (a popular pr
    
 4. Edit `credentials.yaml` with your actual Redmine URL, API key, and Claude API key.
 
-## Usage
-
-1. Start the application:
+5. Start the application:
    ```
    python main.py
    ```
 
-2. Access the web interface at `http://localhost:5000`
+6. Access the web interface at `http://localhost:5000`
 
-3. Use the API endpoints to interact with the extension:
-   - `/api/issue/create` - Create a new issue
-   - `/api/issue/<id>/update` - Update an existing issue
-   - `/api/issue/<id>/analyze` - Analyze an issue
+## MCP Integration
+
+The extension implements the Model Context Protocol for seamless integration with MCP clients:
+
+1. The API endpoints are already MCP-compatible
+2. Use the Docker setup for proper connection to your MCP environment
+3. The extension will appear in your MCP client once properly connected
+
+## Usage
+
+Use the API endpoints to interact with the extension:
+- `/api/llm/create_issue` - Create a new issue
+- `/api/llm/update_issue/{issue_id}` - Update an existing issue
+- `/api/llm/analyze_issue/{issue_id}` - Analyze an issue
 
 ## API Usage Examples
 
@@ -66,7 +108,7 @@ payload = {
     "prompt": "Create a bug report for a login page issue where users are experiencing 404 errors after submitting login credentials on the production environment"
 }
 
-response = requests.post("http://localhost:5000/api/issue/create", json=payload)
+response = requests.post("http://localhost:5000/api/llm/create_issue", json=payload)
 print(response.json())
 ```
 
@@ -79,7 +121,7 @@ payload = {
     "prompt": "Change the priority to high and add more information about the browser versions affected"
 }
 
-response = requests.post("http://localhost:5000/api/issue/123/update", json=payload)
+response = requests.post("http://localhost:5000/api/llm/update_issue/123", json=payload)
 print(response.json())
 ```
 
@@ -88,7 +130,7 @@ print(response.json())
 ```python
 import requests
 
-response = requests.get("http://localhost:5000/api/issue/123/analyze")
+response = requests.post("http://localhost:5000/api/llm/analyze_issue/123", json={})
 print(response.json())
 ```
 

@@ -1,130 +1,126 @@
-import json
-from datetime import datetime, timedelta
-from flask import render_template, request, redirect, url_for, flash, jsonify
-import logging
+"""
+Routes for the Redmine MCP Extension.
+Defines all API endpoints and web UI routes for the application.
+"""
 
-from app import app, db
-from models import Config, ActionLog, PromptTemplate, RateLimitTracker
+import json
+import logging
+from datetime import datetime
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from models import db, Config, ActionLog, PromptTemplate, RateLimitTracker
 from redmine_api import RedmineAPI
 from llm_api import LLMAPI
-from utils import is_rate_limited, add_api_call, update_config_from_credentials, create_credentials_file
+from utils import is_rate_limited, add_api_call, load_credentials, create_credentials_file, update_config_from_credentials
 
 logger = logging.getLogger(__name__)
 
-@app.route('/')
+# Create blueprint for main application routes
+main = Blueprint('main', __name__)
+
+@main.route('/')
 def index():
     """Main page - overview of the integration"""
     config = Config.query.first()
-    if not config:
-        # If no configuration exists, redirect to settings
-        flash('Please configure your Redmine and Claude API settings first.', 'warning')
-        return redirect(url_for('settings'))
-    
-    # Get some stats for the dashboard
-    recent_logs = ActionLog.query.order_by(ActionLog.created_at.desc()).limit(5).all()
-    total_actions = ActionLog.query.count()
-    success_rate = 0
-    if total_actions > 0:
-        success_count = ActionLog.query.filter_by(success=True).count()
-        success_rate = (success_count / total_actions) * 100
-    
-    return render_template('index.html', 
-                          recent_logs=recent_logs, 
-                          total_actions=total_actions, 
-                          success_rate=success_rate)
+    return render_template('index.html', config=config)
 
-@app.route('/settings', methods=['GET', 'POST'])
+@main.route('/settings', methods=['GET', 'POST'])
 def settings():
     """Configuration page for the integration"""
     config = Config.query.first()
     
     if request.method == 'POST':
-        action = request.form.get('action', 'save')
+        # Update configuration from form submission
+        redmine_url = request.form.get('redmine_url')
+        redmine_api_key = request.form.get('redmine_api_key')
+        claude_api_key = request.form.get('claude_api_key')
+        rate_limit = int(request.form.get('rate_limit', 60))
         
-        if action == 'save':
-            if config:
-                # Update existing config
-                config.redmine_url = request.form['redmine_url']
-                config.redmine_api_key = request.form['redmine_api_key']
-                config.claude_api_key = request.form['claude_api_key']
-                config.rate_limit_per_minute = int(request.form['rate_limit_per_minute'])
-            else:
-                # Create new config
-                config = Config(
-                    redmine_url=request.form['redmine_url'],
-                    redmine_api_key=request.form['redmine_api_key'],
-                    claude_api_key=request.form['claude_api_key'],
-                    rate_limit_per_minute=int(request.form['rate_limit_per_minute'])
-                )
-                db.session.add(config)
-            
-            db.session.commit()
-            
-            # Save to credentials file if requested
-            if request.form.get('save_to_file') == 'yes':
-                success, message = create_credentials_file(
-                    config.redmine_url,
-                    config.redmine_api_key,
-                    config.claude_api_key,
-                    config.rate_limit_per_minute
-                )
-                if success:
-                    flash('Configuration saved to database and credentials file successfully!', 'success')
-                else:
-                    flash(f'Configuration saved to database, but failed to save to file: {message}', 'warning')
-            else:
-                flash('Configuration saved to database successfully!', 'success')
-                
-            return redirect(url_for('index'))
+        # Create or update config
+        if config:
+            config.redmine_url = redmine_url
+            config.redmine_api_key = redmine_api_key
+            config.claude_api_key = claude_api_key
+            config.rate_limit_per_minute = rate_limit
+            config.updated_at = datetime.utcnow()
+        else:
+            config = Config(
+                redmine_url=redmine_url,
+                redmine_api_key=redmine_api_key,
+                claude_api_key=claude_api_key,
+                rate_limit_per_minute=rate_limit
+            )
+            db.session.add(config)
         
-        elif action == 'load_from_file':
-            # Load from credentials file
-            success, message = update_config_from_credentials()
-            if success:
-                flash('Configuration loaded from credentials file successfully!', 'success')
-                return redirect(url_for('settings'))
-            else:
-                flash(f'Failed to load configuration from file: {message}', 'danger')
+        # Also update credentials.yaml for persistence
+        success, message = create_credentials_file(
+            redmine_url, 
+            redmine_api_key, 
+            claude_api_key, 
+            rate_limit
+        )
+        
+        db.session.commit()
+        
+        if success:
+            flash('Configuration saved successfully!', 'success')
+        else:
+            flash(f'Configuration saved to database but not to credentials file: {message}', 'warning')
+        
+        return redirect(url_for('main.settings'))
     
     return render_template('settings.html', config=config)
 
-@app.route('/logs')
+@main.route('/logs')
 def logs():
     """View action logs"""
     page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    
+    # Get logs with pagination
     logs = ActionLog.query.order_by(ActionLog.created_at.desc()).paginate(
-        page=page, per_page=20, error_out=False)
+        page=page, per_page=per_page, error_out=False
+    )
+    
     return render_template('logs.html', logs=logs)
 
-@app.route('/prompts', methods=['GET', 'POST'])
+@main.route('/prompts', methods=['GET', 'POST'])
 def prompts():
     """Manage prompt templates"""
     if request.method == 'POST':
-        if request.form.get('id'):
+        # Create or update a prompt template
+        template_id = request.form.get('id')
+        name = request.form.get('name')
+        description = request.form.get('description')
+        template = request.form.get('template')
+        
+        if template_id:
             # Update existing template
-            template = PromptTemplate.query.get(request.form['id'])
-            if template:
-                template.name = request.form['name']
-                template.description = request.form['description']
-                template.template = request.form['template']
-                flash('Prompt template updated!', 'success')
+            prompt_template = PromptTemplate.query.get(template_id)
+            if prompt_template:
+                prompt_template.name = name
+                prompt_template.description = description
+                prompt_template.template = template
+                prompt_template.updated_at = datetime.utcnow()
+                flash('Prompt template updated successfully!', 'success')
+            else:
+                flash('Prompt template not found!', 'error')
         else:
             # Create new template
-            template = PromptTemplate(
-                name=request.form['name'],
-                description=request.form['description'],
-                template=request.form['template']
+            prompt_template = PromptTemplate(
+                name=name,
+                description=description,
+                template=template
             )
-            db.session.add(template)
-            flash('Prompt template created!', 'success')
+            db.session.add(prompt_template)
+            flash('Prompt template created successfully!', 'success')
         
         db.session.commit()
-        return redirect(url_for('prompts'))
+        return redirect(url_for('main.prompts'))
     
     templates = PromptTemplate.query.all()
     return render_template('prompts.html', templates=templates)
 
-@app.route('/api/prompt_template/<int:id>', methods=['GET'])
+@main.route('/api/prompts/<int:id>', methods=['GET'])
 def get_prompt_template(id):
     """API endpoint to get a specific prompt template"""
     template = PromptTemplate.query.get_or_404(id)
@@ -135,20 +131,26 @@ def get_prompt_template(id):
         'template': template.template
     })
 
-@app.route('/api/prompt_template/<int:id>', methods=['DELETE'])
+@main.route('/api/prompts/<int:id>', methods=['DELETE'])
 def delete_prompt_template(id):
     """API endpoint to delete a prompt template"""
     template = PromptTemplate.query.get_or_404(id)
     db.session.delete(template)
     db.session.commit()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': 'Template deleted successfully'})
 
-@app.route('/api/redmine/issues', methods=['GET'])
+# API ENDPOINTS
+
+@main.route('/api/issues', methods=['GET'])
 def get_issues():
     """API endpoint to get Redmine issues"""
     config = Config.query.first()
     if not config:
-        return jsonify({'error': 'Configuration not found'}), 400
+        return jsonify({'error': 'No configuration found'}), 500
+    
+    project_id = request.args.get('project_id')
+    status_id = request.args.get('status_id')
+    limit = request.args.get('limit', 25, type=int)
     
     # Check rate limiting
     if is_rate_limited('redmine', config.rate_limit_per_minute):
@@ -156,26 +158,22 @@ def get_issues():
     
     try:
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
-        issues = redmine_api.get_issues(
-            project_id=request.args.get('project_id'),
-            status_id=request.args.get('status_id'),
-            limit=request.args.get('limit', 25, type=int)
-        )
+        issues = redmine_api.get_issues(project_id, status_id, limit)
         
-        # Track API call for rate limiting
+        # Record API call for rate limiting
         add_api_call('redmine')
         
-        return jsonify(issues)
+        return jsonify({'issues': issues})
+    
     except Exception as e:
-        logger.error(f"Error fetching Redmine issues: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/redmine/issue/<int:issue_id>', methods=['GET'])
+@main.route('/api/issues/<int:issue_id>', methods=['GET'])
 def get_issue(issue_id):
     """API endpoint to get a specific Redmine issue"""
     config = Config.query.first()
     if not config:
-        return jsonify({'error': 'Configuration not found'}), 400
+        return jsonify({'error': 'No configuration found'}), 500
     
     # Check rate limiting
     if is_rate_limited('redmine', config.rate_limit_per_minute):
@@ -185,210 +183,251 @@ def get_issue(issue_id):
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
         issue = redmine_api.get_issue(issue_id)
         
-        # Track API call for rate limiting
+        # Record API call for rate limiting
         add_api_call('redmine')
         
-        return jsonify(issue)
+        return jsonify({'issue': issue})
+    
     except Exception as e:
-        logger.error(f"Error fetching Redmine issue {issue_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/llm/create_issue', methods=['POST'])
+@main.route('/api/llm/create_issue', methods=['POST'])
 def llm_create_issue():
     """API endpoint for an LLM to create a Redmine issue"""
     config = Config.query.first()
     if not config:
-        return jsonify({'error': 'Configuration not found'}), 400
+        return jsonify({'error': 'No configuration found'}), 500
+    
+    # Get prompt from request
+    data = request.get_json()
+    prompt = data.get('prompt')
+    
+    if not prompt:
+        return jsonify({'error': 'No prompt provided'}), 400
     
     # Check rate limiting for both APIs
-    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('claude', config.rate_limit_per_minute):
-        return jsonify({'error': 'Rate limit exceeded'}), 429
+    if is_rate_limited('redmine', config.rate_limit_per_minute):
+        return jsonify({'error': 'Redmine API rate limit exceeded'}), 429
+    
+    if is_rate_limited('claude', config.rate_limit_per_minute):
+        return jsonify({'error': 'Claude API rate limit exceeded'}), 429
     
     try:
-        data = request.json
-        prompt = data.get('prompt')
-        if not prompt:
-            return jsonify({'error': 'Prompt is required'}), 400
-        
-        # Initialize APIs
+        # Generate issue attributes with Claude
         llm_api = LLMAPI(config.claude_api_key)
-        redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
-        
-        # Use LLM to generate issue attributes
         issue_data = llm_api.generate_issue(prompt)
+        
+        # Record API call for rate limiting
         add_api_call('claude')
         
         # Create the issue in Redmine
-        issue = redmine_api.create_issue(
-            project_id=issue_data.get('project_id'),
-            subject=issue_data.get('subject'),
-            description=issue_data.get('description'),
-            tracker_id=issue_data.get('tracker_id'),
-            priority_id=issue_data.get('priority_id'),
-            assigned_to_id=issue_data.get('assigned_to_id')
+        redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
+        
+        # Extract required fields from the generated data
+        project_id = issue_data.get('project_id', 1)  # Default to project ID 1 if not specified
+        subject = issue_data.get('subject')
+        description = issue_data.get('description')
+        tracker_id = issue_data.get('tracker_id')
+        priority_id = issue_data.get('priority_id')
+        assigned_to_id = issue_data.get('assigned_to_id')
+        
+        if not subject or not description:
+            return jsonify({'error': 'Generated issue data is missing required fields'}), 500
+        
+        # Create the issue
+        result = redmine_api.create_issue(
+            project_id=project_id,
+            subject=subject,
+            description=description,
+            tracker_id=tracker_id,
+            priority_id=priority_id,
+            assigned_to_id=assigned_to_id
         )
+        
+        # Record API call for rate limiting
         add_api_call('redmine')
         
         # Log the action
-        log = ActionLog(
+        log_entry = ActionLog(
             action_type='create',
-            issue_id=issue.get('id'),
-            content=json.dumps(issue),
+            issue_id=result.get('issue', {}).get('id'),
+            content=json.dumps(result),
             prompt=prompt,
             response=json.dumps(issue_data),
             success=True
         )
-        db.session.add(log)
+        db.session.add(log_entry)
         db.session.commit()
         
-        return jsonify({
-            'success': True,
-            'issue': issue
-        })
+        return jsonify(result)
+    
     except Exception as e:
         # Log the error
-        log = ActionLog(
+        log_entry = ActionLog(
             action_type='create',
-            content='Failed to create issue',
-            prompt=request.json.get('prompt', ''),
+            issue_id=None,
+            content='',
+            prompt=prompt,
             response='',
             success=False,
             error_message=str(e)
         )
-        db.session.add(log)
+        db.session.add(log_entry)
         db.session.commit()
         
-        logger.error(f"Error creating issue through LLM: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/llm/update_issue/<int:issue_id>', methods=['POST'])
+@main.route('/api/llm/update_issue/<int:issue_id>', methods=['POST'])
 def llm_update_issue(issue_id):
     """API endpoint for an LLM to update a Redmine issue"""
     config = Config.query.first()
     if not config:
-        return jsonify({'error': 'Configuration not found'}), 400
+        return jsonify({'error': 'No configuration found'}), 500
+    
+    # Get prompt from request
+    data = request.get_json()
+    prompt = data.get('prompt')
+    
+    if not prompt:
+        return jsonify({'error': 'No prompt provided'}), 400
     
     # Check rate limiting for both APIs
-    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('claude', config.rate_limit_per_minute):
-        return jsonify({'error': 'Rate limit exceeded'}), 429
+    if is_rate_limited('redmine', config.rate_limit_per_minute):
+        return jsonify({'error': 'Redmine API rate limit exceeded'}), 429
+    
+    if is_rate_limited('claude', config.rate_limit_per_minute):
+        return jsonify({'error': 'Claude API rate limit exceeded'}), 429
     
     try:
-        data = request.json
-        prompt = data.get('prompt')
-        if not prompt:
-            return jsonify({'error': 'Prompt is required'}), 400
-        
-        # Initialize APIs
-        llm_api = LLMAPI(config.claude_api_key)
+        # First, get the current issue from Redmine
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
-        
-        # Get the current issue to provide context to the LLM
         current_issue = redmine_api.get_issue(issue_id)
+        
+        # Record API call for rate limiting
         add_api_call('redmine')
         
-        # Use LLM to generate updated issue attributes
+        # Generate update attributes with Claude
+        llm_api = LLMAPI(config.claude_api_key)
         update_data = llm_api.update_issue(prompt, current_issue)
+        
+        # Record API call for rate limiting
         add_api_call('claude')
         
-        # Update the issue in Redmine
-        updated_issue = redmine_api.update_issue(
+        # Extract fields for the update
+        subject = update_data.get('subject')
+        description = update_data.get('description')
+        tracker_id = update_data.get('tracker_id')
+        priority_id = update_data.get('priority_id')
+        assigned_to_id = update_data.get('assigned_to_id')
+        status_id = update_data.get('status_id')
+        notes = update_data.get('notes')
+        
+        # Update the issue
+        result = redmine_api.update_issue(
             issue_id=issue_id,
-            subject=update_data.get('subject'),
-            description=update_data.get('description'),
-            tracker_id=update_data.get('tracker_id'),
-            priority_id=update_data.get('priority_id'),
-            assigned_to_id=update_data.get('assigned_to_id'),
-            status_id=update_data.get('status_id'),
-            notes=update_data.get('notes')
+            subject=subject,
+            description=description,
+            tracker_id=tracker_id,
+            priority_id=priority_id,
+            assigned_to_id=assigned_to_id,
+            status_id=status_id,
+            notes=notes
         )
+        
+        # Record API call for rate limiting
         add_api_call('redmine')
         
         # Log the action
-        log = ActionLog(
+        log_entry = ActionLog(
             action_type='update',
             issue_id=issue_id,
-            content=json.dumps(updated_issue),
+            content=json.dumps(result),
             prompt=prompt,
             response=json.dumps(update_data),
             success=True
         )
-        db.session.add(log)
+        db.session.add(log_entry)
         db.session.commit()
         
-        return jsonify({
-            'success': True,
-            'issue': updated_issue
-        })
+        return jsonify(result)
+    
     except Exception as e:
         # Log the error
-        log = ActionLog(
+        log_entry = ActionLog(
             action_type='update',
             issue_id=issue_id,
-            content=f'Failed to update issue {issue_id}',
-            prompt=request.json.get('prompt', ''),
+            content='',
+            prompt=prompt,
             response='',
             success=False,
             error_message=str(e)
         )
-        db.session.add(log)
+        db.session.add(log_entry)
         db.session.commit()
         
-        logger.error(f"Error updating issue {issue_id} through LLM: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/llm/analyze_issue/<int:issue_id>', methods=['POST'])
+@main.route('/api/llm/analyze_issue/<int:issue_id>', methods=['POST'])
 def llm_analyze_issue(issue_id):
     """API endpoint for an LLM to analyze a Redmine issue"""
     config = Config.query.first()
     if not config:
-        return jsonify({'error': 'Configuration not found'}), 400
+        return jsonify({'error': 'No configuration found'}), 500
     
     # Check rate limiting for both APIs
-    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('claude', config.rate_limit_per_minute):
-        return jsonify({'error': 'Rate limit exceeded'}), 429
+    if is_rate_limited('redmine', config.rate_limit_per_minute):
+        return jsonify({'error': 'Redmine API rate limit exceeded'}), 429
+    
+    if is_rate_limited('claude', config.rate_limit_per_minute):
+        return jsonify({'error': 'Claude API rate limit exceeded'}), 429
     
     try:
-        # Initialize APIs
-        llm_api = LLMAPI(config.claude_api_key)
+        # First, get the issue from Redmine
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
-        
-        # Get the issue to analyze
         issue = redmine_api.get_issue(issue_id)
+        
+        # Record API call for rate limiting
         add_api_call('redmine')
         
-        # Use LLM to analyze the issue
+        # Analyze the issue with Claude
+        llm_api = LLMAPI(config.claude_api_key)
         analysis = llm_api.analyze_issue(issue)
+        
+        # Record API call for rate limiting
         add_api_call('claude')
         
         # Log the action
-        log = ActionLog(
+        log_entry = ActionLog(
             action_type='analyze',
             issue_id=issue_id,
             content=json.dumps(issue),
-            prompt=f"Analyze issue {issue_id}",
+            prompt='Analysis request',
             response=json.dumps(analysis),
             success=True
         )
-        db.session.add(log)
+        db.session.add(log_entry)
         db.session.commit()
         
-        return jsonify({
-            'success': True,
-            'analysis': analysis
-        })
+        return jsonify(analysis)
+    
     except Exception as e:
         # Log the error
-        log = ActionLog(
+        log_entry = ActionLog(
             action_type='analyze',
             issue_id=issue_id,
-            content=f'Failed to analyze issue {issue_id}',
-            prompt=f"Analyze issue {issue_id}",
+            content='',
+            prompt='Analysis request',
             response='',
             success=False,
             error_message=str(e)
         )
-        db.session.add(log)
+        db.session.add(log_entry)
         db.session.commit()
         
-        logger.error(f"Error analyzing issue {issue_id} through LLM: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+# Function to register main routes with Flask app
+def register_routes(app):
+    """Register routes blueprint with the Flask app"""
+    app.register_blueprint(main)
+    logger.info("Main routes blueprint registered")

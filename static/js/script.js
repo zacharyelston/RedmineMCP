@@ -1,83 +1,89 @@
-// Utility functions for the MCP Redmine extension
+/**
+ * Common JavaScript functions for the Redmine MCP Extension
+ */
 
-// Function to format timestamps
+/**
+ * Format a date string to a more readable format
+ * @param {string} dateString - The date string to format
+ * @returns {string} Formatted date string
+ */
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
-// Function to fetch and display a prompt template
+/**
+ * Load a prompt template by ID
+ * @param {number} id - The template ID to load
+ */
 function loadPromptTemplate(id) {
-    fetch(`/api/prompt_template/${id}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(template => {
-            document.getElementById('template-id').value = template.id;
-            document.getElementById('template-name').value = template.name;
-            document.getElementById('template-description').value = template.description;
-            document.getElementById('template-content').value = template.template;
+    fetch(`/api/prompts/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('templateId').value = data.id;
+            document.getElementById('templateName').value = data.name;
+            document.getElementById('templateDescription').value = data.description || '';
+            document.getElementById('templateContent').value = data.template;
+            document.getElementById('templateFormModalLabel').textContent = 'Edit Prompt Template';
             
-            // Show the edit form and scroll to it
-            const formElement = document.getElementById('template-form');
-            formElement.classList.remove('d-none');
-            formElement.scrollIntoView({ behavior: 'smooth' });
+            // Get the Bootstrap modal instance and show it
+            const modalElement = document.getElementById('templateFormModal');
+            const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+            modal.show();
         })
         .catch(error => {
-            console.error('Error fetching template:', error);
+            console.error('Error:', error);
             alert('Error loading template. Please try again.');
         });
 }
 
-// Function to create a new template form
+/**
+ * Create a new template by resetting the form and showing the modal
+ */
 function newTemplate() {
-    // Clear the form
-    document.getElementById('template-form').reset();
-    document.getElementById('template-id').value = '';
+    // Reset form fields
+    document.getElementById('templateForm').reset();
+    document.getElementById('templateId').value = '';
+    document.getElementById('templateFormModalLabel').textContent = 'New Prompt Template';
     
-    // Show the form and scroll to it
-    const formElement = document.getElementById('template-form');
-    formElement.classList.remove('d-none');
-    formElement.scrollIntoView({ behavior: 'smooth' });
+    // Get the Bootstrap modal instance and show it
+    const modalElement = document.getElementById('templateFormModal');
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    modal.show();
 }
 
-// Function to delete a prompt template
+/**
+ * Delete a template after confirmation
+ * @param {number} id - The template ID to delete
+ */
 function deleteTemplate(id) {
-    if (confirm('Are you sure you want to delete this template?')) {
-        fetch(`/api/prompt_template/${id}`, {
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+    if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+        fetch(`/api/prompts/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
             }
-            return response.json();
         })
+        .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Remove the template from the DOM
-                const templateCard = document.getElementById(`template-card-${id}`);
-                if (templateCard) {
-                    templateCard.remove();
-                }
-                
-                // Hide the form if we were editing this template
-                if (document.getElementById('template-id').value == id) {
-                    document.getElementById('template-form').classList.add('d-none');
-                }
+                // Reload page to show updated templates
+                window.location.reload();
+            } else {
+                alert('Error deleting template: ' + data.message);
             }
         })
         .catch(error => {
-            console.error('Error deleting template:', error);
+            console.error('Error:', error);
             alert('Error deleting template. Please try again.');
         });
     }
 }
 
-// Toggle password/API key visibility
+/**
+ * Toggle the visibility of a password field
+ * @param {string} fieldId - The ID of the field to toggle
+ */
 function toggleFieldVisibility(fieldId) {
     const field = document.getElementById(fieldId);
     if (field.type === 'password') {
@@ -86,23 +92,3 @@ function toggleFieldVisibility(fieldId) {
         field.type = 'password';
     }
 }
-
-// Add event listeners when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Format all dates
-    document.querySelectorAll('.format-date').forEach(element => {
-        element.textContent = formatDate(element.textContent);
-    });
-    
-    // Add form validation
-    const forms = document.querySelectorAll('.needs-validation');
-    Array.from(forms).forEach(form => {
-        form.addEventListener('submit', event => {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
-    });
-});

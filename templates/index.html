@@ -1,197 +1,87 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="display-5 mb-4">
-            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-        </h1>
-        <p class="lead">
-            The Redmine MCP Extension allows LLMs to interact with your Redmine project management system.
-        </p>
-    </div>
-</div>
-
-<!-- Stats Overview -->
-<div class="row mb-5">
-    <div class="col-md-4 mb-3">
-        <div class="card text-center bg-dark dashboard-stat-card h-100">
-            <div class="card-body">
-                <div class="display-1 mb-3">
-                    <i class="fas fa-exchange-alt text-info"></i>
-                </div>
-                <h5 class="card-title">Total Actions</h5>
-                <p class="card-text display-6">{{ total_actions }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card text-center bg-dark dashboard-stat-card h-100">
-            <div class="card-body">
-                <div class="display-1 mb-3">
-                    <i class="fas fa-check-circle text-success"></i>
-                </div>
-                <h5 class="card-title">Success Rate</h5>
-                <p class="card-text display-6">{{ "%.1f"|format(success_rate) }}%</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card text-center bg-dark dashboard-stat-card h-100">
-            <div class="card-body">
-                <div class="display-1 mb-3">
-                    <i class="fas fa-robot text-primary"></i>
-                </div>
-                <h5 class="card-title">LLM Integration</h5>
-                <p class="card-text">
-                    {% if config %}
-                    <span class="badge bg-success">Active</span>
-                    {% else %}
-                    <span class="badge bg-danger">Not Configured</span>
-                    {% endif %}
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Activity -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card bg-dark">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-history me-2"></i> Recent Activity
-                </h5>
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Redmine MCP Extension</h2>
             </div>
             <div class="card-body">
-                {% if recent_logs %}
-                <div class="table-responsive">
-                    <table class="table table-dark table-hover">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Action</th>
-                                <th>Issue ID</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for log in recent_logs %}
-                            <tr>
-                                <td class="format-date">{{ log.created_at }}</td>
-                                <td>{{ log.action_type }}</td>
-                                <td>
-                                    {% if log.issue_id %}
-                                    <a href="#" class="text-info">{{ log.issue_id }}</a>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if log.success %}
-                                    <span class="badge bg-success">Success</span>
-                                    {% else %}
-                                    <span class="badge bg-danger">Failed</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="text-end mt-3">
-                    <a href="{{ url_for('logs') }}" class="btn btn-outline-primary">
-                        View All Logs <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
+                <p class="lead">A Model Context Protocol extension for Redmine that leverages Claude AI to streamline issue management.</p>
+                
+                <hr>
+                
+                <h4>System Status</h4>
+                
+                {% if config %}
+                <div class="alert alert-success">
+                    <h5><i class="bi bi-check-circle"></i> Configuration Found</h5>
+                    <p>The system is configured and ready to use.</p>
+                    <ul class="list-unstyled">
+                        <li><strong>Redmine URL:</strong> {{ config.redmine_url }}</li>
+                        <li><strong>API Keys:</strong> Configured</li>
+                        <li><strong>Rate Limit:</strong> {{ config.rate_limit_per_minute }} requests per minute</li>
+                        <li><strong>Last Updated:</strong> {{ config.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</li>
+                    </ul>
                 </div>
                 {% else %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> No activity recorded yet.
+                <div class="alert alert-warning">
+                    <h5><i class="bi bi-exclamation-triangle"></i> Configuration Required</h5>
+                    <p>The system is not yet configured. Please visit the <a href="{{ url_for('main.settings') }}">Settings</a> page to set up your Redmine and Claude API keys.</p>
                 </div>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Getting Started / Documentation Section -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card bg-dark">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-book me-2"></i> Documentation
-                </h5>
-            </div>
-            <div class="card-body">
-                <h5>Introduction</h5>
-                <p>
-                    This extension implements the Model Context Protocol (MCP) for Redmine, allowing Large Language Models (LLMs) 
-                    to create and update issues in your Redmine instance through a Python-based API.
-                </p>
                 
-                <h5 class="mt-4">API Endpoints</h5>
-                <div class="table-responsive">
-                    <table class="table table-dark">
-                        <thead>
-                            <tr>
-                                <th>Endpoint</th>
-                                <th>Method</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>/api/llm/create_issue</code></td>
-                                <td>POST</td>
-                                <td>Creates a new issue from a LLM prompt</td>
-                            </tr>
-                            <tr>
-                                <td><code>/api/llm/update_issue/{issue_id}</code></td>
-                                <td>POST</td>
-                                <td>Updates an existing issue using LLM</td>
-                            </tr>
-                            <tr>
-                                <td><code>/api/llm/analyze_issue/{issue_id}</code></td>
-                                <td>POST</td>
-                                <td>Analyzes an issue using LLM</td>
-                            </tr>
-                            <tr>
-                                <td><code>/api/redmine/issues</code></td>
-                                <td>GET</td>
-                                <td>Retrieves a list of Redmine issues</td>
-                            </tr>
-                            <tr>
-                                <td><code>/api/redmine/issue/{issue_id}</code></td>
-                                <td>GET</td>
-                                <td>Retrieves a specific Redmine issue</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <h4 class="mt-4">Available Endpoints</h4>
+                <div class="list-group mb-4">
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Create Issue</h5>
+                            <span class="badge bg-primary">POST</span>
+                        </div>
+                        <p class="mb-1">/api/llm/create_issue</p>
+                        <small>Create a new Redmine issue from a natural language prompt</small>
+                    </div>
+                    
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Update Issue</h5>
+                            <span class="badge bg-success">POST</span>
+                        </div>
+                        <p class="mb-1">/api/llm/update_issue/{issue_id}</p>
+                        <small>Update an existing Redmine issue using natural language</small>
+                    </div>
+                    
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Analyze Issue</h5>
+                            <span class="badge bg-info">POST</span>
+                        </div>
+                        <p class="mb-1">/api/llm/analyze_issue/{issue_id}</p>
+                        <small>Get AI-powered analysis and insights about an issue</small>
+                    </div>
                 </div>
                 
-                <h5 class="mt-4">Example Usage</h5>
-                <div class="code-block">
-import requests
-
-# Create a new issue
-response = requests.post(
-    'http://localhost:5000/api/llm/create_issue',
-    json={
-        'prompt': 'Create a bug report for a login page error where users receive 404 error after login attempt'
-    }
-)
-print(response.json())
-
-# Update an existing issue
-response = requests.post(
-    'http://localhost:5000/api/llm/update_issue/123',
-    json={
-        'prompt': 'Change the priority to high and assign to John'
-    }
-)
-print(response.json())
+                <h4>MCP Integration</h4>
+                <p>This extension implements the Model Context Protocol (MCP) for seamless integration with Claude and other AI systems.</p>
+                <div class="list-group mb-4">
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Capabilities</h5>
+                            <span class="badge bg-secondary">GET</span>
+                        </div>
+                        <p class="mb-1">/api/capabilities</p>
+                        <small>MCP standard endpoint for capability discovery</small>
+                    </div>
+                    
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Health Check</h5>
+                            <span class="badge bg-secondary">GET</span>
+                        </div>
+                        <p class="mb-1">/api/health</p>
+                        <small>MCP health check endpoint for monitoring</small>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,71 +1,55 @@
 #!/bin/bash
-
-# Script to set up a local Redmine instance for testing
+# Script to set up a local Redmine instance for development
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
-    echo "Error: Docker is required but not installed."
-    echo "Please install Docker first: https://docs.docker.com/get-docker/"
+    echo "❌ Error: Docker is not installed or not in PATH"
+    echo "Please install Docker: https://docs.docker.com/get-docker/"
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
-    echo "Error: Docker Compose is required but not installed."
-    echo "Please install Docker Compose first: https://docs.docker.com/compose/install/"
-    exit 1
-fi
+echo "🚀 Setting up a local Redmine instance for development..."
 
-# Create a directory for Redmine data if it doesn't exist
-mkdir -p redmine_data
+# Create a standalone Redmine Docker container for quick testing
+docker run --name redmine-dev \
+  -d \
+  -p 3000:3000 \
+  -e REDMINE_DB_SQLITE=/redmine/db/sqlite/redmine.db \
+  -v redmine-dev-files:/usr/src/redmine/files \
+  redmine:5.0
 
-# Create a docker-compose file for Redmine
-cat > docker-compose.yml << 'EOL'
-version: '3'
+# Wait for Redmine to start
+echo "⏳ Waiting for Redmine to start (this may take up to 60 seconds)..."
+for i in {1..30}; do
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200"; then
+        echo "✅ Redmine is ready!"
+        break
+    fi
+    sleep 2
+    echo -n "."
+    if [ $i -eq 30 ]; then
+        echo ""
+        echo "❌ Redmine did not start successfully within the timeout period."
+        echo "Check Docker logs with: docker logs redmine-dev"
+        exit 1
+    fi
+done
 
-services:
-  redmine:
-    image: redmine:5.0
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      REDMINE_DB_POSTGRES: redmine_db
-      REDMINE_DB_USERNAME: redmine
-      REDMINE_DB_PASSWORD: redmine_password
-      REDMINE_DB_DATABASE: redmine
-      REDMINE_SECRET_KEY_BASE: supersecretkey123
-    volumes:
-      - ./redmine_data:/usr/src/redmine/files
-    depends_on:
-      - redmine_db
-
-  redmine_db:
-    image: postgres:14
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: redmine_password
-      POSTGRES_USER: redmine
-      POSTGRES_DB: redmine
-    volumes:
-      - ./redmine_data/postgres:/var/lib/postgresql/data
-EOL
-
-echo "Starting Redmine with Docker Compose..."
-docker-compose up -d
-
-echo "Waiting for Redmine to start up (this may take a minute)..."
-sleep 30
-
-echo "Redmine should now be running at http://localhost:3000"
-echo "Default login credentials:"
-echo "  Username: admin"
-echo "  Password: admin"
 echo ""
-echo "Please follow these steps to complete the setup:"
-echo "1. Log in with admin/admin"
-echo "2. Go to Administration > Settings > API"
-echo "3. Enable the REST API"
-echo "4. Go to My Account > API access key"
-echo "5. Generate a new API key"
-echo "6. Copy the API key and use it in your credentials.yaml file"
+echo "🎉 Setup complete!"
+echo ""
+echo "Redmine is now available at: http://localhost:3000"
+echo "Default admin credentials: admin/admin"
+echo ""
+echo "After first login:"
+echo "1. Go to 'My account' (top right) to generate an API key"
+echo "2. Update the 'credentials.yaml' file with your Redmine URL and API key"
+echo ""
+echo "To stop the Redmine container, run:"
+echo "docker stop redmine-dev"
+echo ""
+echo "To start it again later, run:"
+echo "docker start redmine-dev"
+echo ""
+echo "To view logs, run:"
+echo "docker logs redmine-dev"
