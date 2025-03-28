@@ -209,6 +209,7 @@ The project includes several helper scripts to streamline development:
 - **scripts/update_api_urls.sh**: Update API URLs across the codebase
 - **scripts/cleanup_dev_env.sh**: Clean up the development environment
 - **scripts/cleanup_docker_env.sh**: Clean up Docker containers and volumes
+- **scripts/check_github_actions.sh**: Check GitHub Actions build results from Replit
 
 ### Development Workflow
 
@@ -243,6 +244,33 @@ claude config import ./desktop_config.json
 claude start dev
 ```
 This will start both Redmine and the MCP Extension through the Claude Desktop interface.
+
+### Checking GitHub Actions Build Results
+
+You can check the status of your GitHub Actions builds directly from Replit using the provided script:
+
+```bash
+# List all recent workflow runs
+./scripts/check_github_actions.sh <your-github-username> redmine-mcp-extension
+
+# Check a specific workflow
+./scripts/check_github_actions.sh <your-github-username> redmine-mcp-extension "Claude API Test"
+```
+
+Requirements:
+- GitHub CLI (`gh`) must be installed (see `scripts/README_GITHUB_CLI.md` for installation guide)
+- You must be authenticated with GitHub CLI (`gh auth login`)
+
+This provides a convenient way to monitor your CI/CD pipeline without leaving Replit.
+
+#### Troubleshooting GitHub Actions Builds
+
+If you encounter build failures with packages not being installed correctly (like "Multiple top-level packages discovered in a flat-layout"), here are some solutions:
+
+1. The project includes a `pyproject.toml` and `setup.py` that define the package structure
+2. These files explicitly exclude non-package directories like `static` and `templates`
+3. Make sure your workflow uses `pip install -e .` to install the package in development mode
+4. For complete dependency installation, refer to the workflow files in `.github/workflows/`
 
 ## License
 

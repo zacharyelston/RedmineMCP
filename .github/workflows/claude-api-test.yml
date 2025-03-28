@@ -19,7 +19,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # Install the package in development mode
           pip install -e .
+          # Ensure all dependencies are installed
           pip install requests pyyaml
       
       - name: Create test script

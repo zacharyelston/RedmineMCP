@@ -1,18 +1,37 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "repl-nix-workspace"
+name = "redmine-mcp-extension"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.11"
+description = "A Model Context Protocol extension for Redmine that leverages AI to streamline issue management"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Redmine MCP Team"}
+]
 dependencies = [
-    "email-validator>=2.2.0",
-    "flask>=3.1.0",
-    "flask-sqlalchemy>=3.1.1",
-    "gunicorn>=23.0.0",
-    "openai>=1.69.0",
-    "psycopg2-binary>=2.9.10",
-    "pytest>=8.3.5",
-    "pyyaml>=6.0.2",
-    "requests>=2.32.3",
-    "responses>=0.25.7",
-    "sqlalchemy>=2.0.40",
+    "flask",
+    "flask-sqlalchemy",
+    "sqlalchemy",
+    "requests",
+    "gunicorn",
+    "pyyaml",
+    "pytest",
+    "responses",
+    "psycopg2-binary",
+]
+
+[tool.setuptools]
+packages = []
+
+[tool.setuptools.packages.find]
+exclude = ["static*", "templates*", "scripts*", "tests*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "responses",
 ]
