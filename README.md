@@ -109,6 +109,20 @@ The application does not modify the Redmine codebase directly, making it compati
 
 [MIT License](LICENSE)
 
+## Development
+
+### Development Environment
+
+We plan to provide a Docker container with a pre-configured Redmine instance for development and testing purposes. This will allow developers to quickly set up a consistent environment without needing to configure Redmine manually.
+
+Once implemented, you will be able to start the development environment with:
+
+```bash
+docker-compose up -d
+```
+
+This will start both the Redmine container and the MCP extension, with all necessary connections pre-configured.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

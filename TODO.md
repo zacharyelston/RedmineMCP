@@ -4,6 +4,12 @@ This document outlines planned enhancements and features for the Redmine Model C
 
 ## High Priority
 
+- [ ] **Redmine Development Container**
+  - Create a Docker container with a pre-configured Redmine instance for development
+  - Include automatic setup of test projects, users, and issues
+  - Configure the container to initialize with consistent test data
+  - Add documentation for container usage
+
 - [ ] **Test API Connection Functionality**
   - Implement real connection testing for Redmine and OpenAI APIs
   - Add detailed error reporting for API connection issues
