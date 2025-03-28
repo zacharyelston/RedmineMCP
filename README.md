@@ -202,6 +202,8 @@ The project includes several helper scripts to streamline development:
 - **start_local_dev.sh**: Quick start for local development with Docker
 - **scripts/setup_local_credentials.sh**: Easily set up and configure API credentials
 - **scripts/create_feature_branch.sh**: Create a new git feature branch
+- **scripts/commit_to_fix_branch.sh**: Commit changes to a fix or feature branch
+- **scripts/validate_configs.py**: Validate configuration files before committing
 - **scripts/setup_docker_dev.sh**: Set up the full Docker development environment
 - **scripts/setup_redmine.sh**: Set up a standalone Redmine container
 - **scripts/test_mcp_integration.py**: Test the MCP integration functionality
@@ -217,7 +219,28 @@ The project includes several helper scripts to streamline development:
 2. Configure credentials with `./scripts/setup_local_credentials.sh`
 3. Create a feature branch with `./scripts/create_feature_branch.sh feature-name`
 4. Make your changes and test with the test suite
-5. When done, clean up with `./scripts/cleanup_dev_env.sh`
+5. Validate configuration files before committing: `python scripts/validate_configs.py`
+6. Commit changes to your branch: `./scripts/commit_to_fix_branch.sh`
+7. When done, clean up with `./scripts/cleanup_dev_env.sh`
+
+#### Preventing Common Configuration Errors
+
+To prevent configuration errors that could lead to CI/CD failures:
+
+```bash
+# Validate all configuration files before committing
+python scripts/validate_configs.py
+
+# Commit changes with automatic validation
+./scripts/commit_to_fix_branch.sh
+```
+
+The validation script checks for:
+- Duplicate declarations in TOML files
+- Syntax errors in Python, YAML, and TOML files
+- Common package configuration issues
+
+This helps catch issues before they reach GitHub Actions.
 
 ### Testing Redmine Frontend
 

@@ -22,10 +22,9 @@ dependencies = [
     "pytest",
     "responses",
     "psycopg2-binary",
+    "tomli>=2.2.1",
+    "setuptools>=78.1.0",
 ]
-
-[tool.setuptools]
-packages = []
 
 [tool.setuptools.packages.find]
 exclude = ["static*", "templates*", "scripts*", "tests*"]

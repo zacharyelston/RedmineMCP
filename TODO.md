@@ -91,7 +91,9 @@ This document outlines planned enhancements and features for the Redmine Model C
   - [ ] Add monitoring and alerting
   - [x] Set up GitHub Actions workflows
     - [x] Implement workflow for running tests
-    - [ ] Add workflow for automated linting and code quality
+    - [x] Add workflow for automated linting and code quality
+      - [x] Create config validation script (scripts/validate_configs.py)
+      - [x] Create automated branch and commit script with validation
     - [x] Create workflow for building and publishing Docker images
     - [ ] Set up deployment workflow for staging/production environments
     - [x] Add script to check GitHub Actions build results from Replit
