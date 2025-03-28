@@ -34,25 +34,33 @@ This option provides a simple setup for local development with minimal configura
    cd redmine-mcp
    ```
 
-2. Run the local development script:
+2. Set up a local Redmine instance and auto-generate API key:
+   ```bash
+   chmod +x scripts/setup_redmine.sh
+   ./scripts/setup_redmine.sh
+   ```
+   
+   This script will:
+   - Start a Redmine Docker container
+   - Generate a random API key
+   - Configure Redmine to use this API key
+   - Create a credentials.yaml file with this key
+   - Enable the REST API in Redmine settings
+
+3. Start the MCP extension:
    ```bash
    chmod +x start_local_dev.sh
    ./start_local_dev.sh
    ```
 
-3. Set up your credentials:
-   ```bash
-   chmod +x scripts/setup_local_credentials.sh
-   ./scripts/setup_local_credentials.sh
-   ```
-   
-4. Follow the on-screen instructions to set up your Redmine API key and Claude API key
+4. Add your Claude API key to the credentials.yaml file (only required for LLM functionality)
 
 The setup includes:
 - A Redmine instance at http://localhost:3000 (default login: admin/admin)
 - The MCP extension at http://localhost:5000
 - SQLite database for Redmine (for simplicity)
 - Automatic file volumes for persistent storage
+- Pre-configured API key that works out of the box
 
 ### Option 2: Full Docker Setup (Recommended for MCP Integration)
 
@@ -215,13 +223,41 @@ The project includes several helper scripts to streamline development:
 
 ### Development Workflow
 
-1. Start with `./start_local_dev.sh` to set up the environment
-2. Configure credentials with `./scripts/setup_local_credentials.sh`
-3. Create a feature branch with `./scripts/create_feature_branch.sh feature-name`
-4. Make your changes and test with the test suite
-5. Validate configuration files before committing: `python scripts/validate_configs.py`
-6. Commit changes to your branch: `./scripts/commit_to_fix_branch.sh`
-7. When done, clean up with `./scripts/cleanup_dev_env.sh`
+1. Setup a local Redmine instance with auto-generated API key:
+   ```bash
+   ./scripts/setup_redmine.sh
+   ```
+
+2. Start the MCP extension:
+   ```bash
+   ./start_local_dev.sh
+   ```
+
+3. Create a feature branch for your changes:
+   ```bash
+   ./scripts/create_feature_branch.sh feature-name
+   ```
+
+4. Make your changes and test with the test suite:
+   ```bash
+   pytest
+   ```
+
+5. When ready to commit, use the automated commit script which includes validation:
+   ```bash
+   ./scripts/commit_to_fix_branch.sh
+   ```
+   This will automatically validate configuration files before committing
+   
+6. Push your changes to GitHub:
+   ```bash
+   git push origin your-branch-name
+   ```
+
+7. When done with development, clean up the environment:
+   ```bash
+   ./scripts/cleanup_dev_env.sh
+   ```
 
 #### Preventing Common Configuration Errors
 

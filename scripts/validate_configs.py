@@ -31,9 +31,17 @@ except ImportError:
     try:
         import tomli as tomllib
     except ImportError:
-        print("Error: Neither tomllib (Python 3.11+) nor tomli package is available.")
-        print("Please install tomli: pip install tomli")
-        sys.exit(1)
+        # If tomli is not available, try to install it automatically
+        print("tomli package not found. Attempting to install it automatically...")
+        try:
+            import subprocess
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "tomli"])
+            print("tomli package installed successfully!")
+            import tomli as tomllib
+        except Exception as e:
+            print(f"Error: Failed to install tomli automatically: {e}")
+            print("Please install tomli manually: pip install tomli")
+            sys.exit(1)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
