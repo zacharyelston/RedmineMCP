@@ -7,8 +7,8 @@
 read_credentials() {
   if [ -f "credentials.yaml" ]; then
     echo "Reading credentials from credentials.yaml..."
-    REDMINE_URL=$(grep "redmine_url:" credentials.yaml | awk '{print $2}')
-    REDMINE_API_KEY=$(grep "redmine_api_key:" credentials.yaml | awk '{print $2}')
+    REDMINE_URL=$(grep "redmine_url:" credentials.yaml | awk '{print $2}' | tr -d '"')
+    REDMINE_API_KEY=$(grep "redmine_api_key:" credentials.yaml | awk '{print $2}' | tr -d '"')
     
     # Validate the values
     if [ -z "$REDMINE_URL" ] || [ -z "$REDMINE_API_KEY" ]; then

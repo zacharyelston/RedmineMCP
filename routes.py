@@ -17,7 +17,7 @@ def index():
     config = Config.query.first()
     if not config:
         # If no configuration exists, redirect to settings
-        flash('Please configure your Redmine and OpenAI settings first.', 'warning')
+        flash('Please configure your Redmine and Claude API settings first.', 'warning')
         return redirect(url_for('settings'))
     
     # Get some stats for the dashboard
@@ -46,14 +46,14 @@ def settings():
                 # Update existing config
                 config.redmine_url = request.form['redmine_url']
                 config.redmine_api_key = request.form['redmine_api_key']
-                config.openai_api_key = request.form['openai_api_key']
+                config.claude_api_key = request.form['claude_api_key']
                 config.rate_limit_per_minute = int(request.form['rate_limit_per_minute'])
             else:
                 # Create new config
                 config = Config(
                     redmine_url=request.form['redmine_url'],
                     redmine_api_key=request.form['redmine_api_key'],
-                    openai_api_key=request.form['openai_api_key'],
+                    claude_api_key=request.form['claude_api_key'],
                     rate_limit_per_minute=int(request.form['rate_limit_per_minute'])
                 )
                 db.session.add(config)
@@ -65,7 +65,7 @@ def settings():
                 success, message = create_credentials_file(
                     config.redmine_url,
                     config.redmine_api_key,
-                    config.openai_api_key,
+                    config.claude_api_key,
                     config.rate_limit_per_minute
                 )
                 if success:
@@ -201,7 +201,7 @@ def llm_create_issue():
         return jsonify({'error': 'Configuration not found'}), 400
     
     # Check rate limiting for both APIs
-    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('openai', config.rate_limit_per_minute):
+    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('claude', config.rate_limit_per_minute):
         return jsonify({'error': 'Rate limit exceeded'}), 429
     
     try:
@@ -211,12 +211,12 @@ def llm_create_issue():
             return jsonify({'error': 'Prompt is required'}), 400
         
         # Initialize APIs
-        llm_api = LLMAPI(config.openai_api_key)
+        llm_api = LLMAPI(config.claude_api_key)
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
         
         # Use LLM to generate issue attributes
         issue_data = llm_api.generate_issue(prompt)
-        add_api_call('openai')
+        add_api_call('claude')
         
         # Create the issue in Redmine
         issue = redmine_api.create_issue(
@@ -269,7 +269,7 @@ def llm_update_issue(issue_id):
         return jsonify({'error': 'Configuration not found'}), 400
     
     # Check rate limiting for both APIs
-    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('openai', config.rate_limit_per_minute):
+    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('claude', config.rate_limit_per_minute):
         return jsonify({'error': 'Rate limit exceeded'}), 429
     
     try:
@@ -279,7 +279,7 @@ def llm_update_issue(issue_id):
             return jsonify({'error': 'Prompt is required'}), 400
         
         # Initialize APIs
-        llm_api = LLMAPI(config.openai_api_key)
+        llm_api = LLMAPI(config.claude_api_key)
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
         
         # Get the current issue to provide context to the LLM
@@ -288,7 +288,7 @@ def llm_update_issue(issue_id):
         
         # Use LLM to generate updated issue attributes
         update_data = llm_api.update_issue(prompt, current_issue)
-        add_api_call('openai')
+        add_api_call('claude')
         
         # Update the issue in Redmine
         updated_issue = redmine_api.update_issue(
@@ -344,12 +344,12 @@ def llm_analyze_issue(issue_id):
         return jsonify({'error': 'Configuration not found'}), 400
     
     # Check rate limiting for both APIs
-    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('openai', config.rate_limit_per_minute):
+    if is_rate_limited('redmine', config.rate_limit_per_minute) or is_rate_limited('claude', config.rate_limit_per_minute):
         return jsonify({'error': 'Rate limit exceeded'}), 429
     
     try:
         # Initialize APIs
-        llm_api = LLMAPI(config.openai_api_key)
+        llm_api = LLMAPI(config.claude_api_key)
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
         
         # Get the issue to analyze
@@ -358,7 +358,7 @@ def llm_analyze_issue(issue_id):
         
         # Use LLM to analyze the issue
         analysis = llm_api.analyze_issue(issue)
-        add_api_call('openai')
+        add_api_call('claude')
         
         # Log the action
         log = ActionLog(

@@ -9,7 +9,7 @@ def is_rate_limited(api_name, rate_limit_per_minute):
     Check if the API has exceeded its rate limit
     
     Args:
-        api_name (str): The name of the API ('redmine' or 'openai')
+        api_name (str): The name of the API ('redmine' or 'claude')
         rate_limit_per_minute (int): The maximum number of calls allowed per minute
         
     Returns:
@@ -46,7 +46,7 @@ def add_api_call(api_name):
     Increment the API call counter for rate limiting
     
     Args:
-        api_name (str): The name of the API ('redmine' or 'openai')
+        api_name (str): The name of the API ('redmine' or 'claude')
     """
     tracker = RateLimitTracker.query.filter_by(api_name=api_name).first()
     
@@ -108,7 +108,7 @@ def update_config_from_credentials():
             config = Config(
                 redmine_url="",
                 redmine_api_key="",
-                openai_api_key="",
+                claude_api_key="",
                 rate_limit_per_minute=60
             )
             db.session.add(config)
@@ -121,8 +121,13 @@ def update_config_from_credentials():
         if 'redmine_api_key' in credentials:
             config.redmine_api_key = credentials['redmine_api_key']
         
+        if 'claude_api_key' in credentials:
+            config.claude_api_key = credentials['claude_api_key']
+        
+        # For backward compatibility with older credential files
         if 'openai_api_key' in credentials:
-            config.openai_api_key = credentials['openai_api_key']
+            config.claude_api_key = credentials['openai_api_key'] 
+            print("Warning: Using openai_api_key from credentials as claude_api_key. Please update your credentials file.")
         
         if 'rate_limit_per_minute' in credentials:
             config.rate_limit_per_minute = credentials['rate_limit_per_minute']
@@ -134,8 +139,13 @@ def update_config_from_credentials():
             if 'api_key' in credentials['redmine']:
                 config.redmine_api_key = credentials['redmine']['api_key']
         
+        if 'claude' in credentials and 'api_key' in credentials['claude']:
+            config.claude_api_key = credentials['claude']['api_key']
+            
+        # Backward compatibility with older nested format
         if 'openai' in credentials and 'api_key' in credentials['openai']:
-            config.openai_api_key = credentials['openai']['api_key']
+            config.claude_api_key = credentials['openai']['api_key']
+            print("Warning: Using nested openai.api_key from credentials as claude_api_key. Please update your credentials file.")
         
         if 'rate_limits' in credentials and 'redmine_per_minute' in credentials['rate_limits']:
             config.rate_limit_per_minute = credentials['rate_limits']['redmine_per_minute']
@@ -147,14 +157,14 @@ def update_config_from_credentials():
         return False, f"Error updating configuration: {e}"
 
 
-def create_credentials_file(redmine_url, redmine_api_key, openai_api_key, rate_limit_per_minute=60):
+def create_credentials_file(redmine_url, redmine_api_key, claude_api_key, rate_limit_per_minute=60):
     """
     Creates a credentials.yaml file with the provided settings
     
     Args:
         redmine_url (str): The Redmine instance URL
         redmine_api_key (str): The Redmine API key
-        openai_api_key (str): The OpenAI API key
+        claude_api_key (str): The Claude API key
         rate_limit_per_minute (int, optional): Rate limit for API calls
         
     Returns:
@@ -164,7 +174,7 @@ def create_credentials_file(redmine_url, redmine_api_key, openai_api_key, rate_l
     credentials = {
         'redmine_url': redmine_url,
         'redmine_api_key': redmine_api_key,
-        'openai_api_key': openai_api_key,
+        'claude_api_key': claude_api_key,
         'rate_limit_per_minute': rate_limit_per_minute
     }
     

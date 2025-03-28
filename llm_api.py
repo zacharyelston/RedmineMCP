@@ -1,25 +1,30 @@
 import json
 import os
 import logging
-# the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-# do not change this unless explicitly requested by the user
-from openai import OpenAI
+import requests
 
 logger = logging.getLogger(__name__)
 
 class LLMAPI:
     """
-    A wrapper for the OpenAI API to handle LLM tasks
+    A wrapper for the Anthropic Claude API to handle LLM tasks
     """
     
     def __init__(self, api_key):
         """
-        Initialize the OpenAI API client
+        Initialize the Claude API client
         
         Args:
-            api_key (str): The OpenAI API key
+            api_key (str): The Claude API key
         """
-        self.client = OpenAI(api_key=api_key)
+        self.api_key = api_key
+        self.headers = {
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+        self.base_url = "https://api.anthropic.com/v1/messages"
+        self.model = "claude-3-opus-20240229"  # Default to Claude 3 Opus for high quality results
     
     def generate_issue(self, prompt):
         """
@@ -46,16 +51,25 @@ class LLMAPI:
         """
         
         try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_prompt},
+            data = {
+                "model": self.model,
+                "max_tokens": 1000,
+                "system": system_prompt,
+                "messages": [
                     {"role": "user", "content": prompt}
                 ],
-                response_format={"type": "json_object"}
-            )
+                "temperature": 0.2
+            }
             
-            issue_data = json.loads(response.choices[0].message.content)
+            response = requests.post(self.base_url, headers=self.headers, json=data)
+            response.raise_for_status()
+            response_data = response.json()
+            
+            # Extract content from Claude response
+            content = response_data["content"][0]["text"]
+            
+            # Parse JSON from the response content
+            issue_data = json.loads(content)
             
             # Ensure required fields are present
             if 'subject' not in issue_data or not issue_data['subject']:
@@ -107,16 +121,25 @@ class LLMAPI:
             {prompt}
             """
             
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_prompt},
+            data = {
+                "model": self.model,
+                "max_tokens": 1000,
+                "system": system_prompt,
+                "messages": [
                     {"role": "user", "content": user_message}
                 ],
-                response_format={"type": "json_object"}
-            )
+                "temperature": 0.2
+            }
             
-            update_data = json.loads(response.choices[0].message.content)
+            response = requests.post(self.base_url, headers=self.headers, json=data)
+            response.raise_for_status()
+            response_data = response.json()
+            
+            # Extract content from Claude response
+            content = response_data["content"][0]["text"]
+            
+            # Parse JSON from the response content
+            update_data = json.loads(content)
             
             # Ensure at least one field is updated
             if not update_data:
@@ -155,17 +178,27 @@ class LLMAPI:
         try:
             # Convert issue to formatted string for analysis
             issue_str = json.dumps(issue, indent=2)
+            user_message = f"Analyze this Redmine issue:\n{issue_str}"
             
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Analyze this Redmine issue:\n{issue_str}"}
+            data = {
+                "model": self.model,
+                "max_tokens": 1000,
+                "system": system_prompt,
+                "messages": [
+                    {"role": "user", "content": user_message}
                 ],
-                response_format={"type": "json_object"}
-            )
+                "temperature": 0.3
+            }
             
-            analysis = json.loads(response.choices[0].message.content)
+            response = requests.post(self.base_url, headers=self.headers, json=data)
+            response.raise_for_status()
+            response_data = response.json()
+            
+            # Extract content from Claude response
+            content = response_data["content"][0]["text"]
+            
+            # Parse JSON from the response content
+            analysis = json.loads(content)
             
             return analysis
         except Exception as e:

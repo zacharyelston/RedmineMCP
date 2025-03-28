@@ -7,7 +7,7 @@
             <i class="fas fa-cog me-2"></i> Settings
         </h1>
         <p class="lead">
-            Configure your Redmine and OpenAI API settings.
+            Configure your Redmine and Claude API settings.
         </p>
     </div>
 </div>
@@ -55,26 +55,26 @@
                         </div>
                     </div>
                     
-                    <!-- OpenAI Settings -->
+                    <!-- Claude Settings -->
                     <div class="mb-4">
-                        <h5><i class="fas fa-robot me-2"></i> OpenAI Configuration</h5>
+                        <h5><i class="fas fa-robot me-2"></i> Claude Configuration</h5>
                         <hr>
                         
                         <div class="form-group mb-3">
-                            <label for="openai_api_key" class="form-label">OpenAI API Key</label>
+                            <label for="claude_api_key" class="form-label">Claude API Key</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-key"></i></span>
-                                <input type="password" class="form-control api-key-field" id="openai_api_key" name="openai_api_key" 
-                                       value="{{ config.openai_api_key if config else '' }}"
-                                       placeholder="Your OpenAI API key" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="toggleFieldVisibility('openai_api_key')">
+                                <input type="password" class="form-control api-key-field" id="claude_api_key" name="claude_api_key" 
+                                       value="{{ config.claude_api_key if config else '' }}"
+                                       placeholder="Your Claude API key" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="toggleFieldVisibility('claude_api_key')">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                             <div class="form-text">
-                                API key from your OpenAI account
+                                API key from your Anthropic Claude account
                             </div>
-                            <div class="invalid-feedback">OpenAI API key is required</div>
+                            <div class="invalid-feedback">Claude API key is required</div>
                         </div>
                     </div>
                     
@@ -148,7 +148,7 @@
                     <div class="col-md-6 mb-3">
                         <div class="d-grid">
                             <button class="btn btn-outline-info" onclick="alert('This functionality is not implemented in this demo')">
-                                <i class="fas fa-robot me-1"></i> Test OpenAI Connection
+                                <i class="fas fa-robot me-1"></i> Test Claude Connection
                             </button>
                         </div>
                     </div>

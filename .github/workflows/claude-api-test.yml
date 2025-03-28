@@ -1,0 +1,91 @@
+name: Claude API Connection Test
+
+on:
+  workflow_dispatch:
+    # Allow manual triggering only since this test requires a valid API key
+
+jobs:
+  test-claude-api:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install requests pyyaml
+      
+      - name: Create test script
+        run: |
+          cat > test_claude_connection.py << EOL
+          import os
+          import sys
+          import yaml
+          import requests
+
+          def test_claude_connection(api_key):
+              """Test connection to Anthropic Claude API"""
+              print("Testing Claude API connection...")
+              
+              url = "https://api.anthropic.com/v1/messages"
+              headers = {
+                  "x-api-key": api_key,
+                  "anthropic-version": "2023-06-01",
+                  "content-type": "application/json"
+              }
+              
+              # Sample minimal request body
+              data = {
+                  "model": "claude-3-opus-20240229",
+                  "max_tokens": 1,
+                  "messages": [
+                      {"role": "user", "content": "Hello, Claude!"}
+                  ]
+              }
+              
+              try:
+                  response = requests.post(url, headers=headers, json=data)
+                  response.raise_for_status()
+                  
+                  # If we get here, the request was successful
+                  print("✅ Claude API connection successful!")
+                  print(f"Response received successfully.")
+                  return True
+              except Exception as e:
+                  print(f"❌ Claude API connection failed: {e}")
+                  return False
+
+          if __name__ == "__main__":
+              # Get API key from environment or credentials file
+              api_key = os.environ.get("CLAUDE_API_KEY")
+              
+              if not api_key:
+                  try:
+                      with open("credentials.yaml", "r") as f:
+                          credentials = yaml.safe_load(f)
+                          api_key = credentials.get("claude_api_key")
+                  except:
+                      pass
+              
+              if not api_key:
+                  print("❌ No Claude API key found in environment or credentials.yaml")
+                  sys.exit(1)
+                  
+              # Test the connection
+              success = test_claude_connection(api_key)
+              
+              if not success:
+                  sys.exit(1)
+          EOL
+      
+      - name: Test Claude connection
+        env:
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+        run: python test_claude_connection.py

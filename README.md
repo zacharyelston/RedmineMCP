@@ -8,7 +8,7 @@ This extension allows AI assistants to interact with your Redmine project manage
 
 ## Features
 
-- **LLM Integration**: Create, update, and analyze Redmine issues using OpenAI's GPT models
+- **LLM Integration**: Create, update, and analyze Redmine issues using Anthropic's Claude API
 - **Web Interface**: Modern Bootstrap-based dashboard for configuration and monitoring
 - **API Endpoints**: RESTful API for programmatic access
 - **Rate Limiting**: Built-in protection against API overuse
@@ -19,7 +19,7 @@ This extension allows AI assistants to interact with your Redmine project manage
 
 - Python 3.8+
 - Redmine instance with API access
-- OpenAI API key
+- Anthropic Claude API key
 
 ## Installation
 
@@ -40,19 +40,17 @@ pip install -r requirements.txt
    - Copy the `credentials.yaml.example` file to `credentials.yaml`
    - Edit the file with your actual API keys and connection details:
      ```yaml
-     redmine:
-       url: "https://your-redmine-instance.example.com"
-       api_key: "your_redmine_api_key_here"
-     
-     openai:
-       api_key: "your_openai_api_key_here"
+     redmine_url: "https://your-redmine-instance.example.com"
+     redmine_api_key: "your_redmine_api_key_here"
+     claude_api_key: "your_claude_api_key_here"
+     rate_limit_per_minute: 60
      ```
    - **Important**: The `credentials.yaml` file is excluded from version control by `.gitignore` to prevent accidentally committing sensitive information.
 
    **Option 2: Using the web interface**
    - Navigate to the settings page in the web interface
    - Enter your Redmine URL and API key
-   - Enter your OpenAI API key
+   - Enter your Claude API key
    - Set rate limiting parameters
    - You can also save your settings to a credentials.yaml file or load settings from an existing file through the web interface
 
@@ -109,7 +107,7 @@ This extension follows a middleware approach:
 
 1. **Python Flask Application**: Serves as the core middleware
 2. **Redmine API Client**: Communicates with Redmine via REST API
-3. **OpenAI API Client**: Handles LLM interactions
+3. **Claude API Client**: Handles LLM interactions
 4. **SQLite/PostgreSQL Database**: Stores configuration, logs, and prompt templates
 
 The application does not modify the Redmine codebase directly, making it compatible with any Redmine instance that has API access enabled.
@@ -179,7 +177,7 @@ docker compose up -d
 For local development, the `credentials.yaml` file stores your API keys and connection details. The repository includes a `.gitignore` file that prevents this file from being committed to version control, ensuring your sensitive information remains private.
 
 1. The setup scripts will automatically create a `credentials.yaml` file with Redmine settings
-2. You'll need to add your OpenAI API key to this file
+2. You'll need to add your Claude API key to this file
 3. The application will automatically read from this file when available
 
 ### Docker Container Architecture

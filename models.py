@@ -8,7 +8,7 @@ class Config(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     redmine_url = db.Column(db.String(256), nullable=False)
     redmine_api_key = db.Column(db.String(256), nullable=False)
-    openai_api_key = db.Column(db.String(256), nullable=False)
+    claude_api_key = db.Column(db.String(256), nullable=False)
     rate_limit_per_minute = db.Column(db.Integer, default=60)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -42,6 +42,6 @@ class RateLimitTracker(db.Model):
     Tracks API calls for rate limiting purposes
     """
     id = db.Column(db.Integer, primary_key=True)
-    api_name = db.Column(db.String(64), nullable=False)  # 'redmine' or 'openai'
+    api_name = db.Column(db.String(64), nullable=False)  # 'redmine' or 'claude'
     count = db.Column(db.Integer, default=0)
     reset_at = db.Column(db.DateTime, nullable=False)  # When the counter resets
