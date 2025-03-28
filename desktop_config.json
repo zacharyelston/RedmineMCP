@@ -1,0 +1,59 @@
+{
+  "services": {
+    "Redmine": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-p",
+        "3000:3000",
+        "-e",
+        "REDMINE_DB_SQLITE=/redmine/db/sqlite/redmine.db",
+        "-v",
+        "redmine-dev-files:/usr/src/redmine/files",
+        "--name",
+        "redmine-dev",
+        "redmine:5.0"
+      ],
+      "waitFor": {
+        "url": "http://localhost:3000",
+        "timeoutSeconds": 60,
+        "message": "Waiting for Redmine to start (this may take up to 60 seconds)..."
+      },
+      "description": "Redmine server with SQLite database",
+      "documentation": "Default login: admin/admin\nAccess URL: http://localhost:3000"
+    },
+    "MCP Extension": {
+      "command": "python",
+      "args": [
+        "main.py"
+      ],
+      "env": {
+        "REDMINE_URL": "http://localhost:3000",
+        "FLASK_DEBUG": "1"
+      },
+      "waitFor": {
+        "url": "http://localhost:5000",
+        "timeoutSeconds": 30,
+        "message": "Waiting for MCP Extension to start..."
+      },
+      "description": "Model Context Protocol Extension for Redmine",
+      "documentation": "Access URL: http://localhost:5000\nMake sure to update credentials.yaml with your API keys."
+    }
+  },
+  "defaultProfile": "dev",
+  "profiles": {
+    "dev": {
+      "services": ["Redmine", "MCP Extension"],
+      "description": "Development environment with Redmine and MCP Extension"
+    },
+    "redmine-only": {
+      "services": ["Redmine"],
+      "description": "Standalone Redmine for API testing"
+    },
+    "mcp-only": {
+      "services": ["MCP Extension"],
+      "description": "MCP Extension only (requires existing Redmine instance)"
+    }
+  }
+}

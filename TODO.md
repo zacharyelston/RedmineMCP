@@ -37,6 +37,7 @@ This document outlines planned enhancements and features for the Redmine Model C
   - [x] Add support for Claude API (migrated from OpenAI)
   - [x] Implement context-aware prompts that understand Redmine's workflow
   - [x] Create specialized prompt templates for different issue types
+  - [x] Create Claude desktop configuration for easy integration
 
 - [ ] **Redmine Integration Improvements**
   - Support for Redmine custom fields
@@ -76,6 +77,13 @@ This document outlines planned enhancements and features for the Redmine Model C
   - Create API documentation with Swagger/OpenAPI
   - Add detailed developer documentation
   - Create user manual with examples
+
+- [x] **MCP Integration**
+  - [x] Implement Model Context Protocol endpoints
+  - [x] Create MCP-compatible API responses
+  - [x] Add Claude Desktop configuration
+  - [x] Create local development Docker setup
+  - [ ] Test with Claude Desktop client
 
 - [x] **DevOps**
   - [x] Set up CI/CD pipeline (basic GitHub Actions)

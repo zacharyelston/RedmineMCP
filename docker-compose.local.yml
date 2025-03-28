@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  redmine:
+    image: redmine:5.0
+    container_name: redmine-local
+    environment:
+      - REDMINE_DB_SQLITE=/redmine/db/sqlite/redmine.db
+    ports:
+      - "3000:3000"
+    volumes:
+      - redmine-files:/usr/src/redmine/files
+    networks:
+      - redmine-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mcp-extension:
+    build: .
+    container_name: mcp-extension-local
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./credentials.yaml:/app/credentials.yaml
+    environment:
+      - FLASK_DEBUG=1
+      - REDMINE_URL=http://redmine:3000
+    depends_on:
+      redmine:
+        condition: service_healthy
+    networks:
+      - redmine-mcp-network
+    restart: unless-stopped
+
+networks:
+  redmine-mcp-network:
+    driver: bridge
+
+volumes:
+  redmine-files:
+    name: redmine-local-files

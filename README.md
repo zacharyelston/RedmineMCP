@@ -24,9 +24,39 @@ This project implements a middleware service that connects Redmine (a popular pr
 
 ## Installation and Setup
 
-### Option 1: Docker Setup (Recommended for MCP Integration)
+### Option 1: Quick Local Setup
 
-This option sets up both Redmine and the MCP extension in Docker containers, providing a complete environment for development and testing.
+This option provides a simple setup for local development with minimal configuration.
+
+1. Clone this repository:
+   ```
+   git clone https://github.com/yourusername/redmine-mcp.git
+   cd redmine-mcp
+   ```
+
+2. Run the local development script:
+   ```bash
+   chmod +x start_local_dev.sh
+   ./start_local_dev.sh
+   ```
+
+3. Set up your credentials:
+   ```bash
+   chmod +x scripts/setup_local_credentials.sh
+   ./scripts/setup_local_credentials.sh
+   ```
+   
+4. Follow the on-screen instructions to set up your Redmine API key and Claude API key
+
+The setup includes:
+- A Redmine instance at http://localhost:3000 (default login: admin/admin)
+- The MCP extension at http://localhost:5000
+- SQLite database for Redmine (for simplicity)
+- Automatic file volumes for persistent storage
+
+### Option 2: Full Docker Setup (Recommended for MCP Integration)
+
+This option sets up both Redmine and the MCP extension in Docker containers, providing a complete environment for development and testing with more advanced configuration.
 
 1. Clone this repository:
    ```
@@ -52,10 +82,11 @@ The setup includes:
 - The MCP extension at http://localhost:5000
 - Automatic configuration of Redmine API access
 - A sample project for testing
+- PostgreSQL database for Redmine (for production-like environment)
 
-### Option 2: Local Installation
+### Option 3: Local Installation (No Docker)
 
-For standalone development without Docker:
+For standalone development without Docker (requires an existing Redmine instance):
 
 1. Clone this repository:
    ```
@@ -89,6 +120,19 @@ The extension implements the Model Context Protocol for seamless integration wit
 1. The API endpoints are already MCP-compatible
 2. Use the Docker setup for proper connection to your MCP environment
 3. The extension will appear in your MCP client once properly connected
+
+### Claude Desktop Integration
+
+The project includes a `desktop_config.json` file that enables easy integration with Claude Desktop:
+
+1. Make sure Claude Desktop is installed on your machine
+2. Configure Claude Desktop to use the configuration file:
+   ```
+   claude config import ./desktop_config.json
+   ```
+3. Select the "dev" profile from Claude Desktop
+4. This will automatically start both Redmine and the MCP Extension
+5. Follow the instructions to set up your API keys
 
 ## Usage
 
@@ -151,9 +195,54 @@ pytest tests/test_llm_api.py
 
 ## Development
 
-- Use the included scripts in the `scripts` directory for development tasks
-- Create new feature branches using `scripts/create_feature_branch.sh`
-- Test your changes using the provided test suite
+### Development Scripts
+
+The project includes several helper scripts to streamline development:
+
+- **start_local_dev.sh**: Quick start for local development with Docker
+- **scripts/setup_local_credentials.sh**: Easily set up and configure API credentials
+- **scripts/create_feature_branch.sh**: Create a new git feature branch
+- **scripts/setup_docker_dev.sh**: Set up the full Docker development environment
+- **scripts/setup_redmine.sh**: Set up a standalone Redmine container
+- **scripts/test_mcp_integration.py**: Test the MCP integration functionality
+- **scripts/test_redmine_api.sh**: Test the Redmine API connectivity
+- **scripts/update_api_urls.sh**: Update API URLs across the codebase
+- **scripts/cleanup_dev_env.sh**: Clean up the development environment
+- **scripts/cleanup_docker_env.sh**: Clean up Docker containers and volumes
+
+### Development Workflow
+
+1. Start with `./start_local_dev.sh` to set up the environment
+2. Configure credentials with `./scripts/setup_local_credentials.sh`
+3. Create a feature branch with `./scripts/create_feature_branch.sh feature-name`
+4. Make your changes and test with the test suite
+5. When done, clean up with `./scripts/cleanup_dev_env.sh`
+
+### Testing Redmine Frontend
+
+The project includes several options for testing with the Redmine frontend:
+
+#### Option 1: Quick Local Docker Setup
+```bash
+./start_local_dev.sh
+```
+This will start Redmine at http://localhost:3000 with admin/admin credentials.
+
+#### Option 2: Standalone Redmine Container
+```bash
+./scripts/setup_redmine.sh
+```
+This will start only the Redmine container for testing the API.
+
+#### Option 3: Claude Desktop Integration
+```bash
+# Import the desktop configuration
+claude config import ./desktop_config.json
+
+# Start using the dev profile
+claude start dev
+```
+This will start both Redmine and the MCP Extension through the Claude Desktop interface.
 
 ## License
 
