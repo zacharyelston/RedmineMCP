@@ -18,12 +18,22 @@ Exit codes:
 
 import os
 import sys
-import tomli
 import yaml
 import re
 import ast
 import logging
 from pathlib import Path
+
+# Try to use the built-in tomllib (Python 3.11+), fall back to tomli package
+try:
+    import tomllib
+except ImportError:
+    try:
+        import tomli as tomllib
+    except ImportError:
+        print("Error: Neither tomllib (Python 3.11+) nor tomli package is available.")
+        print("Please install tomli: pip install tomli")
+        sys.exit(1)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -43,7 +53,7 @@ def validate_toml(file_path):
     logger.info(f"Validating TOML file: {file_path}")
     try:
         with open(file_path, "rb") as f:
-            tomli.load(f)
+            tomllib.load(f)
         logger.info(f"✓ TOML syntax validation passed for {file_path}")
         
         # Additional check for duplicate keys (raw text scan)

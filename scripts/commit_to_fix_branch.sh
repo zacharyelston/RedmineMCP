@@ -23,6 +23,8 @@ fi
 # Run validation script if available
 if [ -f "./scripts/validate_configs.py" ]; then
     echo "Running configuration validation..."
+    # Ensure tomli/tomllib is available for TOML validation
+    pip install tomli &>/dev/null
     python ./scripts/validate_configs.py
     if [ $? -ne 0 ]; then
         echo "Validation failed. Please fix the issues before committing."

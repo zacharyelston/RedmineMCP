@@ -11,6 +11,10 @@ on:
 jobs:
   test-redmine-api:
     runs-on: ubuntu-latest
+    container:
+      image: python:3.11-bullseye
+      env:
+        DEBIAN_FRONTEND: noninteractive
     services:
       # Run a Redmine container for testing
       redmine:
@@ -47,21 +51,10 @@ jobs:
       
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          # Install the package in development mode with explicit module listing
-          pip install -e .
-          # Make sure all dependencies are installed
-          pip install -r <(grep -v "^#" <<EOF
-          flask
-          flask-sqlalchemy
-          sqlalchemy
-          requests
-          gunicorn
-          pyyaml
-          pytest
-          responses
-          EOF
-          )
+          # Install the package and dependencies using our setup script
+          chmod +x scripts/setup_ci_environment.sh
+          ./scripts/setup_ci_environment.sh
+          
           # Additional tools for testing
           apt-get update && apt-get install -y curl jq
       
