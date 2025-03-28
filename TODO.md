@@ -81,6 +81,11 @@ This document outlines planned enhancements and features for the Redmine Model C
   - Set up CI/CD pipeline
   - Create Docker container for easy deployment
   - Add monitoring and alerting
+  - Set up GitHub Actions workflows
+    - Implement workflow for running tests
+    - Add workflow for automated linting and code quality
+    - Create workflow for building and publishing Docker images
+    - Set up deployment workflow for staging/production environments
 
 ## Future Considerations
 
