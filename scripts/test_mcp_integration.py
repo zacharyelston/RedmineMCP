@@ -25,7 +25,7 @@ def check_capabilities(base_url):
     """Test checking MCP capabilities"""
     print("Testing MCP capabilities endpoint...")
     
-    endpoint = f"{base_url}/mcp/capabilities"
+    endpoint = f"{base_url}/api/capabilities"
     
     try:
         response = requests.get(endpoint)
@@ -43,7 +43,7 @@ def check_health(base_url):
     """Test checking MCP health endpoint"""
     print("Testing MCP health endpoint...")
     
-    endpoint = f"{base_url}/mcp/health"
+    endpoint = f"{base_url}/api/health"
     
     try:
         response = requests.get(endpoint)
@@ -53,8 +53,8 @@ def check_health(base_url):
         print("✅ MCP health endpoint is working!")
         print(f"Health status: {json.dumps(health_data, indent=2)}")
         
-        if health_data.get("status") != "ok":
-            print(f"⚠️ Warning: Health check returned non-OK status: {health_data.get('status')}")
+        if health_data.get("status") != "healthy" and health_data.get("status") != "ok":
+            print(f"⚠️ Warning: Health check returned unhealthy status: {health_data.get('status')}")
             return False
             
         return True
@@ -66,7 +66,7 @@ def create_issue(base_url, project_id):
     """Test creating an issue via MCP"""
     print("Testing issue creation via MCP...")
     
-    endpoint = f"{base_url}/api/llm/issues/create"
+    endpoint = f"{base_url}/api/llm/create_issue"
     
     # Sample prompt for issue creation
     data = {
@@ -98,7 +98,7 @@ def update_issue(base_url, issue_id):
     """Test updating an issue via MCP"""
     print(f"Testing update of issue #{issue_id} via MCP...")
     
-    endpoint = f"{base_url}/api/llm/issues/{issue_id}/update"
+    endpoint = f"{base_url}/api/llm/update_issue/{issue_id}"
     
     # Sample prompt for issue update
     data = {
@@ -128,7 +128,7 @@ def analyze_issue(base_url, issue_id):
     """Test analyzing an issue via MCP"""
     print(f"Testing analysis of issue #{issue_id} via MCP...")
     
-    endpoint = f"{base_url}/api/llm/issues/{issue_id}/analyze"
+    endpoint = f"{base_url}/api/llm/analyze_issue/{issue_id}"
     
     try:
         response = requests.post(endpoint)

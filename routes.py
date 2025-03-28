@@ -9,7 +9,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from models import db, Config, ActionLog, PromptTemplate, RateLimitTracker
 from redmine_api import RedmineAPI
-from llm_api import LLMAPI
+from llm_factory import create_llm_client
 from utils import is_rate_limited, add_api_call, load_credentials, create_credentials_file, update_config_from_credentials
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,8 @@ def settings():
         redmine_url = request.form.get('redmine_url')
         redmine_api_key = request.form.get('redmine_api_key')
         claude_api_key = request.form.get('claude_api_key')
+        openai_api_key = request.form.get('openai_api_key')
+        llm_provider = request.form.get('llm_provider', 'claude')
         rate_limit = int(request.form.get('rate_limit', 60))
         
         # Create or update config
@@ -40,6 +42,8 @@ def settings():
             config.redmine_url = redmine_url
             config.redmine_api_key = redmine_api_key
             config.claude_api_key = claude_api_key
+            config.openai_api_key = openai_api_key
+            config.llm_provider = llm_provider
             config.rate_limit_per_minute = rate_limit
             config.updated_at = datetime.utcnow()
         else:
@@ -47,6 +51,8 @@ def settings():
                 redmine_url=redmine_url,
                 redmine_api_key=redmine_api_key,
                 claude_api_key=claude_api_key,
+                openai_api_key=openai_api_key,
+                llm_provider=llm_provider,
                 rate_limit_per_minute=rate_limit
             )
             db.session.add(config)
@@ -55,8 +61,10 @@ def settings():
         success, message = create_credentials_file(
             redmine_url, 
             redmine_api_key, 
-            claude_api_key, 
-            rate_limit
+            claude_api_key=claude_api_key,
+            openai_api_key=openai_api_key,
+            llm_provider=llm_provider,
+            rate_limit_per_minute=rate_limit
         )
         
         db.session.commit()
@@ -209,16 +217,17 @@ def llm_create_issue():
     if is_rate_limited('redmine', config.rate_limit_per_minute):
         return jsonify({'error': 'Redmine API rate limit exceeded'}), 429
     
-    if is_rate_limited('claude', config.rate_limit_per_minute):
-        return jsonify({'error': 'Claude API rate limit exceeded'}), 429
+    llm_provider = config.llm_provider.lower()
+    if is_rate_limited(llm_provider, config.rate_limit_per_minute):
+        return jsonify({'error': f'{llm_provider.capitalize()} API rate limit exceeded'}), 429
     
     try:
-        # Generate issue attributes with Claude
-        llm_api = LLMAPI(config.claude_api_key)
+        # Generate issue attributes with the configured LLM provider
+        llm_api = create_llm_client(config)
         issue_data = llm_api.generate_issue(prompt)
         
         # Record API call for rate limiting
-        add_api_call('claude')
+        add_api_call(llm_provider)
         
         # Create the issue in Redmine
         redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
@@ -295,8 +304,9 @@ def llm_update_issue(issue_id):
     if is_rate_limited('redmine', config.rate_limit_per_minute):
         return jsonify({'error': 'Redmine API rate limit exceeded'}), 429
     
-    if is_rate_limited('claude', config.rate_limit_per_minute):
-        return jsonify({'error': 'Claude API rate limit exceeded'}), 429
+    llm_provider = config.llm_provider.lower()
+    if is_rate_limited(llm_provider, config.rate_limit_per_minute):
+        return jsonify({'error': f'{llm_provider.capitalize()} API rate limit exceeded'}), 429
     
     try:
         # First, get the current issue from Redmine
@@ -306,12 +316,12 @@ def llm_update_issue(issue_id):
         # Record API call for rate limiting
         add_api_call('redmine')
         
-        # Generate update attributes with Claude
-        llm_api = LLMAPI(config.claude_api_key)
+        # Generate update attributes with the configured LLM provider
+        llm_api = create_llm_client(config)
         update_data = llm_api.update_issue(prompt, current_issue)
         
         # Record API call for rate limiting
-        add_api_call('claude')
+        add_api_call(llm_provider)
         
         # Extract fields for the update
         subject = update_data.get('subject')
@@ -378,8 +388,9 @@ def llm_analyze_issue(issue_id):
     if is_rate_limited('redmine', config.rate_limit_per_minute):
         return jsonify({'error': 'Redmine API rate limit exceeded'}), 429
     
-    if is_rate_limited('claude', config.rate_limit_per_minute):
-        return jsonify({'error': 'Claude API rate limit exceeded'}), 429
+    llm_provider = config.llm_provider.lower()
+    if is_rate_limited(llm_provider, config.rate_limit_per_minute):
+        return jsonify({'error': f'{llm_provider.capitalize()} API rate limit exceeded'}), 429
     
     try:
         # First, get the issue from Redmine
@@ -389,12 +400,12 @@ def llm_analyze_issue(issue_id):
         # Record API call for rate limiting
         add_api_call('redmine')
         
-        # Analyze the issue with Claude
-        llm_api = LLMAPI(config.claude_api_key)
+        # Analyze the issue with the configured LLM provider
+        llm_api = create_llm_client(config)
         analysis = llm_api.analyze_issue(issue)
         
         # Record API call for rate limiting
-        add_api_call('claude')
+        add_api_call(llm_provider)
         
         # Log the action
         log_entry = ActionLog(

@@ -8,7 +8,7 @@ import logging
 from flask import Blueprint, request, jsonify
 from models import Config
 from redmine_api import RedmineAPI
-from llm_api import LLMAPI
+from llm_factory import create_llm_client
 from utils import is_rate_limited, add_api_call
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ def mcp_capabilities():
     return jsonify({
         "id": "redmine-mcp-extension",
         "name": "Redmine MCP Extension",
-        "description": "A Model Context Protocol extension for Redmine that uses Claude to manage issues",
+        "description": "A Model Context Protocol extension for Redmine that uses LLMs to manage issues",
         "version": "1.0.0",
         "publisher": "Anthropic Authorized Developer",
         "contact": "https://github.com/yourusername/redmine-mcp",
@@ -62,7 +62,7 @@ def mcp_capabilities():
 def mcp_health():
     """
     Health check endpoint for the MCP integration.
-    Returns status of connections to Redmine and Claude APIs.
+    Returns status of connections to Redmine and LLM provider APIs.
     """
     config = Config.query.first()
     
@@ -72,7 +72,7 @@ def mcp_health():
             "message": "Configuration not found. Setup is required.",
             "services": {
                 "redmine": {"status": "not_configured"},
-                "claude": {"status": "not_configured"}
+                "llm": {"status": "not_configured", "provider": "unknown"}
             }
         })
     
@@ -89,31 +89,34 @@ def mcp_health():
             "message": str(e)
         }
     
-    # Check Claude API connectivity
-    claude_status = {"status": "unknown"}
+    # Check LLM API connectivity
+    llm_provider = config.llm_provider.lower()
+    llm_status = {"status": "unknown"}
+    
     try:
-        # We'll just create the client to check if the key format is valid
+        # We'll just create the client to check if the configuration is valid
         # A full test would require an actual API call which costs money
-        llm_api = LLMAPI(config.claude_api_key)
-        claude_status = {"status": "configured"}
+        _ = create_llm_client(config)
+        llm_status = {"status": "configured", "provider": llm_provider}
     except Exception as e:
-        claude_status = {
+        llm_status = {
             "status": "unhealthy", 
-            "message": str(e)
+            "message": str(e),
+            "provider": llm_provider
         }
     
     # Determine overall status
     overall_status = "healthy"
     if redmine_status["status"] != "healthy":
         overall_status = "warning" if redmine_status["status"] == "unknown" else "unhealthy"
-    elif claude_status["status"] != "configured" and claude_status["status"] != "healthy":
+    elif llm_status["status"] != "configured" and llm_status["status"] != "healthy":
         overall_status = "warning"
     
     return jsonify({
         "status": overall_status,
         "services": {
             "redmine": redmine_status,
-            "claude": claude_status
+            "llm": llm_status
         }
     })
 
