@@ -1,6 +1,8 @@
+import os
+import yaml
 from datetime import datetime, timedelta
 from app import db
-from models import RateLimitTracker
+from models import RateLimitTracker, Config
 
 def is_rate_limited(api_name, rate_limit_per_minute):
     """
@@ -63,3 +65,105 @@ def add_api_call(api_name):
         tracker.count += 1
     
     db.session.commit()
+
+def load_credentials():
+    """
+    Load credentials from credentials.yaml file
+    
+    Returns:
+        dict: The loaded credentials or None if file not found
+    """
+    credentials_path = os.path.join(os.getcwd(), 'credentials.yaml')
+    
+    # Check if credentials file exists
+    if not os.path.exists(credentials_path):
+        return None
+    
+    # Load credentials from file
+    try:
+        with open(credentials_path, 'r') as file:
+            credentials = yaml.safe_load(file)
+        return credentials
+    except Exception as e:
+        print(f"Error loading credentials: {e}")
+        return None
+
+
+def update_config_from_credentials():
+    """
+    Updates the application configuration from credentials.yaml file
+    
+    Returns:
+        tuple: (bool, str) - Success status and message
+    """
+    credentials = load_credentials()
+    
+    if not credentials:
+        return False, "Credentials file not found or invalid."
+    
+    try:
+        # Get or create config
+        config = Config.query.first()
+        if not config:
+            config = Config(
+                redmine_url="",
+                redmine_api_key="",
+                openai_api_key="",
+                rate_limit_per_minute=60
+            )
+            db.session.add(config)
+        
+        # Update config from credentials
+        if 'redmine' in credentials:
+            if 'url' in credentials['redmine']:
+                config.redmine_url = credentials['redmine']['url']
+            if 'api_key' in credentials['redmine']:
+                config.redmine_api_key = credentials['redmine']['api_key']
+        
+        if 'openai' in credentials and 'api_key' in credentials['openai']:
+            config.openai_api_key = credentials['openai']['api_key']
+        
+        if 'rate_limits' in credentials and 'redmine_per_minute' in credentials['rate_limits']:
+            config.rate_limit_per_minute = credentials['rate_limits']['redmine_per_minute']
+        
+        db.session.commit()
+        return True, "Configuration updated successfully from credentials.yaml."
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Error updating configuration: {e}"
+
+
+def create_credentials_file(redmine_url, redmine_api_key, openai_api_key, rate_limit_per_minute=60):
+    """
+    Creates a credentials.yaml file with the provided settings
+    
+    Args:
+        redmine_url (str): The Redmine instance URL
+        redmine_api_key (str): The Redmine API key
+        openai_api_key (str): The OpenAI API key
+        rate_limit_per_minute (int, optional): Rate limit for API calls
+        
+    Returns:
+        tuple: (bool, str) - Success status and message
+    """
+    credentials = {
+        'redmine': {
+            'url': redmine_url,
+            'api_key': redmine_api_key
+        },
+        'openai': {
+            'api_key': openai_api_key
+        },
+        'rate_limits': {
+            'redmine_per_minute': rate_limit_per_minute,
+            'openai_per_minute': 20
+        }
+    }
+    
+    try:
+        credentials_path = os.path.join(os.getcwd(), 'credentials.yaml')
+        with open(credentials_path, 'w') as file:
+            yaml.dump(credentials, file, default_flow_style=False)
+        return True, "Credentials file created successfully."
+    except Exception as e:
+        return False, f"Error creating credentials file: {e}"

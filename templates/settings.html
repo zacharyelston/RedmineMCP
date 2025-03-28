@@ -98,9 +98,29 @@
                         </div>
                     </div>
                     
+                    <!-- Credentials File Management -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-file-alt me-2"></i> Credentials File</h5>
+                        <hr>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="save_to_file" name="save_to_file" value="yes">
+                            <label class="form-check-label" for="save_to_file">
+                                Save settings to credentials.yaml file
+                            </label>
+                            <div class="form-text">
+                                This will save your settings to a file that can be used to restore configuration.
+                                <strong>Note:</strong> The file will contain sensitive API keys.
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" name="action" value="save" class="btn btn-primary">
                             <i class="fas fa-save me-1"></i> Save Settings
+                        </button>
+                        <button type="submit" name="action" value="load_from_file" class="btn btn-secondary">
+                            <i class="fas fa-sync me-1"></i> Load From File
                         </button>
                     </div>
                 </form>

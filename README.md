@@ -54,6 +54,7 @@ pip install -r requirements.txt
    - Enter your Redmine URL and API key
    - Enter your OpenAI API key
    - Set rate limiting parameters
+   - You can also save your settings to a credentials.yaml file or load settings from an existing file through the web interface
 
 ## Usage
 
@@ -116,6 +117,7 @@ The application does not modify the Redmine codebase directly, making it compati
 ## Security Considerations
 
 - API keys are stored in the database and should be protected
+- If using credentials.yaml, ensure it's properly secured and not exposed in version control
 - Rate limiting helps prevent excessive API usage costs
 - All LLM actions are logged for audit purposes
 - The application should be deployed behind a secure proxy in production

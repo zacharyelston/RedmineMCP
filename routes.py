@@ -7,7 +7,7 @@ from app import app, db
 from models import Config, ActionLog, PromptTemplate, RateLimitTracker
 from redmine_api import RedmineAPI
 from llm_api import LLMAPI
-from utils import is_rate_limited, add_api_call
+from utils import is_rate_limited, add_api_call, update_config_from_credentials, create_credentials_file
 
 logger = logging.getLogger(__name__)
 
@@ -39,25 +39,52 @@ def settings():
     config = Config.query.first()
     
     if request.method == 'POST':
-        if config:
-            # Update existing config
-            config.redmine_url = request.form['redmine_url']
-            config.redmine_api_key = request.form['redmine_api_key']
-            config.openai_api_key = request.form['openai_api_key']
-            config.rate_limit_per_minute = int(request.form['rate_limit_per_minute'])
-        else:
-            # Create new config
-            config = Config(
-                redmine_url=request.form['redmine_url'],
-                redmine_api_key=request.form['redmine_api_key'],
-                openai_api_key=request.form['openai_api_key'],
-                rate_limit_per_minute=int(request.form['rate_limit_per_minute'])
-            )
-            db.session.add(config)
+        action = request.form.get('action', 'save')
         
-        db.session.commit()
-        flash('Configuration saved successfully!', 'success')
-        return redirect(url_for('index'))
+        if action == 'save':
+            if config:
+                # Update existing config
+                config.redmine_url = request.form['redmine_url']
+                config.redmine_api_key = request.form['redmine_api_key']
+                config.openai_api_key = request.form['openai_api_key']
+                config.rate_limit_per_minute = int(request.form['rate_limit_per_minute'])
+            else:
+                # Create new config
+                config = Config(
+                    redmine_url=request.form['redmine_url'],
+                    redmine_api_key=request.form['redmine_api_key'],
+                    openai_api_key=request.form['openai_api_key'],
+                    rate_limit_per_minute=int(request.form['rate_limit_per_minute'])
+                )
+                db.session.add(config)
+            
+            db.session.commit()
+            
+            # Save to credentials file if requested
+            if request.form.get('save_to_file') == 'yes':
+                success, message = create_credentials_file(
+                    config.redmine_url,
+                    config.redmine_api_key,
+                    config.openai_api_key,
+                    config.rate_limit_per_minute
+                )
+                if success:
+                    flash('Configuration saved to database and credentials file successfully!', 'success')
+                else:
+                    flash(f'Configuration saved to database, but failed to save to file: {message}', 'warning')
+            else:
+                flash('Configuration saved to database successfully!', 'success')
+                
+            return redirect(url_for('index'))
+        
+        elif action == 'load_from_file':
+            # Load from credentials file
+            success, message = update_config_from_credentials()
+            if success:
+                flash('Configuration loaded from credentials file successfully!', 'success')
+                return redirect(url_for('settings'))
+            else:
+                flash(f'Failed to load configuration from file: {message}', 'danger')
     
     return render_template('settings.html', config=config)
 
