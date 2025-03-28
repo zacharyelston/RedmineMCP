@@ -130,23 +130,66 @@ The application does not modify the Redmine codebase directly, making it compati
 
 ### Development Environment
 
-We plan to provide a Docker container with a pre-configured Redmine instance for development and testing purposes. This will allow developers to quickly set up a consistent environment without needing to configure Redmine manually.
+We provide a Docker Compose setup with a pre-configured Redmine instance for development and testing. This allows developers to quickly set up a consistent environment without needing to configure Redmine manually.
 
-Once implemented, you will be able to start the development environment with:
+To set up the complete development environment:
 
 ```bash
-docker-compose up -d
+# Start all containers
+./scripts/start_dev_env.sh
 ```
 
-This will start both the Redmine container and the MCP extension, with all necessary connections pre-configured.
+This script will:
+1. Start Redmine, PostgreSQL, and the RedmineMCP containers
+2. Wait for Redmine to initialize
+3. Automatically create an API key in Redmine
+4. Configure the credentials.yaml file with the proper settings
+
+### Manual Setup Steps
+
+If you prefer to set up the environment manually:
+
+1. Start the Docker containers:
+```bash
+docker compose up -d
+```
+
+2. After Redmine is running, set up the API key and credentials:
+```bash
+./scripts/setup_redmine.sh
+```
+
+3. Test that the Redmine API is working correctly:
+```bash
+./scripts/test_redmine_api.sh
+```
+
+4. Update the application configuration if needed:
+```bash
+./scripts/update_api_urls.sh
+```
+
+### Accessing the Development Environment
+
+- **Redmine**: http://localhost:3000 (admin/admin)
+- **RedmineMCP**: http://localhost:5000
 
 ### Configuration for Development
 
-For local development, use the `credentials.yaml` file to store your API keys and connection details. The repository includes a `.gitignore` file that prevents this file from being committed to version control, ensuring your sensitive information remains private.
+For local development, the `credentials.yaml` file stores your API keys and connection details. The repository includes a `.gitignore` file that prevents this file from being committed to version control, ensuring your sensitive information remains private.
 
-1. Copy `credentials.yaml.example` to `credentials.yaml`
-2. Edit with your actual development credentials
+1. The setup scripts will automatically create a `credentials.yaml` file with Redmine settings
+2. You'll need to add your OpenAI API key to this file
 3. The application will automatically read from this file when available
+
+### Docker Container Architecture
+
+The development environment consists of the following containers:
+
+- **redmine**: The Redmine application server (port 3000)
+- **redmine-db**: PostgreSQL database for Redmine
+- **redminemcp**: Our MCP extension application (port 5000)
+- **redminemcp-db**: PostgreSQL database for our application
 
 ## Contributing
 

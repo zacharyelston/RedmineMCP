@@ -4,17 +4,17 @@ This document outlines planned enhancements and features for the Redmine Model C
 
 ## High Priority
 
-- [ ] **Credentials Management System**
-  - Create a credentials.yaml file template for storing API keys and connection details
-  - Implement system to load credentials from the YAML file
-  - Add credentials.yaml to .gitignore to prevent accidental commits
-  - Update documentation with instructions on credential configuration
+- [x] **Credentials Management System**
+  - [x] Create a credentials.yaml file template for storing API keys and connection details
+  - [x] Implement system to load credentials from the YAML file
+  - [x] Add credentials.yaml to .gitignore to prevent accidental commits
+  - [x] Update documentation with instructions on credential configuration
 
-- [ ] **Redmine Development Container**
-  - Create a Docker container with a pre-configured Redmine instance for development
-  - Include automatic setup of test projects, users, and issues
-  - Configure the container to initialize with consistent test data
-  - Add documentation for container usage
+- [x] **Redmine Development Container**
+  - [x] Create a Docker container with a pre-configured Redmine instance for development
+  - [x] Include automatic setup of test projects, users, and issues
+  - [x] Configure the container to initialize with consistent test data
+  - [x] Add documentation for container usage
 
 - [ ] **Test API Connection Functionality**
   - Implement real connection testing for Redmine and OpenAI APIs
@@ -78,14 +78,14 @@ This document outlines planned enhancements and features for the Redmine Model C
   - Create user manual with examples
 
 - [ ] **DevOps**
-  - Set up CI/CD pipeline
-  - Create Docker container for easy deployment
-  - Add monitoring and alerting
-  - Set up GitHub Actions workflows
-    - Implement workflow for running tests
-    - Add workflow for automated linting and code quality
-    - Create workflow for building and publishing Docker images
-    - Set up deployment workflow for staging/production environments
+  - [ ] Set up CI/CD pipeline
+  - [x] Create Docker container for easy deployment
+  - [ ] Add monitoring and alerting
+  - [ ] Set up GitHub Actions workflows
+    - [ ] Implement workflow for running tests
+    - [ ] Add workflow for automated linting and code quality
+    - [x] Create workflow for building and publishing Docker images
+    - [ ] Set up deployment workflow for staging/production environments
 
 ## Future Considerations
 

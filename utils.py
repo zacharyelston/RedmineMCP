@@ -114,6 +114,20 @@ def update_config_from_credentials():
             db.session.add(config)
         
         # Update config from credentials
+        # First, check for the new flat format (used in setup scripts)
+        if 'redmine_url' in credentials:
+            config.redmine_url = credentials['redmine_url']
+        
+        if 'redmine_api_key' in credentials:
+            config.redmine_api_key = credentials['redmine_api_key']
+        
+        if 'openai_api_key' in credentials:
+            config.openai_api_key = credentials['openai_api_key']
+        
+        if 'rate_limit_per_minute' in credentials:
+            config.rate_limit_per_minute = credentials['rate_limit_per_minute']
+        
+        # Also check for the nested format (for backward compatibility)
         if 'redmine' in credentials:
             if 'url' in credentials['redmine']:
                 config.redmine_url = credentials['redmine']['url']
@@ -146,18 +160,12 @@ def create_credentials_file(redmine_url, redmine_api_key, openai_api_key, rate_l
     Returns:
         tuple: (bool, str) - Success status and message
     """
+    # Using the flat format consistent with the setup scripts
     credentials = {
-        'redmine': {
-            'url': redmine_url,
-            'api_key': redmine_api_key
-        },
-        'openai': {
-            'api_key': openai_api_key
-        },
-        'rate_limits': {
-            'redmine_per_minute': rate_limit_per_minute,
-            'openai_per_minute': 20
-        }
+        'redmine_url': redmine_url,
+        'redmine_api_key': redmine_api_key,
+        'openai_api_key': openai_api_key,
+        'rate_limit_per_minute': rate_limit_per_minute
     }
     
     try:

@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database for Redmine
+  redmine-db:
+    image: postgres:14
+    container_name: redmine-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: redmine
+      POSTGRES_PASSWORD: redmine_password
+      POSTGRES_DB: redmine
+    volumes:
+      - redmine-db-data:/var/lib/postgresql/data
+    networks:
+      - redmine-network
+
+  # Redmine application
+  redmine:
+    image: redmine:5.0
+    container_name: redmine
+    restart: unless-stopped
+    depends_on:
+      - redmine-db
+    environment:
+      REDMINE_DB_POSTGRES: redmine-db
+      REDMINE_DB_DATABASE: redmine
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: redmine_password
+      REDMINE_SECRET_KEY_BASE: a_random_secret_key_for_development_only
+    volumes:
+      - redmine-files:/usr/src/redmine/files
+      - redmine-plugins:/usr/src/redmine/plugins
+    ports:
+      - "3000:3000"
+    networks:
+      - redmine-network
+
+  # RedmineMCP (our application)
+  redminemcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redminemcp
+    restart: unless-stopped
+    depends_on:
+      - redmine
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres_password@redminemcp-db:5432/redminemcp
+      # These will be auto-configured on first startup
+      # REDMINE_URL: http://redmine:3000
+      # REDMINE_API_KEY: will be auto-set
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    networks:
+      - redmine-network
+
+  # Database for RedmineMCP
+  redminemcp-db:
+    image: postgres:14
+    container_name: redminemcp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: redminemcp
+    volumes:
+      - redminemcp-db-data:/var/lib/postgresql/data
+    networks:
+      - redmine-network
+
+networks:
+  redmine-network:
+    driver: bridge
+
+volumes:
+  redmine-db-data:
+  redmine-files:
+  redmine-plugins:
+  redminemcp-db-data:
