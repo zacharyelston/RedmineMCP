@@ -1,194 +1,118 @@
-# Redmine Model Context Protocol (MCP) Extension
+# Redmine Model Context Protocol Extension
 
-A Python-based middleware that enables Large Language Models (LLMs) to create and update issues in Redmine through a structured API interface.
+A Model Context Protocol (MCP) extension for Redmine that leverages Anthropic's Claude AI to streamline issue management through an intelligent, user-friendly Python-based API.
 
 ## Overview
 
-This extension allows AI assistants to interact with your Redmine project management system through a Model Context Protocol implementation. It bridges the gap between AI capabilities and Redmine's project tracking functionality, enabling automated issue management.
+This project implements a middleware service that connects Redmine (a popular project management system) with advanced Large Language Models (specifically Claude) to enable AI-assisted issue management. Instead of directly modifying Redmine's Ruby codebase, this extension operates as a separate service that communicates with Redmine via its REST API.
 
-## Features
+## Key Features
 
-- **LLM Integration**: Create, update, and analyze Redmine issues using Anthropic's Claude API
-- **Web Interface**: Modern Bootstrap-based dashboard for configuration and monitoring
-- **API Endpoints**: RESTful API for programmatic access
+- **AI-Powered Issue Creation**: Generate well-structured Redmine issues from natural language descriptions
+- **Intelligent Issue Updates**: Update existing issues using natural language commands
+- **Issue Analysis**: Get AI-powered insights and recommendations for existing issues
+- **Web Interface**: Simple dashboard for configuration and monitoring
 - **Rate Limiting**: Built-in protection against API overuse
-- **Logging**: Comprehensive audit trail of all AI-performed actions
-- **Prompt Templates**: Store and manage reusable prompts for common tasks
+- **Comprehensive Logging**: Detailed logs of all AI operations
 
 ## Requirements
 
-- Python 3.8+
-- Redmine instance with API access
+- Python 3.9+
+- Redmine instance with API access enabled
 - Anthropic Claude API key
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/redmine-mcp-extension.git
-cd redmine-mcp-extension
-```
+1. Clone this repository:
+   ```
+   git clone https://github.com/yourusername/redmine-mcp.git
+   cd redmine-mcp
+   ```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+2. Install required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
 
-3. Configure the application:
-
-   **Option 1: Using credentials.yaml (recommended for development)**
-   - Copy the `credentials.yaml.example` file to `credentials.yaml`
-   - Edit the file with your actual API keys and connection details:
-     ```yaml
-     redmine_url: "https://your-redmine-instance.example.com"
-     redmine_api_key: "your_redmine_api_key_here"
-     claude_api_key: "your_claude_api_key_here"
-     rate_limit_per_minute: 60
-     ```
-   - **Important**: The `credentials.yaml` file is excluded from version control by `.gitignore` to prevent accidentally committing sensitive information.
-
-   **Option 2: Using the web interface**
-   - Navigate to the settings page in the web interface
-   - Enter your Redmine URL and API key
-   - Enter your Claude API key
-   - Set rate limiting parameters
-   - You can also save your settings to a credentials.yaml file or load settings from an existing file through the web interface
+3. Create configuration:
+   ```
+   cp credentials.yaml.example credentials.yaml
+   ```
+   
+4. Edit `credentials.yaml` with your actual Redmine URL, API key, and Claude API key.
 
 ## Usage
 
-Start the server:
-```bash
-python main.py
-```
+1. Start the application:
+   ```
+   python main.py
+   ```
 
-The web interface will be available at http://localhost:5000
+2. Access the web interface at `http://localhost:5000`
 
-### API Usage Examples
+3. Use the API endpoints to interact with the extension:
+   - `/api/issue/create` - Create a new issue
+   - `/api/issue/<id>/update` - Update an existing issue
+   - `/api/issue/<id>/analyze` - Analyze an issue
 
-#### Create a new issue
+## API Usage Examples
+
+### Create a new issue
 
 ```python
 import requests
 
-response = requests.post(
-    'http://localhost:5000/api/llm/create_issue',
-    json={
-        'prompt': 'Create a bug report for a login page error where users receive 404 error after login attempt'
-    }
-)
+payload = {
+    "prompt": "Create a bug report for a login page issue where users are experiencing 404 errors after submitting login credentials on the production environment"
+}
+
+response = requests.post("http://localhost:5000/api/issue/create", json=payload)
 print(response.json())
 ```
 
-#### Update an existing issue
+### Update an existing issue
 
 ```python
-response = requests.post(
-    'http://localhost:5000/api/llm/update_issue/123',
-    json={
-        'prompt': 'Change the priority to high and assign to John'
-    }
-)
+import requests
+
+payload = {
+    "prompt": "Change the priority to high and add more information about the browser versions affected"
+}
+
+response = requests.post("http://localhost:5000/api/issue/123/update", json=payload)
 print(response.json())
 ```
 
-#### Analyze an issue
+### Analyze an issue
 
 ```python
-response = requests.post(
-    'http://localhost:5000/api/llm/analyze_issue/123',
-    json={}
-)
+import requests
+
+response = requests.get("http://localhost:5000/api/issue/123/analyze")
 print(response.json())
 ```
 
-## Architecture
+## Testing
 
-This extension follows a middleware approach:
+To run the tests:
 
-1. **Python Flask Application**: Serves as the core middleware
-2. **Redmine API Client**: Communicates with Redmine via REST API
-3. **Claude API Client**: Handles LLM interactions
-4. **SQLite/PostgreSQL Database**: Stores configuration, logs, and prompt templates
+```
+pytest
+```
 
-The application does not modify the Redmine codebase directly, making it compatible with any Redmine instance that has API access enabled.
+To run specific test files:
 
-## Security Considerations
-
-- API keys are stored in the database and should be protected
-- If using credentials.yaml, ensure it's properly secured and not exposed in version control
-- Rate limiting helps prevent excessive API usage costs
-- All LLM actions are logged for audit purposes
-- The application should be deployed behind a secure proxy in production
-
-## License
-
-[MIT License](LICENSE)
+```
+pytest tests/test_redmine_api.py
+pytest tests/test_llm_api.py
+```
 
 ## Development
 
-### Development Environment
+- Use the included scripts in the `scripts` directory for development tasks
+- Create new feature branches using `scripts/create_feature_branch.sh`
+- Test your changes using the provided test suite
 
-We provide a Docker Compose setup with a pre-configured Redmine instance for development and testing. This allows developers to quickly set up a consistent environment without needing to configure Redmine manually.
+## License
 
-To set up the complete development environment:
-
-```bash
-# Start all containers
-./scripts/start_dev_env.sh
-```
-
-This script will:
-1. Start Redmine, PostgreSQL, and the RedmineMCP containers
-2. Wait for Redmine to initialize
-3. Automatically create an API key in Redmine
-4. Configure the credentials.yaml file with the proper settings
-
-### Manual Setup Steps
-
-If you prefer to set up the environment manually:
-
-1. Start the Docker containers:
-```bash
-docker compose up -d
-```
-
-2. After Redmine is running, set up the API key and credentials:
-```bash
-./scripts/setup_redmine.sh
-```
-
-3. Test that the Redmine API is working correctly:
-```bash
-./scripts/test_redmine_api.sh
-```
-
-4. Update the application configuration if needed:
-```bash
-./scripts/update_api_urls.sh
-```
-
-### Accessing the Development Environment
-
-- **Redmine**: http://localhost:3000 (admin/admin)
-- **RedmineMCP**: http://localhost:5000
-
-### Configuration for Development
-
-For local development, the `credentials.yaml` file stores your API keys and connection details. The repository includes a `.gitignore` file that prevents this file from being committed to version control, ensuring your sensitive information remains private.
-
-1. The setup scripts will automatically create a `credentials.yaml` file with Redmine settings
-2. You'll need to add your Claude API key to this file
-3. The application will automatically read from this file when available
-
-### Docker Container Architecture
-
-The development environment consists of the following containers:
-
-- **redmine**: The Redmine application server (port 3000)
-- **redmine-db**: PostgreSQL database for Redmine
-- **redminemcp**: Our MCP extension application (port 5000)
-- **redminemcp-db**: PostgreSQL database for our application
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+MIT

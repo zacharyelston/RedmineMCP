@@ -1,58 +1,34 @@
 #!/bin/bash
 
-# This script creates a new feature branch for development
-# Usage: ./scripts/create_feature_branch.sh feature-name
+# Script to create a new feature branch using a consistent naming convention
 
-if [ -z "$1" ]; then
-  echo "Error: You must provide a feature name."
-  echo "Usage: ./scripts/create_feature_branch.sh feature-name"
-  exit 1
+# Check if feature name is provided
+if [ $# -eq 0 ]; then
+    echo "Error: Feature name is required"
+    echo "Usage: $0 <feature-name>"
+    exit 1
 fi
 
-# Convert feature name to lowercase and replace spaces with hyphens
+# Normalize feature name (convert spaces to hyphens, lowercase)
 FEATURE_NAME=$(echo "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
 
-# Get current branch
-CURRENT_BRANCH=$(git branch --show-current)
+# Create a branch name with feature/ prefix and current date
+BRANCH_NAME="feature/${FEATURE_NAME}-$(date +%Y%m%d)"
 
 # Check if git is initialized
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo "Error: This directory is not a git repository."
-  echo "Initialize git first with: git init"
-  exit 1
+if [ ! -d ".git" ]; then
+    echo "Initializing git repository..."
+    git init
+    git add .
+    git commit -m "Initial commit"
 fi
 
-# Create branch name with prefix
-BRANCH_NAME="feature/${FEATURE_NAME}"
+# Create and checkout the new branch
+echo "Creating branch: $BRANCH_NAME"
+git checkout -b "$BRANCH_NAME"
 
-# Check if branch already exists
-if git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
-  echo "Branch $BRANCH_NAME already exists."
-  read -p "Do you want to switch to this branch? (y/n) " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    git checkout $BRANCH_NAME
-    echo "Switched to existing branch: $BRANCH_NAME"
-  else
-    echo "Operation cancelled."
-  fi
-  exit 0
-fi
-
-# Create and switch to the new branch
-git checkout -b $BRANCH_NAME
-
-# Check if branch creation was successful
-if [ $? -eq 0 ]; then
-  echo "====================================="
-  echo "Created and switched to new branch: $BRANCH_NAME"
-  echo "Starting from: $CURRENT_BRANCH"
-  echo "====================================="
-  echo "When you're ready to commit your changes:"
-  echo "git add ."
-  echo "git commit -m \"Description of changes for $FEATURE_NAME\""
-  echo "====================================="
-else
-  echo "Error: Failed to create branch $BRANCH_NAME"
-  exit 1
-fi
+# Success message
+echo "Success! Now working on branch: $BRANCH_NAME"
+echo "When you're ready to commit your changes, use:"
+echo "git add ."
+echo "git commit -m \"feat: your descriptive message here\""
