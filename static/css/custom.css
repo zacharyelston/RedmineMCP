@@ -1,0 +1,52 @@
+/* Custom styles on top of Bootstrap */
+.log-entry {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.log-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-left: 4px solid var(--bs-success);
+}
+
+.log-error {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-left: 4px solid var(--bs-danger);
+}
+
+.dashboard-stat-card {
+    transition: transform 0.2s;
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.code-block {
+    font-family: monospace;
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    padding: 1rem;
+    border-radius: 0.25rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+.template-card {
+    margin-bottom: 1rem;
+    transition: transform 0.2s;
+}
+
+.template-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.api-key-field {
+    font-family: monospace;
+}

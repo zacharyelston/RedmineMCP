@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+        </h1>
+        <p class="lead">
+            The Redmine MCP Extension allows LLMs to interact with your Redmine project management system.
+        </p>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="row mb-5">
+    <div class="col-md-4 mb-3">
+        <div class="card text-center bg-dark dashboard-stat-card h-100">
+            <div class="card-body">
+                <div class="display-1 mb-3">
+                    <i class="fas fa-exchange-alt text-info"></i>
+                </div>
+                <h5 class="card-title">Total Actions</h5>
+                <p class="card-text display-6">{{ total_actions }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-center bg-dark dashboard-stat-card h-100">
+            <div class="card-body">
+                <div class="display-1 mb-3">
+                    <i class="fas fa-check-circle text-success"></i>
+                </div>
+                <h5 class="card-title">Success Rate</h5>
+                <p class="card-text display-6">{{ "%.1f"|format(success_rate) }}%</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-center bg-dark dashboard-stat-card h-100">
+            <div class="card-body">
+                <div class="display-1 mb-3">
+                    <i class="fas fa-robot text-primary"></i>
+                </div>
+                <h5 class="card-title">LLM Integration</h5>
+                <p class="card-text">
+                    {% if config %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-danger">Not Configured</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i> Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_logs %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Action</th>
+                                <th>Issue ID</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in recent_logs %}
+                            <tr>
+                                <td class="format-date">{{ log.created_at }}</td>
+                                <td>{{ log.action_type }}</td>
+                                <td>
+                                    {% if log.issue_id %}
+                                    <a href="#" class="text-info">{{ log.issue_id }}</a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.success %}
+                                    <span class="badge bg-success">Success</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-end mt-3">
+                    <a href="{{ url_for('logs') }}" class="btn btn-outline-primary">
+                        View All Logs <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No activity recorded yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Getting Started / Documentation Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-book me-2"></i> Documentation
+                </h5>
+            </div>
+            <div class="card-body">
+                <h5>Introduction</h5>
+                <p>
+                    This extension implements the Model Context Protocol (MCP) for Redmine, allowing Large Language Models (LLMs) 
+                    to create and update issues in your Redmine instance through a Python-based API.
+                </p>
+                
+                <h5 class="mt-4">API Endpoints</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark">
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Method</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/api/llm/create_issue</code></td>
+                                <td>POST</td>
+                                <td>Creates a new issue from a LLM prompt</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/llm/update_issue/{issue_id}</code></td>
+                                <td>POST</td>
+                                <td>Updates an existing issue using LLM</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/llm/analyze_issue/{issue_id}</code></td>
+                                <td>POST</td>
+                                <td>Analyzes an issue using LLM</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/redmine/issues</code></td>
+                                <td>GET</td>
+                                <td>Retrieves a list of Redmine issues</td>
+                            </tr>
+                            <tr>
+                                <td><code>/api/redmine/issue/{issue_id}</code></td>
+                                <td>GET</td>
+                                <td>Retrieves a specific Redmine issue</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h5 class="mt-4">Example Usage</h5>
+                <div class="code-block">
+import requests
+
+# Create a new issue
+response = requests.post(
+    'http://localhost:5000/api/llm/create_issue',
+    json={
+        'prompt': 'Create a bug report for a login page error where users receive 404 error after login attempt'
+    }
+)
+print(response.json())
+
+# Update an existing issue
+response = requests.post(
+    'http://localhost:5000/api/llm/update_issue/123',
+    json={
+        'prompt': 'Change the priority to high and assign to John'
+    }
+)
+print(response.json())
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
