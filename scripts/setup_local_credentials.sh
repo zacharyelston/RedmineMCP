@@ -1,108 +1,65 @@
 #!/bin/bash
-
-# Script to set up the Claude API key for the Redmine MCP Extension
-# Note: The Redmine API key is now automatically set up with scripts/setup_redmine.sh
-
-# Color codes for better output formatting
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Function to print colored status messages
-status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Script to create and update local development credentials
 
 set -e
 
-CREDENTIALS_FILE="./credentials.yaml"
-EXAMPLE_FILE="./credentials.yaml.example"
+REDMINE_URL=${1:-"http://localhost:3000"}
+REDMINE_API_KEY=${2:-"YOUR_REDMINE_API_KEY"}
+CLAUDE_API_KEY=${3:-"YOUR_CLAUDE_API_KEY"}
+RATE_LIMIT=${4:-60}
 
-status "Setting up Claude API credentials for the Redmine MCP Extension..."
+echo "🔑 Setting up local credentials..."
 
-# Check if credentials file exists
-if [ ! -f "$CREDENTIALS_FILE" ]; then
-    if [ -f "$EXAMPLE_FILE" ]; then
-        # Create from example if it doesn't exist
-        cp "$EXAMPLE_FILE" "$CREDENTIALS_FILE"
-        success "Created credentials.yaml from example file"
+# Function to validate URL format
+validate_url() {
+    # Simple URL validation (requires protocol and domain)
+    if [[ ! "$1" =~ ^https?:// ]]; then
+        echo "❌ ERROR: Invalid URL format: $1"
+        echo "URL must start with http:// or https://"
+        exit 1
+    fi
+}
+
+# Create credentials.yaml file
+create_credentials_file() {
+    validate_url "$REDMINE_URL"
+    
+    echo "⚙️ Creating credentials.yaml file..."
+    cat > credentials.yaml << EOF
+# Redmine MCP Extension Credentials
+redmine:
+  url: ${REDMINE_URL}
+  api_key: ${REDMINE_API_KEY}
+
+claude:
+  api_key: ${CLAUDE_API_KEY}
+
+# Rate limit (calls per minute)
+rate_limit: ${RATE_LIMIT}
+EOF
+    echo "✅ Created credentials.yaml file"
+}
+
+# Check if credentials.yaml already exists
+if [ -f "credentials.yaml" ]; then
+    echo "⚠️ credentials.yaml already exists."
+    read -p "Do you want to overwrite it? (y/N): " OVERWRITE
+    if [[ "$OVERWRITE" =~ ^[Yy]$ ]]; then
+        create_credentials_file
     else
-        error "credentials.yaml.example not found. Cannot create configuration"
-        exit 1
+        echo "ℹ️ Using existing credentials.yaml file"
     fi
-fi
-
-# Read the current Claude API key if it exists
-current_key=""
-if grep -q "claude_api_key:" "$CREDENTIALS_FILE"; then
-    current_key=$(grep "claude_api_key:" "$CREDENTIALS_FILE" | sed "s/claude_api_key: '//g" | sed "s/'//g")
-    if [ "$current_key" != "your_claude_api_key_here" ]; then
-        warning "Claude API key already set in credentials.yaml"
-        read -p "Do you want to replace it? (y/n): " replace
-        if [[ "$replace" != "y" ]]; then
-            success "Existing Claude API key retained"
-            exit 0
-        fi
-    fi
-fi
-
-# Ask for Claude API key
-echo
-echo -e "${YELLOW}=============== Claude API Setup ===============${NC}"
-echo "The LLM functionality requires a Claude API key."
-echo "You can get one from https://console.anthropic.com/"
-echo
-read -p "Enter your Claude API key: " claude_api_key
-
-if [[ -z "$claude_api_key" ]]; then
-    warning "No Claude API key provided. LLM functionality will be disabled"
-    read -p "Continue anyway? (y/n): " continue_anyway
-    if [[ "$continue_anyway" != "y" ]]; then
-        error "Setup aborted"
-        exit 1
-    fi
-    # Keep the placeholder value
-    claude_api_key="your_claude_api_key_here"
-    warning "Using placeholder value. LLM features will not work until a valid key is added"
 else
-    success "Claude API key received"
+    create_credentials_file
 fi
 
-# Update the Claude API key in the credentials file
-if grep -q "claude_api_key:" "$CREDENTIALS_FILE"; then
-    # If the key already exists, replace it
-    sed -i.bak "s|claude_api_key: '.*'|claude_api_key: '$claude_api_key'|" "$CREDENTIALS_FILE"
-    rm -f "${CREDENTIALS_FILE}.bak"
-else
-    # If the key doesn't exist, append it
-    echo "claude_api_key: '$claude_api_key'" >> "$CREDENTIALS_FILE"
-fi
+echo "
+🔑 Credential setup complete!
 
-success "Updated Claude API key in credentials.yaml"
-
-echo
-echo -e "${GREEN}=================== Setup Complete ===================${NC}"
-echo -e "You can now use the Redmine MCP Extension with Claude AI!"
-echo
-echo -e "Remember to restart the MCP Extension for the changes to take effect:"
-echo -e "  ${YELLOW}docker restart mcp-extension-local${NC}    (if using Docker)"
-echo -e "  or restart the Flask application        (if running locally)"
-echo
-if [ "$claude_api_key" == "your_claude_api_key_here" ]; then
-    warning "NOTE: You have not set a valid Claude API key. LLM features will be disabled"
-    echo "You can add a valid key later by editing credentials.yaml directly"
-fi
+✨ Next steps:
+   1. Make sure Redmine is running at ${REDMINE_URL}
+   2. Add your actual API keys to credentials.yaml:
+      - Redmine API key: Get from Redmine > My account > API access key
+      - Claude API key: Get from Anthropic dashboard
+   3. Start the application with: flask run --host=0.0.0.0 --port=5000
+"

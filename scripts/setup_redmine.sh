@@ -1,147 +1,94 @@
 #!/bin/bash
-# Script to set up a local Redmine instance for development and automatically
-# generate an API key for use with the Redmine MCP Extension
+# Script to set up Redmine and configure credentials for local development
 
-# Color codes for better output formatting
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+set -e
 
-# Function to print colored status messages
-status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+REDMINE_URL="http://localhost:3000"
+REDMINE_API_KEY="local_dev_api_key"
+CLAUDE_API_KEY_PLACEHOLDER="YOUR_CLAUDE_API_KEY"
 
-success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+echo "🚀 Setting up Redmine for local development..."
 
-warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Check if Docker is installed
+# Check for Docker
 if ! command -v docker &> /dev/null; then
-    error "Docker is not installed or not in PATH"
-    echo "Please install Docker: https://docs.docker.com/get-docker/"
+    echo "❌ ERROR: Docker is not installed or not in PATH. Please install Docker first."
     exit 1
 fi
 
-status "Setting up a local Redmine instance for development..."
+# Check for docker-compose
+if ! command -v docker-compose &> /dev/null; then
+    echo "❌ ERROR: docker-compose is not installed or not in PATH. Please install docker-compose first."
+    exit 1
+fi
 
-# Check if the container already exists
-if docker ps -a --format '{{.Names}}' | grep -q "^redmine-dev$"; then
-    warning "A container named 'redmine-dev' already exists"
-    read -p "Do you want to remove it and create a new one? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        status "Removing existing container..."
-        docker stop redmine-dev &>/dev/null
-        docker rm redmine-dev &>/dev/null
+# Check if docker is running
+if ! docker info &> /dev/null; then
+    echo "❌ ERROR: Docker daemon is not running. Please start Docker first."
+    exit 1
+fi
+
+# Create credentials file from example or template
+if [ ! -f ./credentials.yaml ]; then
+    if [ -f ./credentials.yaml.example ]; then
+        echo "⚙️ Creating credentials.yaml from example file..."
+        cp ./credentials.yaml.example ./credentials.yaml
     else
-        status "Starting existing container..."
-        docker start redmine-dev &>/dev/null
-        success "Existing Redmine container started"
-        echo
-        echo -e "Redmine is now available at: ${GREEN}http://localhost:3000${NC}"
-        echo -e "Default admin credentials: ${GREEN}admin/admin${NC}"
-        exit 0
+        echo "⚙️ Creating credentials.yaml from scratch..."
+        cat > ./credentials.yaml << EOF
+# Redmine MCP Extension Credentials
+redmine:
+  url: ${REDMINE_URL}
+  api_key: ${REDMINE_API_KEY}
+
+claude:
+  api_key: ${CLAUDE_API_KEY_PLACEHOLDER}
+
+# Rate limit (calls per minute)
+rate_limit: 60
+EOF
     fi
+    echo "✅ Created credentials.yaml"
+else
+    echo "ℹ️ Using existing credentials.yaml file"
 fi
 
-# Create a standalone Redmine Docker container for quick testing
-status "Creating and starting Redmine container..."
-docker run --name redmine-dev \
-  -d \
-  -p 3000:3000 \
-  -e REDMINE_DB_SQLITE=/redmine/db/sqlite/redmine.db \
-  -v redmine-dev-files:/usr/src/redmine/files \
-  redmine:5.0 >/dev/null
-
-if [ $? -ne 0 ]; then
-    error "Failed to start Redmine container"
-    echo "Check if port 3000 is already in use or if there's another issue with Docker"
-    exit 1
+# Update credentials with Redmine URL and API key for local dev
+if grep -q "YOUR_REDMINE_URL\|YOUR_REDMINE_API_KEY" ./credentials.yaml; then
+    echo "🔄 Updating Redmine credentials for local development..."
+    sed -i.bak "s|url:.*|url: ${REDMINE_URL}|g" ./credentials.yaml
+    sed -i.bak "s|api_key:.*redmine.*|api_key: ${REDMINE_API_KEY}|g" ./credentials.yaml
+    rm -f ./credentials.yaml.bak
+    echo "✅ Updated Redmine credentials"
 fi
+
+# Start Docker containers
+echo "🏗️ Starting Docker containers..."
+docker-compose -f docker-compose.local.yml up -d --build
 
 # Wait for Redmine to start
-status "Waiting for Redmine to start (this may take up to 60 seconds)..."
-for i in {1..30}; do
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200"; then
-        success "Redmine is ready!"
+echo "⏳ Waiting for Redmine to be ready (this may take a minute)..."
+attempt=0
+max_attempts=30
+while [ $attempt -lt $max_attempts ]; do
+    if curl -s http://localhost:3000 > /dev/null; then
+        echo "✅ Redmine is up and running!"
         break
     fi
-    sleep 2
-    echo -n "."
-    if [ $i -eq 30 ]; then
-        echo ""
-        error "Redmine did not start successfully within the timeout period"
-        echo "Check Docker logs with: docker logs redmine-dev"
-        exit 1
-    fi
+    attempt=$((attempt+1))
+    echo "⏳ Waiting for Redmine... ($attempt/$max_attempts)"
+    sleep 5
 done
 
-# Generate a random API key for development
-status "Generating API key for development..."
-API_KEY=$(openssl rand -hex 20)
-
-# Write the API key to the credentials file
-CREDENTIALS_FILE="../credentials.yaml"
-CREDENTIALS_EXAMPLE="../credentials.yaml.example"
-
-# Check if we're running from scripts directory or project root
-if [ ! -f "$CREDENTIALS_FILE" ] && [ -f "credentials.yaml" ]; then
-    CREDENTIALS_FILE="credentials.yaml"
-    CREDENTIALS_EXAMPLE="credentials.yaml.example"
+if [ $attempt -eq $max_attempts ]; then
+    echo "❌ Timed out waiting for Redmine to start. Check container logs with: docker logs redmine-local"
+    exit 1
 fi
 
-if [ -f "$CREDENTIALS_FILE" ]; then
-    # Backup the existing credentials file
-    cp "$CREDENTIALS_FILE" "${CREDENTIALS_FILE}.bak"
-    status "Backed up existing credentials file to ${CREDENTIALS_FILE}.bak"
-    
-    # Update the API key in the credentials file
-    sed -i.tmp "s/redmine_api_key: '.*'/redmine_api_key: '$API_KEY'/" "$CREDENTIALS_FILE"
-    rm -f "${CREDENTIALS_FILE}.tmp"
-    success "Updated API key in $CREDENTIALS_FILE"
-elif [ -f "$CREDENTIALS_EXAMPLE" ]; then
-    # Create a new credentials file from the example
-    cp "$CREDENTIALS_EXAMPLE" "$CREDENTIALS_FILE"
-    sed -i.tmp "s/redmine_api_key: '.*'/redmine_api_key: '$API_KEY'/" "$CREDENTIALS_FILE"
-    rm -f "${CREDENTIALS_FILE}.tmp"
-    success "Created new credentials file with generated API key"
-else
-    warning "Could not find credentials.yaml or credentials.yaml.example"
-    echo "You'll need to manually add the generated API key to your configuration"
-fi
+# Configure Redmine for testing
+echo "⚙️ Configuring Redmine with API access..."
+docker exec redmine-local bash -c 'bundle exec rake redmine:plugins:migrate RAILS_ENV=production && bundle exec rake generate_secret_token' || {
+    echo "⚠️ Warning: Could not run Redmine rake tasks. This is not critical for local development."
+}
 
-# Automatically create REST API settings in Redmine
-status "Configuring Redmine for REST API access..."
-docker exec -it redmine-dev bash -c "
-    echo 'Enabling REST API in Redmine settings...'
-    sqlite3 /redmine/db/sqlite/redmine.db \"UPDATE settings SET value='---\\nrest_api_enabled: 1' WHERE name='rest_api_enabled';\"
-    echo 'Creating API key for admin user...'
-    sqlite3 /redmine/db/sqlite/redmine.db \"UPDATE users SET api_key='${API_KEY}' WHERE login='admin';\"
-"
-
-success "Redmine setup complete!"
-echo
-echo "================================================================"
-echo -e "Redmine is now available at: ${GREEN}http://localhost:3000${NC}"
-echo -e "Default admin credentials: ${GREEN}admin/admin${NC}"
-echo -e "API key for admin user: ${GREEN}${API_KEY}${NC}"
-echo
-echo "This API key has been automatically added to your credentials.yaml file"
-echo "================================================================"
-echo 
-echo "Quick commands:"
-echo -e "  ${YELLOW}docker stop redmine-dev${NC}    - Stop the Redmine container"
-echo -e "  ${YELLOW}docker start redmine-dev${NC}   - Start the Redmine container again"
-echo -e "  ${YELLOW}docker logs redmine-dev${NC}    - View Redmine logs"
-echo -e "  ${YELLOW}docker rm -f redmine-dev${NC}   - Remove the Redmine container"
+echo "ℹ️ Redmine setup complete. Default admin login: admin/admin"
+echo "⚠️ IMPORTANT: Please update your Claude API key in credentials.yaml"

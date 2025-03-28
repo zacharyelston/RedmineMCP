@@ -1,64 +1,75 @@
 #!/bin/bash
-# check_github_actions.sh
-# Script to check GitHub Actions build results from Replit
-# Usage: ./scripts/check_github_actions.sh <owner> <repo> [<workflow_name>]
+# Script to check the GitHub Actions workflow files for errors
 
 set -e
 
-# Color definitions
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+echo "Checking GitHub Actions workflow files..."
 
-# Check if GitHub CLI is installed
-if ! command -v gh &> /dev/null; then
-    echo -e "${RED}GitHub CLI (gh) is not installed. Please install it first.${NC}"
-    echo "For detailed installation instructions, see: ./scripts/README_GITHUB_CLI.md"
-    echo "Or visit: https://cli.github.com/manual/installation"
-    exit 1
+# Define the workflows directory
+WORKFLOWS_DIR=".github/workflows"
+
+# Create the directory if it doesn't exist
+if [ ! -d "$WORKFLOWS_DIR" ]; then
+    echo "Creating workflows directory..."
+    mkdir -p "$WORKFLOWS_DIR"
+    echo "Created $WORKFLOWS_DIR"
 fi
 
-# Check if user is authenticated with GitHub CLI
-if ! gh auth status &> /dev/null; then
-    echo -e "${YELLOW}You need to authenticate with GitHub CLI first${NC}"
-    echo "Run: gh auth login"
-    exit 1
+# Check if any workflow files exist
+WORKFLOW_FILES=$(find $WORKFLOWS_DIR -name "*.yml" -o -name "*.yaml")
+if [ -z "$WORKFLOW_FILES" ]; then
+    echo "No workflow files found in $WORKFLOWS_DIR"
+    exit 0
 fi
 
-# Check arguments
-if [ "$#" -lt 2 ]; then
-    echo -e "${RED}Usage: $0 <owner> <repo> [<workflow_name>]${NC}"
-    echo "Example: $0 yourusername redmine-mcp-extension"
-    echo "Example with workflow: $0 yourusername redmine-mcp-extension 'Claude API Test'"
-    exit 1
-fi
+# Check each workflow file for basic YAML syntax
+echo "Checking YAML syntax for workflow files..."
+for FILE in $WORKFLOW_FILES; do
+    echo "Checking $FILE..."
+    if command -v yamllint &> /dev/null; then
+        # If yamllint is available, use it for more thorough checking
+        yamllint -c .yamllint.yml "$FILE" || echo "WARNING: YAML lint errors found in $FILE"
+    else
+        # Otherwise, use basic yaml parsing in Python
+        python3 -c "import yaml; yaml.safe_load(open('$FILE', 'r'))" || {
+            echo "ERROR: Invalid YAML syntax in $FILE"
+            exit 1
+        }
+    fi
+done
 
-OWNER=$1
-REPO=$2
-WORKFLOW_NAME=$3
+# Check GitHub Actions specific patterns
+echo "Checking GitHub Actions specific patterns..."
 
-echo -e "${BLUE}Checking GitHub Actions workflow runs for ${OWNER}/${REPO}...${NC}"
-
-if [ -z "$WORKFLOW_NAME" ]; then
-    # List all workflow runs
-    gh api repos/${OWNER}/${REPO}/actions/runs --jq '.workflow_runs[] | {name: .name, id: .id, status: .status, conclusion: .conclusion, created_at: .created_at, updated_at: .updated_at, html_url: .html_url}' | \
-    jq -r 'select(.status == "completed") | "Workflow: \(.name)\nStatus: \(.status)\nResult: \(.conclusion)\nRun Date: \(.created_at)\nCompleted: \(.updated_at)\nURL: \(.html_url)\n"'
-else
-    # Get workflow ID first
-    WORKFLOW_ID=$(gh api repos/${OWNER}/${REPO}/actions/workflows --jq '.workflows[] | select(.name == "'"$WORKFLOW_NAME"'") | .id')
+# Common issues to check:
+# 1. Missing 'on:' section
+# 2. Jobs without 'runs-on:' specified
+# 3. Invalid Docker image references
+# 4. Missing main keys like 'jobs:'
+for FILE in $WORKFLOW_FILES; do
+    echo "Checking Actions patterns in $FILE..."
     
-    if [ -z "$WORKFLOW_ID" ]; then
-        echo -e "${RED}Workflow '${WORKFLOW_NAME}' not found${NC}"
-        echo "Available workflows:"
-        gh api repos/${OWNER}/${REPO}/actions/workflows --jq '.workflows[] | .name'
-        exit 1
+    # Simple grep checks
+    if ! grep -q "^on:" "$FILE"; then
+        echo "WARNING: Missing 'on:' trigger in $FILE"
     fi
     
-    # Get runs for specific workflow
-    gh api repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW_ID}/runs --jq '.workflow_runs[] | {name: .name, id: .id, status: .status, conclusion: .conclusion, created_at: .created_at, updated_at: .updated_at, html_url: .html_url}' | \
-    jq -r 'select(.status == "completed") | "Workflow: \(.name)\nStatus: \(.status)\nResult: \(.conclusion)\nRun Date: \(.created_at)\nCompleted: \(.updated_at)\nURL: \(.html_url)\n"'
-fi
+    if ! grep -q "^jobs:" "$FILE"; then
+        echo "WARNING: Missing 'jobs:' section in $FILE"
+    fi
+    
+    # Check that each job has 'runs-on:' unless it uses container
+    JOB_NAMES=$(grep -E "^  [a-zA-Z0-9_.-]+:" "$FILE" | sed 's/://')
+    for JOB in $JOB_NAMES; do
+        # Skip lines that don't look like job names
+        [[ "$JOB" =~ ^(on|name|defaults|env|jobs|permissions)$ ]] && continue
+        
+        JOB_CONTENT=$(sed -n "/^  $JOB:/,/^  [a-zA-Z0-9_.-]:/p" "$FILE")
+        
+        if ! echo "$JOB_CONTENT" | grep -q "runs-on:" && ! echo "$JOB_CONTENT" | grep -q "container:"; then
+            echo "WARNING: Job '$JOB' in $FILE missing either 'runs-on:' or 'container:'"
+        fi
+    done
+done
 
-echo -e "${GREEN}Done!${NC}"
+echo "Workflow file checks completed"

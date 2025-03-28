@@ -1,107 +1,64 @@
 #!/bin/bash
-# Script to commit changes to a fix branch for Redmine MCP Extension
+# Script to create/switch to a fix branch and commit changes
 
-# Check if git is available
-if ! command -v git &> /dev/null; then
-    echo "Error: git is not installed or not available in PATH"
+set -e
+
+# Check if at least one file and a message were provided
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "ERROR: Missing required arguments."
+    echo "Usage: $0 <file-or-directory> <commit-message> [branch-name]"
+    echo "Example: $0 src/models.py 'Fix user model validation' fix-user-validation"
     exit 1
 fi
 
-# Check if we're in a git repository
-if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not inside a git repository"
+FILES_TO_COMMIT="$1"
+COMMIT_MESSAGE="$2"
+BRANCH_NAME="$3"
+
+# If no branch name was provided, generate one from the commit message
+if [ -z "$BRANCH_NAME" ]; then
+    BRANCH_NAME=$(echo "$COMMIT_MESSAGE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g' | head -c 30)
+fi
+
+# Add fix/ prefix if not present
+if [[ ! $BRANCH_NAME == fix/* ]]; then
+    BRANCH_NAME="fix/$BRANCH_NAME"
+fi
+
+# Check if git repo exists
+if [ ! -d .git ]; then
+    echo "ERROR: Not a git repository. Please run this script from the root of the git repository."
     exit 1
 fi
 
-# Check if there are uncommitted changes
-if git diff-index --quiet HEAD --; then
-    echo "Error: No changes to commit"
-    echo "Make changes before running this script"
-    exit 1
-fi
+# Get the current branch
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
 
-# Run validation script if available
-if [ -f "./scripts/validate_configs.py" ]; then
-    echo "Running configuration validation..."
-    # Ensure tomli/tomllib is available for TOML validation
-    pip install tomli &>/dev/null
-    python ./scripts/validate_configs.py
-    if [ $? -ne 0 ]; then
-        echo "Validation failed. Please fix the issues before committing."
-        exit 1
+# Check if we need to create/switch to a fix branch
+if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
+    # Check if the branch already exists
+    if git rev-parse --verify --quiet "$BRANCH_NAME" >/dev/null; then
+        echo "Branch '$BRANCH_NAME' already exists. Switching to it..."
+        git checkout "$BRANCH_NAME"
+    else
+        echo "Creating new branch '$BRANCH_NAME' from '$CURRENT_BRANCH'..."
+        git checkout -b "$BRANCH_NAME"
     fi
 fi
 
-# Prompt for branch type
-echo "Select branch type:"
-echo "1) fix/ - For bug fixes and corrections"
-echo "2) feature/ - For new features and enhancements"
-read -p "Enter choice (1/2): " branch_type_choice
+# Stage the specified files/directories
+echo "Staging changes in $FILES_TO_COMMIT..."
+git add $FILES_TO_COMMIT
 
-case $branch_type_choice in
-    1) branch_prefix="fix" ;;
-    2) branch_prefix="feature" ;;
-    *) echo "Invalid choice. Using 'fix' as default."; branch_prefix="fix" ;;
-esac
-
-# Prompt for branch name
-read -p "Enter a name for the $branch_prefix branch (e.g., pyproject-toml-duplicate-key): " branch_name
-
-# Validate branch name
-if [[ -z "$branch_name" ]]; then
-    echo "Error: Branch name cannot be empty"
+# Check if there are changes to commit
+if git diff --cached --quiet; then
+    echo "No changes to commit. Make sure the specified files have changes."
     exit 1
 fi
 
-# Clean the branch name (replace spaces with hyphens, remove special characters)
-clean_branch_name=$(echo "$branch_name" | tr ' ' '-' | tr -cd 'a-zA-Z0-9-_')
+# Commit the changes
+echo "Committing changes with message: '$COMMIT_MESSAGE'..."
+git commit -m "$COMMIT_MESSAGE"
 
-# Create the branch name with a prefix
-new_branch="${branch_prefix}/${clean_branch_name}"
-
-# Prompt for commit message
-read -p "Enter commit message: " commit_message
-
-if [[ -z "$commit_message" ]]; then
-    echo "Error: Commit message cannot be empty"
-    exit 1
-fi
-
-# Check if branch already exists
-if git show-ref --verify --quiet "refs/heads/$new_branch"; then
-    echo "Branch '$new_branch' already exists."
-    read -p "Do you want to use this existing branch? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Operation canceled."
-        exit 0
-    fi
-    # Switch to existing branch
-    git checkout "$new_branch"
-else
-    # Make sure we're on main branch and up to date
-    echo "Switching to main branch and pulling latest changes..."
-    git checkout main
-    git pull
-
-    # Create the new branch
-    echo "Creating new branch: $new_branch"
-    git checkout -b "$new_branch"
-fi
-
-# Stage all changes
-echo "Staging changes..."
-git add .
-
-# Commit changes
-echo "Committing changes with message: $commit_message"
-git commit -m "$commit_message"
-
-if [ $? -eq 0 ]; then
-    echo "✅ Successfully committed to branch $new_branch"
-    echo "To push these changes to GitHub, run: git push origin $new_branch"
-    echo "Then create a pull request to merge your changes into main."
-else
-    echo "❌ Error committing changes"
-    exit 1
-fi
+echo "Success! Changes committed to branch '$BRANCH_NAME'."
+echo "To push these changes, run: git push -u origin $BRANCH_NAME"

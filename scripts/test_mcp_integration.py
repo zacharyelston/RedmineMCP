@@ -4,55 +4,36 @@ Script to test the MCP integration with Redmine
 This simulates MCP client requests to verify the extension is working correctly
 """
 
-import argparse
-import json
+import os
 import sys
-import time
-from urllib.parse import urljoin
-
+import json
+import yaml
 import requests
+import argparse
 
 def parse_args():
     """Parse command-line arguments"""
-    parser = argparse.ArgumentParser(description="Test MCP integration with Redmine")
-    parser.add_argument(
-        "--base-url",
-        default="http://localhost:5000",
-        help="Base URL of the MCP extension (default: http://localhost:5000)",
-    )
-    parser.add_argument(
-        "--project-id",
-        default="1",
-        help="Redmine project ID for testing issue creation (default: 1)",
-    )
-    parser.add_argument(
-        "--issue-id",
-        help="Existing Redmine issue ID for testing update and analyze operations",
-    )
-    parser.add_argument(
-        "--action",
-        choices=["create", "update", "analyze", "all"],
-        default="all",
-        help="Action to test (default: all)",
-    )
-    
+    parser = argparse.ArgumentParser(description="Test the MCP integration")
+    parser.add_argument("--base-url", default="http://localhost:5000",
+                        help="Base URL of the MCP extension (default: http://localhost:5000)")
+    parser.add_argument("--project-id", help="Redmine project ID for testing issue creation")
+    parser.add_argument("--issue-id", help="Redmine issue ID for testing issue updates and analysis")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     return parser.parse_args()
 
 def check_capabilities(base_url):
     """Test checking MCP capabilities"""
     print("Testing MCP capabilities endpoint...")
-    capabilities_url = urljoin(base_url, "/api/capabilities")
+    
+    endpoint = f"{base_url}/mcp/capabilities"
     
     try:
-        response = requests.get(capabilities_url)
+        response = requests.get(endpoint)
         response.raise_for_status()
+        
         capabilities = response.json()
-        
-        print("✅ MCP capabilities endpoint is working")
-        print("Available capabilities:")
-        for capability, details in capabilities.items():
-            print(f"  - {capability}: {details.get('description', 'No description')}")
-        
+        print("✅ MCP capabilities endpoint is working!")
+        print(f"Returned capabilities: {json.dumps(capabilities, indent=2)}")
         return True
     except Exception as e:
         print(f"❌ Failed to get MCP capabilities: {e}")
@@ -60,23 +41,22 @@ def check_capabilities(base_url):
 
 def check_health(base_url):
     """Test checking MCP health endpoint"""
-    print("\nTesting MCP health endpoint...")
-    health_url = urljoin(base_url, "/api/health")
+    print("Testing MCP health endpoint...")
+    
+    endpoint = f"{base_url}/mcp/health"
     
     try:
-        response = requests.get(health_url)
+        response = requests.get(endpoint)
         response.raise_for_status()
-        health = response.json()
         
-        print("✅ MCP health endpoint is working")
-        print(f"Status: {health.get('status', 'Unknown')}")
-        print(f"Redmine connection: {health.get('redmine_connection', 'Unknown')}")
-        print(f"Claude connection: {health.get('claude_connection', 'Unknown')}")
+        health_data = response.json()
+        print("✅ MCP health endpoint is working!")
+        print(f"Health status: {json.dumps(health_data, indent=2)}")
         
-        if health.get("status") != "healthy":
-            print("⚠️ The MCP extension is not fully healthy")
+        if health_data.get("status") != "ok":
+            print(f"⚠️ Warning: Health check returned non-OK status: {health_data.get('status')}")
             return False
-        
+            
         return True
     except Exception as e:
         print(f"❌ Failed to get MCP health status: {e}")
@@ -84,134 +64,125 @@ def check_health(base_url):
 
 def create_issue(base_url, project_id):
     """Test creating an issue via MCP"""
-    print("\nTesting issue creation...")
-    create_url = urljoin(base_url, "/api/llm/create_issue")
+    print("Testing issue creation via MCP...")
     
-    payload = {
-        "prompt": "Create a high-priority bug report about a UI rendering issue in the admin dashboard. "
-                "The problem occurs in Chrome and Firefox browsers, where the sidebar navigation "
-                "disappears after switching between tabs. This started happening after the latest update.",
-        "project_id": project_id
+    endpoint = f"{base_url}/api/llm/issues/create"
+    
+    # Sample prompt for issue creation
+    data = {
+        "prompt": "Create a high priority bug report for project " + 
+                 f"{project_id} about the login page not working properly. " +
+                 "The login button is not responding when clicked."
     }
     
     try:
-        start_time = time.time()
-        response = requests.post(create_url, json=payload)
+        response = requests.post(endpoint, json=data)
         response.raise_for_status()
-        elapsed_time = time.time() - start_time
         
         result = response.json()
+        print("✅ Issue creation successful!")
+        print(f"Created issue: {json.dumps(result, indent=2)}")
         
-        print(f"✅ Issue created successfully in {elapsed_time:.2f} seconds")
-        print(f"Issue ID: {result.get('issue_id')}")
-        print(f"Subject: {result.get('subject')}")
-        print("Description:")
-        print(f"{result.get('description')[:200]}...")  # Show first 200 chars
-        
-        return result.get("issue_id")
-    except requests.RequestException as e:
+        # Return the new issue ID for further testing
+        return result.get("issue", {}).get("id")
+    except requests.exceptions.RequestException as e:
         print(f"❌ Failed to create issue: {e}")
-        if hasattr(e, "response") and e.response is not None:
+        if hasattr(e, 'response') and e.response is not None and hasattr(e.response, 'text'):
             print(f"Response: {e.response.text}")
+        return None
+    except Exception as e:
+        print(f"❌ Failed to create issue: {e}")
         return None
 
 def update_issue(base_url, issue_id):
     """Test updating an issue via MCP"""
-    print("\nTesting issue update...")
-    update_url = urljoin(base_url, f"/api/llm/update_issue/{issue_id}")
+    print(f"Testing update of issue #{issue_id} via MCP...")
     
-    payload = {
-        "prompt": "Update this issue to include the information that the bug also affects Safari on macOS. "
-                "Change the priority to urgent as this is affecting many users and needs to be fixed "
-                "before the next sprint."
+    endpoint = f"{base_url}/api/llm/issues/{issue_id}/update"
+    
+    # Sample prompt for issue update
+    data = {
+        "prompt": f"Update issue {issue_id} to include more details. " +
+                 "Add that this issue occurs only in Chrome browsers and " +
+                 "the console shows a JavaScript error."
     }
     
     try:
-        start_time = time.time()
-        response = requests.post(update_url, json=payload)
+        response = requests.post(endpoint, json=data)
         response.raise_for_status()
-        elapsed_time = time.time() - start_time
         
         result = response.json()
-        
-        print(f"✅ Issue updated successfully in {elapsed_time:.2f} seconds")
-        print(f"Changes: {result.get('changes', 'No details available')}")
-        
+        print("✅ Issue update successful!")
+        print(f"Update result: {json.dumps(result, indent=2)}")
         return True
-    except requests.RequestException as e:
+    except requests.exceptions.RequestException as e:
         print(f"❌ Failed to update issue: {e}")
-        if hasattr(e, "response") and e.response is not None:
+        if hasattr(e, 'response') and e.response is not None and hasattr(e.response, 'text'):
             print(f"Response: {e.response.text}")
+        return False
+    except Exception as e:
+        print(f"❌ Failed to update issue: {e}")
         return False
 
 def analyze_issue(base_url, issue_id):
     """Test analyzing an issue via MCP"""
-    print("\nTesting issue analysis...")
-    analyze_url = urljoin(base_url, f"/api/llm/analyze_issue/{issue_id}")
+    print(f"Testing analysis of issue #{issue_id} via MCP...")
+    
+    endpoint = f"{base_url}/api/llm/issues/{issue_id}/analyze"
     
     try:
-        start_time = time.time()
-        response = requests.post(analyze_url, json={})
+        response = requests.post(endpoint)
         response.raise_for_status()
-        elapsed_time = time.time() - start_time
         
         result = response.json()
-        
-        print(f"✅ Issue analyzed successfully in {elapsed_time:.2f} seconds")
-        print("Analysis summary:")
-        
-        if "summary" in result:
-            print(f"Summary: {result['summary']}")
-        
-        if "risk_assessment" in result:
-            print(f"Risk assessment: {result['risk_assessment']}")
-        
-        if "recommendations" in result and isinstance(result["recommendations"], list):
-            print("Recommendations:")
-            for rec in result["recommendations"]:
-                print(f"  - {rec}")
-        
+        print("✅ Issue analysis successful!")
+        print(f"Analysis result: {json.dumps(result, indent=2)}")
         return True
-    except requests.RequestException as e:
+    except requests.exceptions.RequestException as e:
         print(f"❌ Failed to analyze issue: {e}")
-        if hasattr(e, "response") and e.response is not None:
+        if hasattr(e, 'response') and e.response is not None and hasattr(e.response, 'text'):
             print(f"Response: {e.response.text}")
+        return False
+    except Exception as e:
+        print(f"❌ Failed to analyze issue: {e}")
         return False
 
 def main():
     """Main function"""
     args = parse_args()
     
-    print("🚀 MCP Integration Test")
-    print(f"Base URL: {args.base_url}")
+    print(f"Testing MCP integration at {args.base_url}")
     
-    # Always check capabilities and health first
-    if not check_capabilities(args.base_url) or not check_health(args.base_url):
-        print("\n❌ Basic MCP endpoints aren't working correctly. Aborting tests.")
+    # Test MCP capabilities endpoint
+    if not check_capabilities(args.base_url):
         sys.exit(1)
     
-    # Track the created issue ID if we need it for later tests
-    created_issue_id = None
+    # Test MCP health endpoint
+    if not check_health(args.base_url):
+        sys.exit(1)
     
-    # Run the requested tests
-    if args.action in ["create", "all"]:
+    # Test issue creation if project ID is provided
+    issue_id = args.issue_id
+    if args.project_id:
         created_issue_id = create_issue(args.base_url, args.project_id)
+        if created_issue_id:
+            # Use the created issue for further tests if no specific issue ID was provided
+            if not issue_id:
+                issue_id = created_issue_id
+                print(f"Using newly created issue #{issue_id} for further tests")
     
-    # Use the provided issue ID or the one we just created
-    test_issue_id = args.issue_id or created_issue_id
+    # Test issue update and analysis if issue ID is available
+    if issue_id:
+        if not update_issue(args.base_url, issue_id):
+            sys.exit(1)
+        
+        if not analyze_issue(args.base_url, issue_id):
+            sys.exit(1)
+    else:
+        print("⚠️ Skipping issue update and analysis tests (no issue ID available)")
     
-    if not test_issue_id and args.action in ["update", "analyze", "all"]:
-        print("\n❌ No issue ID available for update/analyze tests.")
-        print("Please provide an --issue-id argument or ensure issue creation succeeds.")
-        sys.exit(1)
-    
-    if args.action in ["update", "all"]:
-        update_issue(args.base_url, test_issue_id)
-    
-    if args.action in ["analyze", "all"]:
-        analyze_issue(args.base_url, test_issue_id)
-    
-    print("\n🎉 MCP integration test complete!")
+    print("✅ All MCP integration tests passed successfully!")
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()

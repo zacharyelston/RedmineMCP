@@ -1,95 +1,82 @@
-name: Claude API Connection Test
+name: Claude API Test
 
 on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'llm_api.py'
+      - 'scripts/test_claude_api.py'
+      - '.github/workflows/claude-api-test.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'llm_api.py'
+      - 'scripts/test_claude_api.py'
+      - '.github/workflows/claude-api-test.yml'
   workflow_dispatch:
-    # Allow manual triggering only since this test requires a valid API key
+    inputs:
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   test-claude-api:
     runs-on: ubuntu-latest
-    container:
-      image: python:3.11-bullseye
-      env:
-        DEBIAN_FRONTEND: noninteractive
+    
+    env:
+      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
     
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
       
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          # Install the package and dependencies using our setup script
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pyyaml pytest pytest-cov
+        
+    - name: Set up environment
+      run: |
+        if [ -f scripts/setup_ci_environment.sh ]; then
           chmod +x scripts/setup_ci_environment.sh
           ./scripts/setup_ci_environment.sh
-      
-      - name: Create test script
-        run: |
-          cat > test_claude_connection.py << EOL
-          import os
-          import sys
-          import yaml
-          import requests
-
-          def test_claude_connection(api_key):
-              """Test connection to Anthropic Claude API"""
-              print("Testing Claude API connection...")
-              
-              url = "https://api.anthropic.com/v1/messages"
-              headers = {
-                  "x-api-key": api_key,
-                  "anthropic-version": "2023-06-01",
-                  "content-type": "application/json"
-              }
-              
-              # Sample minimal request body
-              data = {
-                  "model": "claude-3-opus-20240229",
-                  "max_tokens": 1,
-                  "messages": [
-                      {"role": "user", "content": "Hello, Claude!"}
-                  ]
-              }
-              
-              try:
-                  response = requests.post(url, headers=headers, json=data)
-                  response.raise_for_status()
-                  
-                  # If we get here, the request was successful
-                  print("✅ Claude API connection successful!")
-                  print(f"Response received successfully.")
-                  return True
-              except Exception as e:
-                  print(f"❌ Claude API connection failed: {e}")
-                  return False
-
-          if __name__ == "__main__":
-              # Get API key from environment or credentials file
-              api_key = os.environ.get("CLAUDE_API_KEY")
-              
-              if not api_key:
-                  try:
-                      with open("credentials.yaml", "r") as f:
-                          credentials = yaml.safe_load(f)
-                          api_key = credentials.get("claude_api_key")
-                  except:
-                      pass
-              
-              if not api_key:
-                  print("❌ No Claude API key found in environment or credentials.yaml")
-                  sys.exit(1)
-                  
-              # Test the connection
-              success = test_claude_connection(api_key)
-              
-              if not success:
-                  sys.exit(1)
-          EOL
-      
-      - name: Test Claude connection
-        env:
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-        run: python test_claude_connection.py
+        else
+          # Create a basic credentials file for testing
+          echo "Creating basic credentials.yaml for testing..."
+          cat > credentials.yaml << EOF
+        redmine:
+          url: http://localhost:3000
+          api_key: test_api_key
+        
+        claude:
+          api_key: $CLAUDE_API_KEY
+        
+        rate_limit: 100
+        EOF
+        fi
+        
+    - name: Run Claude API test
+      run: |
+        if [ -z "$CLAUDE_API_KEY" ]; then
+          echo "::warning::CLAUDE_API_KEY is not set. Using mock mode for testing."
+          python scripts/test_claude_api.py --mock
+        else
+          python scripts/test_claude_api.py --verbose
+        fi
+        
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: claude-api-test-logs
+        path: |
+          logs/
+          *.log
+        retention-days: 7
