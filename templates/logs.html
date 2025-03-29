@@ -48,39 +48,39 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for log in logs.items %}
-                            <tr class="align-middle {% if not log.success %}table-danger{% endif %}">
-                                <td>{{ log.id }}</td>
+                            {% for log in logs %}
+                            <tr class="align-middle {% if not log.get('success', True) %}table-danger{% endif %}">
+                                <td>{{ loop.index }}</td>
                                 <td>
                                     <span class="badge rounded-pill 
-                                        {% if log.action_type == 'create' %}bg-primary
-                                        {% elif log.action_type == 'update' %}bg-success
-                                        {% elif log.action_type == 'analyze' %}bg-info
+                                        {% if log.get('action_type') == 'create' %}bg-primary
+                                        {% elif log.get('action_type') == 'update' %}bg-success
+                                        {% elif log.get('action_type') == 'analyze' %}bg-info
                                         {% else %}bg-secondary{% endif %}">
-                                        {{ log.action_type }}
+                                        {{ log.get('action_type', 'unknown') }}
                                     </span>
                                 </td>
                                 <td>
-                                    {% if log.issue_id %}
-                                    <a href="#" class="text-decoration-none">#{{ log.issue_id }}</a>
+                                    {% if log.get('issue_id') %}
+                                    <a href="#" class="text-decoration-none">#{{ log.get('issue_id') }}</a>
                                     {% else %}
                                     <span class="text-muted">—</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if log.success %}
+                                    {% if log.get('success', True) %}
                                     <span class="text-success">Success</span>
                                     {% else %}
                                     <span class="text-danger">Failed</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>{{ log.get('created_at', '') }}</td>
                                 <td>
                                     <button type="button" class="btn btn-sm btn-outline-secondary" 
                                             data-bs-toggle="modal" data-bs-target="#logDetailsModal"
-                                            onclick="showLogDetails({{ log.id }}, '{{ log.action_type }}', '{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}', 
-                                                                  '{{ log.prompt | replace('\n', ' ') | replace("'", "\\'") }}', 
-                                                                  {% if log.success %}'{{ log.response | replace('\n', ' ') | replace("'", "\\'") }}'{% else %}'{{ log.error_message | replace('\n', ' ') | replace("'", "\\'") }}'{% endif %})">
+                                            onclick="showLogDetails({{ loop.index }}, '{{ log.get('action_type', 'unknown') }}', '{{ log.get('created_at', '') }}', 
+                                                                  '{{ log.get('prompt', '') | replace('\n', ' ') | replace("'", "\\'") }}', 
+                                                                  {% if log.get('success', True) %}'{{ log.get('response', '') | replace('\n', ' ') | replace("'", "\\'") }}'{% else %}'{{ log.get('error_message', '') | replace('\n', ' ') | replace("'", "\\'") }}'{% endif %})">
                                         View Details
                                     </button>
                                 </td>
@@ -93,9 +93,9 @@
                 <!-- Pagination -->
                 <nav aria-label="Log navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
-                        {% if logs.has_prev %}
+                        {% if page > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('main.logs', page=logs.prev_num) }}">Previous</a>
+                            <a class="page-link" href="{{ url_for('main.logs', page=page-1) }}">Previous</a>
                         </li>
                         {% else %}
                         <li class="page-item disabled">
@@ -103,27 +103,13 @@
                         </li>
                         {% endif %}
 
-                        {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                            {% if page_num %}
-                                {% if page_num != logs.page %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('main.logs', page=page_num) }}">{{ page_num }}</a>
-                                </li>
-                                {% else %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ page_num }}</span>
-                                </li>
-                                {% endif %}
-                            {% else %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page }}</span>
+                        </li>
 
-                        {% if logs.has_next %}
+                        {% if has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('main.logs', page=logs.next_num) }}">Next</a>
+                            <a class="page-link" href="{{ url_for('main.logs', page=page+1) }}">Next</a>
                         </li>
                         {% else %}
                         <li class="page-item disabled">

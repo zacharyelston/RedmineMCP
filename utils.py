@@ -1,5 +1,6 @@
 """
 Utility functions for the Redmine MCP Extension.
+Uses file-based configuration instead of database.
 """
 
 import os
@@ -7,9 +8,12 @@ import yaml
 import logging
 import requests
 from datetime import datetime
-from models import Config, RateLimitTracker, db
 
 logger = logging.getLogger(__name__)
+
+# Import rate limiting functions from config module
+from config import is_rate_limited as config_is_rate_limited
+from config import add_api_call as config_add_api_call
 
 def is_rate_limited(api_name, rate_limit_per_minute):
     """
@@ -22,15 +26,7 @@ def is_rate_limited(api_name, rate_limit_per_minute):
     Returns:
         bool: True if rate limited, False otherwise
     """
-    # Get or create the tracker
-    tracker = RateLimitTracker.get_or_create(api_name)
-    
-    # Check if we've exceeded the limit
-    if tracker.count >= rate_limit_per_minute:
-        logger.warning(f"{api_name} API rate limit exceeded. Count: {tracker.count}, Limit: {rate_limit_per_minute}")
-        return True
-    
-    return False
+    return config_is_rate_limited(api_name)
 
 def add_api_call(api_name):
     """
@@ -39,14 +35,11 @@ def add_api_call(api_name):
     Args:
         api_name (str): The name of the API ('redmine' or 'claude')
     """
-    # Get or create the tracker
-    tracker = RateLimitTracker.get_or_create(api_name)
-    
-    # Increment the counter
-    tracker.count += 1
-    db.session.commit()
-    
-    logger.debug(f"Recorded API call to {api_name}. New count: {tracker.count}")
+    config_add_api_call(api_name)
+
+# Import functions from config module
+from config import load_credentials as config_load_credentials
+from config import update_config_from_credentials as config_update_from_credentials
 
 def load_credentials():
     """
@@ -55,22 +48,7 @@ def load_credentials():
     Returns:
         dict: The loaded credentials or None if file not found
     """
-    try:
-        # Check if credentials.yaml exists
-        if not os.path.exists('credentials.yaml'):
-            logger.warning("credentials.yaml not found")
-            return None
-        
-        # Load credentials from the file
-        with open('credentials.yaml', 'r') as file:
-            credentials = yaml.safe_load(file)
-        
-        logger.info("Credentials loaded from file")
-        return credentials
-    
-    except Exception as e:
-        logger.error(f"Error loading credentials: {str(e)}")
-        return None
+    return config_load_credentials()
 
 def update_config_from_credentials():
     """
@@ -79,71 +57,7 @@ def update_config_from_credentials():
     Returns:
         tuple: (bool, str) - Success status and message
     """
-    try:
-        # Load credentials from file
-        credentials = load_credentials()
-        
-        if not credentials:
-            return False, "No credentials file found"
-        
-        # Get required fields
-        redmine_url = credentials.get('redmine_url')
-        redmine_api_key = credentials.get('redmine_api_key')
-        
-        # Get MCP URL
-        mcp_url = credentials.get('mcp_url')
-            
-        # If MCP URL is missing, set a default port 9000
-        if not mcp_url:
-            mcp_url = 'http://localhost:9000'
-            logger.info(f"Using default MCP URL: {mcp_url}")
-            
-        claude_api_key = credentials.get('claude_api_key')  # Kept for backward compatibility
-        llm_provider = credentials.get('llm_provider', 'claude-desktop')
-        rate_limit = credentials.get('rate_limit_per_minute', 60)
-        
-        # Validate the required credentials
-        if not redmine_url or not redmine_api_key:
-            return False, "Required Redmine credentials are missing"
-        
-        # Claude API key is no longer required as we're using ClaudeDesktop MCP
-            
-        # Ensure provider is 'claude-desktop'
-        if llm_provider != 'claude-desktop':
-            logger.warning("Using 'claude-desktop' as the LLM provider.")
-            llm_provider = 'claude-desktop'
-        
-        # Update or create configuration in the database
-        config = Config.query.first()
-        
-        if config:
-            # Update existing config
-            config.redmine_url = redmine_url
-            config.redmine_api_key = redmine_api_key
-            config.mcp_url = mcp_url
-            config.claude_api_key = claude_api_key  # For backward compatibility
-            config.llm_provider = llm_provider
-            config.rate_limit_per_minute = rate_limit
-            config.updated_at = datetime.utcnow()
-        else:
-            # Create new config
-            config = Config(
-                redmine_url=redmine_url,
-                redmine_api_key=redmine_api_key,
-                mcp_url=mcp_url,
-                claude_api_key=claude_api_key,  # For backward compatibility
-                llm_provider=llm_provider,
-                rate_limit_per_minute=rate_limit
-            )
-            db.session.add(config)
-        
-        db.session.commit()
-        logger.info("Configuration updated from credentials file")
-        return True, "Configuration updated successfully"
-    
-    except Exception as e:
-        logger.error(f"Error updating configuration: {str(e)}")
-        return False, f"Error updating configuration: {str(e)}"
+    return config_update_from_credentials()
 
 def check_redmine_availability(url, timeout=5):
     """
@@ -225,6 +139,11 @@ def create_credentials_file(redmine_url, redmine_api_key, mcp_url=None,
                     'rate_limit_per_minute': 60
                 }
                 yaml.dump(example, file, default_flow_style=False)
+        
+        # Reset the config to force reload in the config module
+        import config
+        if hasattr(config, '_config'):
+            config._config = None
         
         logger.info("Credentials file created successfully")
         return True, "Credentials file created successfully"

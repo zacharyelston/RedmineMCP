@@ -1,0 +1,70 @@
+# Application Manifest for Redmine MCP Extension
+# Contains non-sensitive configuration settings
+
+# Application settings
+app_name: Redmine MCP Extension
+version: 0.1.0
+
+# Rate limiting
+rate_limit_per_minute: 60
+
+# Logging configuration  
+logging:
+  level: DEBUG
+  file: logs/app.log
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+# Prompt Templates
+prompt_templates:
+  create_issue:
+    name: Create Issue
+    description: Template for creating a new Redmine issue
+    template: |
+      Generate a complete Redmine issue based on the following description.
+      Format the response as a structured JSON object with the following fields:
+      - subject: A clear, concise title for the issue
+      - description: A detailed description with all relevant information
+      - tracker_id: The appropriate tracker ID (1 for bug, 2 for feature, etc.)
+      - priority_id: The appropriate priority ID (1 for low, 2 for normal, etc.)
+      
+      User description: {{prompt}}
+      
+  update_issue:
+    name: Update Issue
+    description: Template for updating an existing Redmine issue
+    template: |
+      Update the Redmine issue based on the following details.
+      The current issue data is:
+      {{current_issue}}
+      
+      Format the response as a structured JSON object with only the fields that need to be updated.
+      Possible fields:
+      - subject: A clear, concise title for the issue
+      - description: A detailed description with all relevant information
+      - tracker_id: The appropriate tracker ID (1 for bug, 2 for feature, etc.)
+      - priority_id: The appropriate priority ID (1 for low, 2 for normal, etc.)
+      - status_id: The appropriate status ID (1 for new, 2 for in progress, etc.)
+      - notes: Additional notes to add to the issue
+      
+      User requested changes: {{prompt}}
+      
+  analyze_issue:
+    name: Analyze Issue
+    description: Template for analyzing a Redmine issue
+    template: |
+      Analyze the following Redmine issue:
+      {{issue}}
+      
+      Provide insights on:
+      1. Issue complexity and estimated effort
+      2. Potential risks or dependencies
+      3. Suggestions for implementation approach
+      4. Any clarifications that might be needed
+      
+      Format the response as a structured JSON object with the following fields:
+      - complexity: A rating from 1 to 5
+      - effort_estimate: Estimated hours to complete
+      - risks: Array of potential risks
+      - dependencies: Array of potential dependencies
+      - approach: Suggested implementation approach
+      - clarifications: Any needed clarifications

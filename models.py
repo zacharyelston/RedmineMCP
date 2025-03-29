@@ -1,9 +1,48 @@
 """
 Database models for the Redmine MCP Extension.
+This module is deprecated - configuration is now file-based.
+Kept for reference only.
 """
 
 from datetime import datetime, timedelta
-from app import db
+
+# This is a stub to prevent import errors
+# The actual database is no longer used
+class DBStub:
+    class Column:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class Model:
+        pass
+    
+    class Integer:
+        pass
+    
+    class String:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class Text:
+        pass
+    
+    class DateTime:
+        pass
+    
+    class Boolean:
+        pass
+    
+    def __init__(self):
+        self.session = self
+        
+    def add(self, *args, **kwargs):
+        pass
+        
+    def commit(self, *args, **kwargs):
+        pass
+
+# Create a stub DB object for compatibility
+db = DBStub()
 
 class Config(db.Model):
     """

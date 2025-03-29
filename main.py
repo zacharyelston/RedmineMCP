@@ -3,18 +3,19 @@ from utils import update_config_from_credentials
 from mcp import register_mcp
 from routes import register_routes
 import logging
-from migrations import migrate_config_table
+import os
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Create logs directory if it doesn't exist
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+    logger.info("Created logs directory")
+
 # Initialize application when it starts
 with app.app_context():
-    # Run database migrations
-    migration_success, migration_message = migrate_config_table()
-    logger.info(f"Database migrations: {migration_message}")
-    
     # Try to load configuration from credentials.yaml
     success, message = update_config_from_credentials()
     logger.info(f"Loading credentials: {message}")

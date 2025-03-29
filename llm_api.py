@@ -1,6 +1,7 @@
 """
 LLM API integration for Redmine Extension.
 This module implements the integration with Claude via ClaudeDesktop MCP connection.
+Uses file-based configuration instead of database.
 """
 
 import json

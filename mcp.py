@@ -1,15 +1,16 @@
 """
 Model Context Protocol (MCP) integration for Redmine Extension.
 This module defines MCP-specific endpoints and functionality.
+Uses file-based configuration instead of database.
 """
 
 import json
 import logging
 from flask import Blueprint, request, jsonify
-from models import Config
-from redmine_api import RedmineAPI
+from redmine_api import RedmineAPI, create_redmine_client
 from llm_factory import create_llm_client
 from utils import is_rate_limited, add_api_call, check_redmine_availability
+from config import get_config, log_action, get_prompt_template
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,8 @@ def mcp_health():
         # This is likely a Docker health check, just return 200 OK
         return jsonify({"status": "healthy", "message": "MCP application is running"})
     
-    config = Config.query.first()
+    # Get configuration from file
+    config = get_config()
     
     if not config:
         return jsonify({
@@ -82,7 +84,7 @@ def mcp_health():
         })
     
     # Check if we're in test mode (using our test domain)
-    redmine_url = config.redmine_url if config else None
+    redmine_url = config.get('redmine_url')
     is_test_mode = redmine_url and "test-redmine-instance.local" in redmine_url
     
     # Check Redmine connectivity
@@ -93,7 +95,7 @@ def mcp_health():
             redmine_status = {"status": "healthy", "message": "Test mode - Redmine connectivity simulated"}
         else:
             # First check if Redmine is available at all (faster check)
-            is_available, message = check_redmine_availability(config.redmine_url)
+            is_available, message = check_redmine_availability(redmine_url)
             
             if not is_available:
                 # If Redmine web server isn't even responding, no need to try API
@@ -104,7 +106,7 @@ def mcp_health():
             else:
                 # If the web server is up, try the API check
                 try:
-                    redmine_api = RedmineAPI(config.redmine_url, config.redmine_api_key)
+                    redmine_api = create_redmine_client()
                     # Just a simple API check
                     redmine_api.get_projects()
                     redmine_status = {"status": "healthy"}
@@ -121,7 +123,7 @@ def mcp_health():
         }
     
     # Check LLM API connectivity
-    llm_provider = config.llm_provider.lower()
+    llm_provider = config.get('llm_provider', 'claude-desktop').lower()
     llm_status = {"status": "unknown"}
     
     try:
@@ -130,7 +132,7 @@ def mcp_health():
             llm_status = {"status": "configured", "provider": llm_provider, "message": "Test mode - ClaudeDesktop MCP connection simulated"}
         else:
             # Create the MCP client
-            mcp_client = create_llm_client(config)
+            mcp_client = create_llm_client()
             llm_status = {"status": "configured", "provider": llm_provider, "connection_type": "MCP"}
             # Can check MCP connection here if needed in the future
     except Exception as e:
@@ -190,8 +192,8 @@ def llm_create_issue():
     MCP endpoint for creating a Redmine issue using LLM
     """
     # Get the Redmine URL to determine if we're in test mode
-    config = Config.query.first()
-    redmine_url = config.redmine_url if config else None
+    config = get_config()
+    redmine_url = config.get('redmine_url') if config else None
     
     # Check if we're in test mode (using our test domain)
     is_test_mode = redmine_url and "test-redmine-instance.local" in redmine_url
@@ -223,8 +225,8 @@ def llm_update_issue(issue_id):
     MCP endpoint for updating a Redmine issue using LLM
     """
     # Get the Redmine URL to determine if we're in test mode
-    config = Config.query.first()
-    redmine_url = config.redmine_url if config else None
+    config = get_config()
+    redmine_url = config.get('redmine_url') if config else None
     
     # Check if we're in test mode (using our test domain)
     is_test_mode = redmine_url and "test-redmine-instance.local" in redmine_url
@@ -256,8 +258,8 @@ def llm_analyze_issue(issue_id):
     MCP endpoint for analyzing a Redmine issue using LLM
     """
     # Get the Redmine URL to determine if we're in test mode
-    config = Config.query.first()
-    redmine_url = config.redmine_url if config else None
+    config = get_config()
+    redmine_url = config.get('redmine_url') if config else None
     
     # Check if we're in test mode (using our test domain)
     is_test_mode = redmine_url and "test-redmine-instance.local" in redmine_url
