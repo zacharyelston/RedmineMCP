@@ -21,9 +21,9 @@ class LLMAPI:
         Initialize the Claude MCP client
         
         Args:
-            mcp_url (str, optional): The MCP service URL (defaults to localhost:5000)
+            mcp_url (str, optional): The MCP service URL (defaults to localhost:9000)
         """
-        base_url = mcp_url or "http://localhost:5000"
+        base_url = mcp_url or "http://localhost:9000"
         # Ensure the base URL doesn't end with a slash
         base_url = base_url.rstrip('/')
         self.mcp_url = base_url
