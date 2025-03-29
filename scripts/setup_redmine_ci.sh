@@ -50,7 +50,7 @@ services:
       - REDMINE_PLUGINS_MIGRATE=true
 
   redmine-db:
-    image: mysql:5.7
+    image: mariadb:10.5
     container_name: redmine-db-ci
     environment:
       - MYSQL_ROOT_PASSWORD=redmine

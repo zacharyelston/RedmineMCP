@@ -40,7 +40,7 @@ jobs:
           REDMINE_DB_USERNAME: redmine
       
       db:
-        image: mysql:5.7
+        image: mariadb:10.5
         env:
           MYSQL_ROOT_PASSWORD: redmine
           MYSQL_DATABASE: redmine
