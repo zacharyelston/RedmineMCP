@@ -127,12 +127,12 @@ def mcp_health():
     try:
         if is_test_mode:
             # If in test mode, pretend LLM is configured
-            llm_status = {"status": "configured", "provider": llm_provider, "message": "Test mode - LLM connection simulated"}
+            llm_status = {"status": "configured", "provider": llm_provider, "message": "Test mode - ClaudeDesktop MCP connection simulated"}
         else:
-            # We'll just create the client to check if the configuration is valid
-            # A full test would require an actual API call which costs money
-            _ = create_llm_client(config)
-            llm_status = {"status": "configured", "provider": llm_provider}
+            # Create the MCP client
+            mcp_client = create_llm_client(config)
+            llm_status = {"status": "configured", "provider": llm_provider, "connection_type": "MCP"}
+            # Can check MCP connection here if needed in the future
     except Exception as e:
         llm_status = {
             "status": "unhealthy", 

@@ -24,7 +24,7 @@ services:
     build: .
     container_name: mcp-extension-local
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - .:/app
       - ./credentials.yaml:/app/credentials.yaml
@@ -40,7 +40,7 @@ services:
       - redmine-mcp-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/health"]
       interval: 10s
       timeout: 5s
       retries: 5

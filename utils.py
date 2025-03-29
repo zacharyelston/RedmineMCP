@@ -89,21 +89,21 @@ def update_config_from_credentials():
         # Get required fields
         redmine_url = credentials.get('redmine_url')
         redmine_api_key = credentials.get('redmine_api_key')
-        claude_api_key = credentials.get('claude_api_key')
-        llm_provider = credentials.get('llm_provider', 'claude')
+        mcp_url = credentials.get('mcp_url')
+        claude_api_key = credentials.get('claude_api_key')  # Kept for backward compatibility
+        llm_provider = credentials.get('llm_provider', 'claude-desktop')
         rate_limit = credentials.get('rate_limit_per_minute', 60)
         
         # Validate the required credentials
         if not redmine_url or not redmine_api_key:
             return False, "Required Redmine credentials are missing"
         
-        if not claude_api_key:
-            return False, "Claude API key is required"
+        # Claude API key is no longer required as we're using ClaudeDesktop MCP
             
-        # Ensure provider is 'claude'
-        if llm_provider != 'claude':
-            logger.warning("Only 'claude' is supported as the LLM provider. Setting to 'claude'.")
-            llm_provider = 'claude'
+        # Ensure provider is 'claude-desktop'
+        if llm_provider != 'claude-desktop':
+            logger.warning("Using 'claude-desktop' as the LLM provider.")
+            llm_provider = 'claude-desktop'
         
         # Update or create configuration in the database
         config = Config.query.first()
@@ -112,7 +112,8 @@ def update_config_from_credentials():
             # Update existing config
             config.redmine_url = redmine_url
             config.redmine_api_key = redmine_api_key
-            config.claude_api_key = claude_api_key
+            config.mcp_url = mcp_url
+            config.claude_api_key = claude_api_key  # For backward compatibility
             config.llm_provider = llm_provider
             config.rate_limit_per_minute = rate_limit
             config.updated_at = datetime.utcnow()
@@ -121,7 +122,8 @@ def update_config_from_credentials():
             config = Config(
                 redmine_url=redmine_url,
                 redmine_api_key=redmine_api_key,
-                claude_api_key=claude_api_key,
+                mcp_url=mcp_url,
+                claude_api_key=claude_api_key,  # For backward compatibility
                 llm_provider=llm_provider,
                 rate_limit_per_minute=rate_limit
             )
@@ -170,7 +172,7 @@ def check_redmine_availability(url, timeout=5):
         logger.error(f"Error checking Redmine availability: {str(e)}")
         return False, f"Error checking Redmine availability: {str(e)}"
 
-def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, 
+def create_credentials_file(redmine_url, redmine_api_key, mcp_url=None, 
                        rate_limit_per_minute=60):
     """
     Creates a credentials.yaml file with the provided settings
@@ -178,7 +180,7 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None,
     Args:
         redmine_url (str): The Redmine instance URL
         redmine_api_key (str): The Redmine API key
-        claude_api_key (str, optional): The Claude API key
+        mcp_url (str, optional): The MCP service URL
         rate_limit_per_minute (int, optional): Rate limit for API calls
         
     Returns:
@@ -189,13 +191,15 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None,
         credentials = {
             'redmine_url': redmine_url,
             'redmine_api_key': redmine_api_key,
-            'llm_provider': 'claude',
+            'llm_provider': 'claude-desktop',
             'rate_limit_per_minute': rate_limit_per_minute
         }
         
-        # Add Claude API key if provided
-        if claude_api_key:
-            credentials['claude_api_key'] = claude_api_key
+        # Add MCP URL if provided
+        if mcp_url:
+            credentials['mcp_url'] = mcp_url
+        else:
+            credentials['mcp_url'] = 'http://localhost:5001/api'
         
         # Save to the file
         with open('credentials.yaml', 'w') as file:
@@ -207,7 +211,8 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None,
                 example = {
                     'redmine_url': 'https://redmine.example.com',
                     'redmine_api_key': 'your_redmine_api_key_here',
-                    'claude_api_key': 'your_claude_api_key_here',
+                    'llm_provider': 'claude-desktop',
+                    'mcp_url': 'http://localhost:5001/api',
                     'rate_limit_per_minute': 60
                 }
                 yaml.dump(example, file, default_flow_style=False)

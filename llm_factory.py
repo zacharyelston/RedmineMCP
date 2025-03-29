@@ -8,23 +8,20 @@ from llm_api import LLMAPI
 
 logger = logging.getLogger(__name__)
 
-def create_llm_client(config):
+def create_llm_client(config=None):
     """
-    Create the appropriate LLM client based on the configuration
+    Create the LLM client for ClaudeDesktop MCP connection
     
     Args:
-        config (models.Config): The application configuration
+        config (models.Config, optional): The application configuration
         
     Returns:
-        object: An instance of the appropriate LLM API client
+        object: An instance of the LLM API client
     """
-    provider = config.llm_provider.lower()
+    logger.info("Using ClaudeDesktop via MCP connection as the LLM provider")
+    # MCP URL can be customized based on config if needed in the future
+    mcp_url = None
+    if config and hasattr(config, 'mcp_url') and config.mcp_url:
+        mcp_url = config.mcp_url
     
-    if provider == 'claude':
-        if not config.claude_api_key:
-            raise ValueError("Claude API key is not configured")
-        logger.info("Using Claude as the LLM provider")
-        return LLMAPI(config.claude_api_key)
-    
-    else:
-        raise ValueError(f"Unknown LLM provider: {provider}")
+    return LLMAPI(mcp_url=mcp_url)

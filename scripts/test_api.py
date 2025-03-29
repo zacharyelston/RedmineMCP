@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 """
 Unified API testing script for the Redmine MCP Extension.
-Tests connections to Redmine and Claude APIs.
+Tests connections to Redmine API.
 
 Usage:
     python scripts/test_api.py redmine [--verbose] [--create-issue]
-    python scripts/test_api.py claude [--verbose]
-    python scripts/test_api.py all [--verbose]
     
 Environment Variables:
     REDMINE_URL - If set, this URL will be used instead of reading from credentials.yaml
     REDMINE_API_KEY - If set, this API key will be used instead of reading from credentials.yaml
-    CLAUDE_API_KEY - If set, this API key will be used instead of reading from credentials.yaml
 """
 
 import os
@@ -25,35 +22,13 @@ def parse_args():
     """Parse command-line arguments"""
     parser = argparse.ArgumentParser(description="Test API connections for Redmine MCP Extension")
     
-    # Create subparsers for each API
-    subparsers = parser.add_subparsers(dest="api", help="API to test")
-    
-    # Redmine API parser
-    redmine_parser = subparsers.add_parser("redmine", help="Test Redmine API connection")
-    redmine_parser.add_argument("--verbose", "-v", action="store_true", 
-                             help="Enable verbose output")
-    redmine_parser.add_argument("--create-issue", "-c", action="store_true",
-                             help="Create a test issue to verify write access")
-    
-    # Claude API parser
-    claude_parser = subparsers.add_parser("claude", help="Test Claude API connection")
-    claude_parser.add_argument("--verbose", "-v", action="store_true", 
-                            help="Enable verbose output")
-    
-
-    
-    # All APIs parser
-    all_parser = subparsers.add_parser("all", help="Test all API connections")
-    all_parser.add_argument("--verbose", "-v", action="store_true", 
-                         help="Enable verbose output")
+    # Create parser for Redmine API
+    parser.add_argument("--verbose", "-v", action="store_true", 
+                     help="Enable verbose output")
+    parser.add_argument("--create-issue", "-c", action="store_true",
+                     help="Create a test issue to verify write access")
     
     args = parser.parse_args()
-    
-    # If no API specified, show help and exit
-    if not args.api:
-        parser.print_help()
-        sys.exit(1)
-        
     return args
 
 def load_credentials():
@@ -212,115 +187,10 @@ def test_redmine(args):
     print("All Redmine API tests passed successfully!")
     return True
 
-#
-# Claude API Functions
-#
-def get_claude_api_key():
-    """Get Claude API key from environment or credentials file"""
-    # First check environment variable
-    api_key = os.environ.get("CLAUDE_API_KEY")
-    
-    if api_key:
-        print("Using Claude API key from environment variable")
-        return api_key
-    
-    # Then check credentials.yaml
-    credentials = load_credentials()
-    
-    # Try both flattened and nested structures
-    api_key = credentials.get("claude_api_key")
-    if not api_key and "claude" in credentials:
-        api_key = credentials["claude"].get("api_key")
-        
-    if api_key and api_key != "your_claude_api_key_here":
-        print("Using Claude API key from credentials.yaml")
-        return api_key
-    
-    return None
-
-def test_claude_connection(api_key, verbose=False):
-    """Test connection to Anthropic Claude API"""
-    print("Testing Claude API connection...")
-    
-    url = "https://api.anthropic.com/v1/messages"
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json"
-    }
-    
-    # Sample minimal request body
-    data = {
-        "model": "claude-3-haiku-20240307",  # Using smallest model for quick test
-        "max_tokens": 1,
-        "messages": [
-            {"role": "user", "content": "Hello, Claude!"}
-        ]
-    }
-    
-    try:
-        print("Sending request to Claude API...")
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        
-        # If we get here, the request was successful
-        print("✅ Claude API connection successful!")
-        
-        if verbose:
-            print(f"Status Code: {response.status_code}")
-            print(f"Response: {response.json()}")
-        
-        return True
-    except requests.exceptions.HTTPError as e:
-        print(f"❌ Claude API HTTP error: {e}")
-        print(f"Response: {e.response.text}")
-        return False
-    except Exception as e:
-        print(f"❌ Claude API connection failed: {e}")
-        return False
-
-def test_claude(args):
-    """Run Claude API tests"""
-    print("\n=== Testing Claude API ===")
-    
-    # Get API key
-    api_key = get_claude_api_key()
-    
-    if not api_key:
-        print("❌ No valid Claude API key found in environment or credentials.yaml")
-        print("Please set the CLAUDE_API_KEY environment variable or add it to credentials.yaml")
-        return False
-    
-    # Test the connection
-    success = test_claude_connection(api_key, args.verbose)
-    
-    if not success:
-        return False
-        
-    print("All Claude API tests passed successfully!")
-    return True
-
-
-
-
 def main():
     """Main function"""
     args = parse_args()
-    success = False
-    
-    if args.api == "redmine":
-        success = test_redmine(args)
-    elif args.api == "claude":
-        success = test_claude(args)
-    elif args.api == "all":
-        # Test all APIs
-        redmine_args = argparse.Namespace(verbose=args.verbose, create_issue=False)
-        claude_args = argparse.Namespace(verbose=args.verbose)
-        
-        redmine_success = test_redmine(redmine_args)
-        claude_success = test_claude(claude_args)
-        
-        success = redmine_success and claude_success
+    success = test_redmine(args)
     
     if not success:
         sys.exit(1)

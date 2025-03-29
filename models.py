@@ -12,8 +12,9 @@ class Config(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     redmine_url = db.Column(db.String(256), nullable=False)
     redmine_api_key = db.Column(db.String(256), nullable=False)
-    claude_api_key = db.Column(db.String(256), nullable=False)
-    llm_provider = db.Column(db.String(64), default='claude', nullable=False)  # Only 'claude' is supported
+    mcp_url = db.Column(db.String(256), nullable=True)  # Optional MCP service URL
+    claude_api_key = db.Column(db.String(256), nullable=True)  # Kept for backward compatibility but not used
+    llm_provider = db.Column(db.String(64), default='claude-desktop', nullable=False)  # Now using 'claude-desktop'
     rate_limit_per_minute = db.Column(db.Integer, default=60)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

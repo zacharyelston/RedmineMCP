@@ -1,6 +1,6 @@
 """
 LLM API integration for Redmine Extension.
-This module implements the integration with Anthropic's Claude API.
+This module implements the integration with Claude via ClaudeDesktop MCP connection.
 """
 
 import json
@@ -13,28 +13,22 @@ logger = logging.getLogger(__name__)
 
 class LLMAPI:
     """
-    A wrapper for the Anthropic Claude API to handle LLM tasks
+    A wrapper for Claude via MCP connection to handle LLM tasks
     """
-    API_URL = "https://api.anthropic.com/v1/messages"
     
-    def __init__(self, api_key):
+    def __init__(self, mcp_url=None):
         """
-        Initialize the Claude API client
+        Initialize the Claude MCP client
         
         Args:
-            api_key (str): The Claude API key
+            mcp_url (str, optional): The MCP service URL (defaults to localhost:5001)
         """
-        self.api_key = api_key
-        self.headers = {
-            "Content-Type": "application/json",
-            "X-API-Key": api_key,
-            "anthropic-version": "2023-06-01"
-        }
-        logger.debug("Claude API client initialized")
+        self.mcp_url = mcp_url or "http://localhost:5001/api"
+        logger.debug(f"Claude MCP client initialized with URL: {self.mcp_url}")
     
     def _make_request(self, messages, system_prompt=None, max_tokens=1000):
         """
-        Make a request to the Claude API
+        Make a request to Claude via MCP
         
         Args:
             messages (list): List of message objects
@@ -45,7 +39,6 @@ class LLMAPI:
             str: The model's response
         """
         data = {
-            "model": "claude-3-opus-20240229",
             "messages": messages,
             "max_tokens": max_tokens
         }
@@ -54,22 +47,22 @@ class LLMAPI:
             data["system"] = system_prompt
         
         try:
+            # Use a local endpoint that forwards to ClaudeDesktop via MCP
             response = requests.post(
-                self.API_URL,
-                headers=self.headers,
+                f"{self.mcp_url}/generate",
                 json=data
             )
             
             if response.status_code != 200:
-                logger.error(f"Claude API error: {response.status_code} - {response.text}")
-                raise Exception(f"API request failed with status code {response.status_code}: {response.text}")
+                logger.error(f"MCP error: {response.status_code} - {response.text}")
+                raise Exception(f"MCP request failed with status code {response.status_code}: {response.text}")
             
             result = response.json()
-            return result["content"][0]["text"]
+            return result["content"]
         
         except Exception as e:
-            logger.error(f"Error making Claude API request: {str(e)}")
-            raise Exception(f"Failed to communicate with Claude API: {str(e)}")
+            logger.error(f"Error making MCP request: {str(e)}")
+            raise Exception(f"Failed to communicate with Claude via MCP: {str(e)}")
     
     def generate_issue(self, prompt):
         """
