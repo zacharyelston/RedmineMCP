@@ -35,9 +35,11 @@ This document outlines planned enhancements and features for the Redmine Model C
 
 - [x] **Enhanced LLM Features**
   - [x] Add support for Claude API (migrated from OpenAI)
+  - [x] Add support for OpenAI API with gpt-4o model
   - [x] Implement context-aware prompts that understand Redmine's workflow
   - [x] Create specialized prompt templates for different issue types
   - [x] Create Claude desktop configuration for easy integration
+  - [x] Create LLM factory pattern to abstract provider differences
 
 - [ ] **Redmine Integration Improvements**
   - Support for Redmine custom fields
@@ -98,6 +100,10 @@ This document outlines planned enhancements and features for the Redmine Model C
     - [ ] Set up deployment workflow for staging/production environments
     - [x] Add script to check GitHub Actions build results from Replit
     - [x] Fix package installation issues in GitHub Actions workflows
+    - [x] Enhance compatibility with ARM64 architecture
+      - [x] Replace MySQL with MariaDB in CI environment
+      - [x] Add ARM64 compatibility testing script
+      - [x] Update CI workflows for cross-platform support
 
 ## Future Considerations
 

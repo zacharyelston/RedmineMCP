@@ -1,16 +1,20 @@
 # Redmine Model Context Protocol Extension
 
-A Model Context Protocol (MCP) extension for Redmine that leverages Anthropic's Claude AI to streamline issue management through an intelligent, user-friendly Python-based API.
+A Model Context Protocol (MCP) extension for Redmine that leverages Large Language Models (Claude and OpenAI) to streamline issue management through an intelligent, user-friendly Python-based API. Supports both x86/x64 and ARM64 architectures.
 
 ## Overview
 
-This project implements a middleware service that connects Redmine (a popular project management system) with advanced Large Language Models (specifically Claude) to enable AI-assisted issue management. Instead of directly modifying Redmine's Ruby codebase, this extension operates as a separate service that communicates with Redmine via its REST API.
+This project implements a middleware service that connects Redmine (a popular project management system) with advanced Large Language Models to enable AI-assisted issue management. Instead of directly modifying Redmine's Ruby codebase, this extension operates as a separate service that communicates with Redmine via its REST API.
+
+The extension supports multiple LLM providers (Claude and OpenAI) and runs on both x86 and ARM64 architectures, making it compatible with a wide range of development and deployment environments.
 
 ## Key Features
 
 - **AI-Powered Issue Creation**: Generate well-structured Redmine issues from natural language descriptions
 - **Intelligent Issue Updates**: Update existing issues using natural language commands
 - **Issue Analysis**: Get AI-powered insights and recommendations for existing issues
+- **Multi-Provider Support**: Supports both Claude and OpenAI LLM providers
+- **Cross-Platform**: Compatible with both x86 and ARM64 architectures
 - **Web Interface**: Simple dashboard for configuration and monitoring
 - **Rate Limiting**: Built-in protection against API overuse
 - **Comprehensive Logging**: Detailed logs of all AI operations
@@ -20,7 +24,8 @@ This project implements a middleware service that connects Redmine (a popular pr
 
 - Python 3.9+ (for local development)
 - Docker and Docker Compose (for containerized setup)
-- Anthropic Claude API key
+- Anthropic Claude API key or OpenAI API key
+- Works on x86/x64 and ARM64 architectures (Apple Silicon M1/M2/M3, AWS Graviton, etc.)
 
 ## Installation and Setup
 
