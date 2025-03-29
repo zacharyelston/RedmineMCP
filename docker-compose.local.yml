@@ -32,9 +32,10 @@ services:
       - FLASK_DEBUG=1
       - REDMINE_URL=http://redmine:3000
       - DATABASE_URL=sqlite:////app/mcp.db
+    # Make this service start independently of Redmine
+    # We handle Redmine connection issues gracefully in the app
     depends_on:
-      redmine:
-        condition: service_healthy
+      - redmine
     networks:
       - redmine-mcp-network
     restart: unless-stopped

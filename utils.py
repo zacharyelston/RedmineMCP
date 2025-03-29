@@ -5,6 +5,7 @@ Utility functions for the Redmine MCP Extension.
 import os
 import yaml
 import logging
+import requests
 from datetime import datetime
 from models import Config, RateLimitTracker, db
 
@@ -134,6 +135,41 @@ def update_config_from_credentials():
     except Exception as e:
         logger.error(f"Error updating configuration: {str(e)}")
         return False, f"Error updating configuration: {str(e)}"
+
+def check_redmine_availability(url, timeout=5):
+    """
+    Check if Redmine is available at the specified URL
+    
+    Args:
+        url (str): The Redmine URL to check
+        timeout (int, optional): Timeout in seconds
+        
+    Returns:
+        tuple: (bool, str) - Available status and message
+    """
+    try:
+        # Strip API endpoint parts if present
+        base_url = url.split('/api/')[0]
+        base_url = base_url.rstrip('/')
+        
+        # Make a request to the Redmine root
+        response = requests.get(f"{base_url}", timeout=timeout)
+        
+        if response.status_code == 200:
+            logger.info(f"Redmine is available at {base_url}")
+            return True, "Redmine is available"
+        else:
+            logger.warning(f"Redmine returned unexpected status code: {response.status_code}")
+            return False, f"Redmine returned status code {response.status_code}"
+    except requests.exceptions.ConnectionError:
+        logger.warning(f"Could not connect to Redmine at {url}")
+        return False, "Could not connect to Redmine (connection error)"
+    except requests.exceptions.Timeout:
+        logger.warning(f"Connection to Redmine timed out after {timeout} seconds")
+        return False, "Connection to Redmine timed out"
+    except Exception as e:
+        logger.error(f"Error checking Redmine availability: {str(e)}")
+        return False, f"Error checking Redmine availability: {str(e)}"
 
 def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, openai_api_key=None, 
                        llm_provider='claude', rate_limit_per_minute=60):

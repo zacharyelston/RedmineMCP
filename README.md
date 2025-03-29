@@ -19,6 +19,7 @@ The extension supports multiple LLM providers (Claude and OpenAI) and runs on bo
 - **Rate Limiting**: Built-in protection against API overuse
 - **Comprehensive Logging**: Detailed logs of all AI operations
 - **Docker Integration**: Full Docker support for easy setup and deployment
+- **Resilience**: Graceful handling of Redmine unavailability with offline testing mode
 
 ## Requirements
 
@@ -219,9 +220,14 @@ The project includes several helper scripts to streamline development:
 - **scripts/commit_to_fix_branch.sh**: Commit changes to a fix or feature branch
 - **scripts/validate_configs.py**: Validate configuration files before committing
 - **scripts/setup_docker_dev.sh**: Set up the full Docker development environment
-- **scripts/setup_redmine.sh**: Set up a standalone Redmine container
+- **scripts/setup_redmine.sh**: Set up a standalone Redmine container (improved for ARM64)
 - **scripts/test_mcp_integration.py**: Test the MCP integration functionality
 - **scripts/test_redmine_api.sh**: Test the Redmine API connectivity
+- **scripts/test_redmine_availability.py**: Test MCP robustness with unavailable Redmine
+- **scripts/test_openai_api.py**: Test OpenAI API integration
+- **scripts/test_claude_api.py**: Test Claude API integration
+- **scripts/check_docker_compatibility.sh**: Diagnose Docker setup and compatibility
+- **scripts/test_mcp_robustness.sh**: Test overall robustness (Docker + service availability)
 - **scripts/update_api_urls.sh**: Update API URLs across the codebase
 - **scripts/cleanup_dev_env.sh**: Clean up the development environment
 - **scripts/cleanup_docker_env.sh**: Clean up Docker containers and volumes
@@ -283,6 +289,38 @@ The validation script checks for:
 - Common package configuration issues
 
 This helps catch issues before they reach GitHub Actions.
+
+#### Testing MCP Robustness
+
+The MCP extension is designed to be resilient to common failure scenarios, including temporary Redmine unavailability or API errors. This helps development teams continue working even when the full system isn't available:
+
+1. **Offline Operation Testing**: Test how the MCP extension handles situations where Redmine is unavailable:
+   ```bash
+   ./scripts/test_redmine_availability.py --create-test-config
+   # Test functionality while Redmine is "offline"
+   ./scripts/test_redmine_availability.py --restore-config
+   ```
+
+2. **Docker Compatibility Testing**: Verify Docker configuration and diagnose issues:
+   ```bash
+   ./scripts/check_docker_compatibility.sh
+   ```
+
+3. **Complete Robustness Test**: Run a full suite of tests against common failure modes:
+   ```bash
+   ./scripts/test_mcp_robustness.sh
+   ```
+
+4. **Health Endpoint**: The `/api/health` endpoint provides detailed status information about all services:
+   ```bash
+   curl http://localhost:5000/api/health | jq
+   ```
+   
+   The health endpoint will show different statuses for Redmine availability:
+   - `healthy`: Redmine is available and API is accessible
+   - `unavailable`: Redmine web server is not responding
+   - `api_error`: Redmine is running but API access is failing
+   - `unknown`: Status could not be determined
 
 #### ARM64 Compatibility (Apple Silicon / AWS Graviton)
 

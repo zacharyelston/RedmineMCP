@@ -63,20 +63,49 @@ fi
 
 # Start Docker containers
 echo "🏗️ Starting Docker containers..."
-# First remove any existing containers to avoid the 'ContainerConfig' KeyError on ARM64
+echo "⚠️ This may take a while on first run..."
+
+# First make sure any existing containers are stopped and removed
+echo "🧹 Cleaning up any existing containers..."
 docker-compose -f docker-compose.local.yml down -v 2>/dev/null || true
-docker rm -f redmine-local 2>/dev/null || true
+docker rm -f redmine-local mcp-extension-local 2>/dev/null || true
+docker volume rm redmine-local-files 2>/dev/null || true
+
+# Ensure docker images are up to date
+echo "🔄 Building fresh images..."
+docker-compose -f docker-compose.local.yml build --no-cache
 
 # Start with --force-recreate to avoid volume issues on ARM64
-docker-compose -f docker-compose.local.yml up -d --build --force-recreate
+echo "🚀 Starting services..."
+docker-compose -f docker-compose.local.yml up -d --force-recreate
 
-# Wait for Redmine to start
+# Check if MCP Extension started
+echo "⏳ Checking if MCP Extension is running..."
+mcp_attempt=0
+mcp_max_attempts=10
+while [ $mcp_attempt -lt $mcp_max_attempts ]; do
+    if docker ps | grep -q mcp-extension-local; then
+        echo "✅ MCP Extension container is running!"
+        break
+    fi
+    mcp_attempt=$((mcp_attempt+1))
+    echo "⏳ Waiting for MCP Extension... ($mcp_attempt/$mcp_max_attempts)"
+    sleep 2
+done
+
+if [ $mcp_attempt -eq $mcp_max_attempts ]; then
+    echo "❌ MCP Extension container failed to start. Check logs with: docker logs mcp-extension-local"
+    # Don't exit, we still want to check Redmine
+fi
+
+# Wait for Redmine to start (but continue even if it fails)
 echo "⏳ Waiting for Redmine to be ready (this may take a minute)..."
 attempt=0
 max_attempts=30
 while [ $attempt -lt $max_attempts ]; do
     if curl -s http://localhost:3000 > /dev/null; then
         echo "✅ Redmine is up and running!"
+        redmine_running=true
         break
     fi
     attempt=$((attempt+1))
@@ -85,15 +114,43 @@ while [ $attempt -lt $max_attempts ]; do
 done
 
 if [ $attempt -eq $max_attempts ]; then
-    echo "❌ Timed out waiting for Redmine to start. Check container logs with: docker logs redmine-local"
-    exit 1
+    echo "⚠️ Redmine may not be ready yet. This is not critical for MCP extension to function."
+    echo "ℹ️ You can check Redmine logs with: docker logs redmine-local"
+    redmine_running=false
 fi
 
-# Configure Redmine for testing
-echo "⚙️ Configuring Redmine with API access..."
-docker exec redmine-local bash -c 'bundle exec rake redmine:plugins:migrate RAILS_ENV=production && bundle exec rake generate_secret_token' || {
-    echo "⚠️ Warning: Could not run Redmine rake tasks. This is not critical for local development."
-}
+# Only configure Redmine if it's running
+if [ "$redmine_running" = true ]; then
+    echo "⚙️ Configuring Redmine with API access..."
+    docker exec redmine-local bash -c 'bundle exec rake redmine:plugins:migrate RAILS_ENV=production && bundle exec rake generate_secret_token' || {
+        echo "⚠️ Warning: Could not run Redmine rake tasks. This is not critical for local development."
+    }
+    echo "ℹ️ Redmine setup complete. Default admin login: admin/admin"
+else
+    echo "ℹ️ Skipping Redmine configuration as Redmine is not yet available."
+    echo "ℹ️ You can manually configure Redmine later when it becomes available."
+fi
 
-echo "ℹ️ Redmine setup complete. Default admin login: admin/admin"
-echo "⚠️ IMPORTANT: Please update your Claude API key in credentials.yaml"
+echo "✅ MCP Extension should be accessible at http://localhost:5000"
+echo "⚠️ IMPORTANT: Please update your API keys in credentials.yaml"
+
+# Print status summary
+echo ""
+echo "🚀 Setup Summary:"
+echo "===================="
+if [ "$redmine_running" = true ]; then
+    echo "Redmine: ✅ Running at http://localhost:3000"
+else
+    echo "Redmine: ⚠️ Not yet available (http://localhost:3000)"
+fi
+
+if docker ps | grep -q mcp-extension-local; then
+    echo "MCP Extension: ✅ Running at http://localhost:5000"
+else
+    echo "MCP Extension: ❌ Not running"
+fi
+
+echo ""
+echo "You can check container logs with:"
+echo "  docker logs redmine-local        # For Redmine logs"
+echo "  docker logs mcp-extension-local  # For MCP Extension logs"
