@@ -20,6 +20,7 @@ This document outlines planned enhancements and features for the Redmine Model C
   - [x] Implement real connection testing for Redmine and Claude APIs
   - [x] Add detailed error reporting for API connection issues
   - [x] Create visual indicators for connection status
+  - [ ] Create comprehensive automated test script for validating Redmine API functionality
 
 - [ ] **Improved Error Handling**
   - Add more detailed error messages
