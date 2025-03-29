@@ -1,0 +1,52 @@
+Digest: sha256:ab00561931762207af3252b0d732939eac021fd0926a09e702a6b7fdc344cf88
+Status: Downloaded newer image for mariadb:10.5
+Recreating redmine-local ... 
+Creating redmine-db-ci   ... 
+
+Creating redmine-db-ci   ... done
+
+ERROR: for redmine  'ContainerConfig'
+Traceback (most recent call last):
+  File "/opt/homebrew/bin/docker-compose", line 8, in <module>
+    sys.exit(main())
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/cli/main.py", line 81, in main
+    command_func()
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/cli/main.py", line 203, in perform_command
+    handler(command, command_options)
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/metrics/decorator.py", line 18, in wrapper
+    result = fn(*args, **kwargs)
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/cli/main.py", line 1186, in up
+    to_attach = up(False)
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/cli/main.py", line 1166, in up
+    return self.project.up(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/project.py", line 697, in up
+    results, errors = parallel.parallel_execute(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/project.py", line 679, in do
+    return service.execute_convergence_plan(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 579, in execute_convergence_plan
+    return self._execute_convergence_recreate(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 499, in _execute_convergence_recreate
+    containers, errors = parallel_execute(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 494, in recreate
+    return self.recreate_container(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 612, in recreate_container
+    new_container = self.create_container(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 330, in create_container
+    container_options = self._get_container_create_options(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 921, in _get_container_create_options
+    container_options, override_options = self._build_container_volume_options(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 960, in _build_container_volume_options
+    binds, affinity = merge_volume_bindings(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 1548, in merge_volume_bindings
+    old_volumes, old_mounts = get_container_data_volumes(
+  File "/opt/homebrew/lib/python3.9/site-packages/compose/service.py", line 1579, in get_container_data_volumes
+    container.image_config['ContainerConfig'].get('Volumes') or {}
+KeyError: 'ContainerConfig'

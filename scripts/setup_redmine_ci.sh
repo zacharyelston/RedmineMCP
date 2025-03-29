@@ -60,7 +60,12 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 EOF
 
-docker-compose -f docker-compose.ci.yml up -d
+# First remove any existing containers to avoid the 'ContainerConfig' KeyError on ARM64
+docker-compose -f docker-compose.ci.yml down -v 2>/dev/null || true
+docker rm -f redmine-ci redmine-db-ci 2>/dev/null || true
+
+# Start containers with --force-recreate to avoid volume issues on ARM64
+docker-compose -f docker-compose.ci.yml up -d --force-recreate
 
 # Wait for Redmine to start with shorter timeout for CI
 echo "⏳ Waiting for Redmine to be ready..."

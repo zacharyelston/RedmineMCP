@@ -63,7 +63,12 @@ fi
 
 # Start Docker containers
 echo "🏗️ Starting Docker containers..."
-docker-compose -f docker-compose.local.yml up -d --build
+# First remove any existing containers to avoid the 'ContainerConfig' KeyError on ARM64
+docker-compose -f docker-compose.local.yml down -v 2>/dev/null || true
+docker rm -f redmine-local 2>/dev/null || true
+
+# Start with --force-recreate to avoid volume issues on ARM64
+docker-compose -f docker-compose.local.yml up -d --build --force-recreate
 
 # Wait for Redmine to start
 echo "⏳ Waiting for Redmine to be ready (this may take a minute)..."

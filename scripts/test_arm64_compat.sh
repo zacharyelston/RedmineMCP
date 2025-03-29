@@ -36,7 +36,12 @@ EOF
 
 # Try to start MariaDB container
 echo "🔄 Starting MariaDB container for ARM64 compatibility test..."
-docker-compose -f docker-compose.arm64-test.yml up -d
+# First remove any existing containers to avoid the 'ContainerConfig' KeyError on ARM64
+docker-compose -f docker-compose.arm64-test.yml down -v 2>/dev/null || true
+docker rm -f db-test 2>/dev/null || true
+
+# Start with --force-recreate to avoid volume issues on ARM64
+docker-compose -f docker-compose.arm64-test.yml up -d --force-recreate
 
 # Check if container started successfully
 sleep 5

@@ -26,6 +26,7 @@ The extension supports multiple LLM providers (Claude and OpenAI) and runs on bo
 - Docker and Docker Compose (for containerized setup)
 - Anthropic Claude API key or OpenAI API key
 - Works on x86/x64 and ARM64 architectures (Apple Silicon M1/M2/M3, AWS Graviton, etc.)
+  - Special handling for ARM64-specific Docker issues like 'ContainerConfig' KeyError
 
 ## Installation and Setup
 
@@ -282,6 +283,32 @@ The validation script checks for:
 - Common package configuration issues
 
 This helps catch issues before they reach GitHub Actions.
+
+#### ARM64 Compatibility (Apple Silicon / AWS Graviton)
+
+If you're using an ARM64-based machine (such as Apple Silicon M1/M2/M3 Macs or AWS Graviton instances), the following accommodations are included:
+
+1. **MariaDB Instead of MySQL**: All scripts use MariaDB containers rather than MySQL for improved ARM64 compatibility.
+
+2. **Container Recreation Fixes**: To avoid the 'ContainerConfig' KeyError issue that occurs on ARM64 platforms:
+   ```bash
+   # Problem: Error when recreating containers with volumes on ARM64
+   KeyError: 'ContainerConfig'
+   
+   # Solution - Before starting containers:
+   docker-compose -f your-compose-file.yml down -v
+   docker rm -f container-name 2>/dev/null || true
+   
+   # Then start with --force-recreate:
+   docker-compose -f your-compose-file.yml up -d --force-recreate
+   ```
+   
+3. **ARM64 Testing Script**: Use `scripts/test_arm64_compat.sh` to verify compatibility:
+   ```bash
+   ./scripts/test_arm64_compat.sh
+   ```
+   
+4. **GitHub Actions**: CI/CD workflows support ARM64 through MariaDB usage
 
 ### Testing Redmine Frontend
 

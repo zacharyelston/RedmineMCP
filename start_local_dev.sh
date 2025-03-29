@@ -30,7 +30,12 @@ else
 
   # Build and start the services
   echo "🏗️ Building and starting Docker services..."
-  docker-compose -f docker-compose.local.yml up -d --build
+  # First remove any existing containers to avoid the 'ContainerConfig' KeyError on ARM64
+  docker-compose -f docker-compose.local.yml down -v 2>/dev/null || true
+  docker rm -f redmine-local 2>/dev/null || true
+  
+  # Start with --force-recreate to avoid volume issues on ARM64
+  docker-compose -f docker-compose.local.yml up -d --build --force-recreate
 
   # Wait for services to be ready
   echo "⏳ Waiting for Redmine to be ready (this may take a minute)..."
@@ -59,7 +64,10 @@ echo "
    - MCP Extension: http://localhost:5000
 
 📝 Next steps:
-   1. Add your Claude API key to credentials.yaml (if using automated setup, Redmine API key is already set)
+   1. Add your LLM provider API key to credentials.yaml:
+      - For Claude: Add 'claude_api_key' and set 'llm_provider' to 'claude'
+      - For OpenAI: Add 'openai_api_key' and set 'llm_provider' to 'openai'
+      (if using automated setup, Redmine API key is already set)
    2. Start the MCP Extension: flask run --host=0.0.0.0 --port=5000
    3. Or use the workflow: gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
 
@@ -69,7 +77,9 @@ echo "
 
 📡 Testing the APIs:
    - Redmine API: python scripts/test_redmine_api.py --verbose
-   - Claude API: python scripts/test_claude_api.py --verbose
+   - LLM APIs:
+     - Claude API: python scripts/test_claude_api.py --verbose
+     - OpenAI API: python scripts/test_openai_api.py --verbose
    - MCP Integration: python scripts/test_mcp_integration.py --project-id=test
 
 🛑 To stop services:
