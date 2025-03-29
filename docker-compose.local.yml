@@ -31,12 +31,19 @@ services:
     environment:
       - FLASK_DEBUG=1
       - REDMINE_URL=http://redmine:3000
+      - DATABASE_URL=sqlite:////app/mcp.db
     depends_on:
       redmine:
         condition: service_healthy
     networks:
       - redmine-mcp-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   redmine-mcp-network:
