@@ -6,43 +6,36 @@
         <div class="card mb-4">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h2 class="mb-0">Prompt Templates</h2>
-                <div>
-                    <button class="btn btn-sm btn-light" onclick="newTemplate()">
-                        <i class="bi bi-plus-circle"></i> New Template
-                    </button>
-                </div>
             </div>
             <div class="card-body">
-                <p class="lead">Create and manage reusable prompt templates for common tasks.</p>
+                <p class="lead">View the prompt templates configured for the application. Templates are defined in the manifest.yaml file.</p>
                 
                 {% if templates %}
                 <div class="row">
-                    {% for template in templates %}
+                    {% for name, template in templates.items() %}
                     <div class="col-md-6 col-lg-4 mb-4">
                         <div class="card h-100">
                             <div class="card-header d-flex justify-content-between">
-                                <h5 class="mb-0">{{ template.name }}</h5>
+                                <h5 class="mb-0">{{ name }}</h5>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenuButton{{ template.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                            id="dropdownMenuButton{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ template.id }}">
-                                        <li><a class="dropdown-item" href="#" onclick="loadPromptTemplate({{ template.id }})">Edit</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="deleteTemplate({{ template.id }})">Delete</a></li>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ loop.index }}">
+                                        <li><a class="dropdown-item" href="#" onclick="loadPromptTemplate('{{ name }}')">View</a></li>
                                     </ul>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <p class="card-text">{{ template.description or "No description provided." }}</p>
+                                <p class="card-text">{{ template.get('description', 'No description provided.') }}</p>
                                 <p class="card-text">
-                                    <small class="text-muted">Created: {{ template.created_at.strftime('%Y-%m-%d') }}</small><br>
-                                    <small class="text-muted">Updated: {{ template.updated_at.strftime('%Y-%m-%d') }}</small>
+                                    <small class="text-muted">Configured in manifest.yaml</small>
                                 </p>
                             </div>
                             <div class="card-footer">
-                                <button class="btn btn-sm btn-outline-primary" onclick="loadPromptTemplate({{ template.id }})">
-                                    Use Template
+                                <button class="btn btn-sm btn-outline-primary" onclick="loadPromptTemplate('{{ name }}')">
+                                    View Template
                                 </button>
                             </div>
                         </div>
@@ -51,7 +44,7 @@
                 </div>
                 {% else %}
                 <div class="alert alert-info">
-                    <p class="mb-0">No prompt templates have been created yet. Click the "New Template" button to create your first template.</p>
+                    <p class="mb-0">No prompt templates are defined in the manifest.yaml file.</p>
                 </div>
                 {% endif %}
             </div>
@@ -161,15 +154,24 @@ function newTemplate() {
     templateModal.show();
 }
 
-function loadPromptTemplate(id) {
-    fetch(`/api/prompts/${id}`)
+function loadPromptTemplate(name) {
+    fetch(`/api/prompts/${name}`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('templateId').value = data.id;
-            document.getElementById('templateName').value = data.name;
+            document.getElementById('templateId').value = name;
+            document.getElementById('templateName').value = name;
             document.getElementById('templateDescription').value = data.description || '';
-            document.getElementById('templateContent').value = data.template;
-            document.getElementById('templateFormModalLabel').textContent = 'Edit Prompt Template';
+            document.getElementById('templateContent').value = data.template || '';
+            document.getElementById('templateFormModalLabel').textContent = 'View Prompt Template';
+            
+            // Disable the form fields as templates are read-only
+            document.getElementById('templateName').disabled = true;
+            document.getElementById('templateDescription').disabled = true;
+            document.getElementById('templateContent').disabled = true;
+            
+            // Hide the save button
+            document.querySelector('.modal-footer .btn-primary').style.display = 'none';
+            
             templateModal.show();
         })
         .catch(error => {

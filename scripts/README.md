@@ -48,7 +48,7 @@ Unified MCP integration testing script.
 
 ```bash
 # Test all MCP functionality
-python scripts/test_mcp.py --base-url=http://localhost:5000 [--all]
+python scripts/test_mcp.py --base-url=http://localhost:9000 [--all]
 
 # Test specific MCP endpoints
 python scripts/test_mcp.py --capabilities --health

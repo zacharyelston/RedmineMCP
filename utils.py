@@ -1,5 +1,6 @@
 """
 Utility functions for the Redmine MCP Extension.
+Uses file-based configuration instead of database.
 """
 
 import os
@@ -7,46 +8,38 @@ import yaml
 import logging
 import requests
 from datetime import datetime
-from models import Config, RateLimitTracker, db
 
 logger = logging.getLogger(__name__)
+
+# Import rate limiting functions from config module
+from config import is_rate_limited as config_is_rate_limited
+from config import add_api_call as config_add_api_call
 
 def is_rate_limited(api_name, rate_limit_per_minute):
     """
     Check if the API has exceeded its rate limit
     
     Args:
-        api_name (str): The name of the API ('redmine', 'claude', or 'openai')
+        api_name (str): The name of the API ('redmine' or 'claude')
         rate_limit_per_minute (int): The maximum number of calls allowed per minute
         
     Returns:
         bool: True if rate limited, False otherwise
     """
-    # Get or create the tracker
-    tracker = RateLimitTracker.get_or_create(api_name)
-    
-    # Check if we've exceeded the limit
-    if tracker.count >= rate_limit_per_minute:
-        logger.warning(f"{api_name} API rate limit exceeded. Count: {tracker.count}, Limit: {rate_limit_per_minute}")
-        return True
-    
-    return False
+    return config_is_rate_limited(api_name)
 
 def add_api_call(api_name):
     """
     Increment the API call counter for rate limiting
     
     Args:
-        api_name (str): The name of the API ('redmine', 'claude', or 'openai')
+        api_name (str): The name of the API ('redmine' or 'claude')
     """
-    # Get or create the tracker
-    tracker = RateLimitTracker.get_or_create(api_name)
-    
-    # Increment the counter
-    tracker.count += 1
-    db.session.commit()
-    
-    logger.debug(f"Recorded API call to {api_name}. New count: {tracker.count}")
+    config_add_api_call(api_name)
+
+# Import functions from config module
+from config import load_credentials as config_load_credentials
+from config import update_config_from_credentials as config_update_from_credentials
 
 def load_credentials():
     """
@@ -55,22 +48,7 @@ def load_credentials():
     Returns:
         dict: The loaded credentials or None if file not found
     """
-    try:
-        # Check if credentials.yaml exists
-        if not os.path.exists('credentials.yaml'):
-            logger.warning("credentials.yaml not found")
-            return None
-        
-        # Load credentials from the file
-        with open('credentials.yaml', 'r') as file:
-            credentials = yaml.safe_load(file)
-        
-        logger.info("Credentials loaded from file")
-        return credentials
-    
-    except Exception as e:
-        logger.error(f"Error loading credentials: {str(e)}")
-        return None
+    return config_load_credentials()
 
 def update_config_from_credentials():
     """
@@ -79,62 +57,7 @@ def update_config_from_credentials():
     Returns:
         tuple: (bool, str) - Success status and message
     """
-    try:
-        # Load credentials from file
-        credentials = load_credentials()
-        
-        if not credentials:
-            return False, "No credentials file found"
-        
-        # Get required fields
-        redmine_url = credentials.get('redmine_url')
-        redmine_api_key = credentials.get('redmine_api_key')
-        claude_api_key = credentials.get('claude_api_key')
-        openai_api_key = credentials.get('openai_api_key')
-        llm_provider = credentials.get('llm_provider', 'claude')
-        rate_limit = credentials.get('rate_limit_per_minute', 60)
-        
-        # Validate the required credentials based on the provider
-        if not redmine_url or not redmine_api_key:
-            return False, "Required Redmine credentials are missing"
-        
-        if llm_provider == 'claude' and not claude_api_key:
-            return False, "Claude API key is required when using Claude as the provider"
-            
-        if llm_provider == 'openai' and not openai_api_key:
-            return False, "OpenAI API key is required when using OpenAI as the provider"
-        
-        # Update or create configuration in the database
-        config = Config.query.first()
-        
-        if config:
-            # Update existing config
-            config.redmine_url = redmine_url
-            config.redmine_api_key = redmine_api_key
-            config.claude_api_key = claude_api_key
-            config.openai_api_key = openai_api_key
-            config.llm_provider = llm_provider
-            config.rate_limit_per_minute = rate_limit
-            config.updated_at = datetime.utcnow()
-        else:
-            # Create new config
-            config = Config(
-                redmine_url=redmine_url,
-                redmine_api_key=redmine_api_key,
-                claude_api_key=claude_api_key,
-                openai_api_key=openai_api_key,
-                llm_provider=llm_provider,
-                rate_limit_per_minute=rate_limit
-            )
-            db.session.add(config)
-        
-        db.session.commit()
-        logger.info("Configuration updated from credentials file")
-        return True, "Configuration updated successfully"
-    
-    except Exception as e:
-        logger.error(f"Error updating configuration: {str(e)}")
-        return False, f"Error updating configuration: {str(e)}"
+    return config_update_from_credentials()
 
 def check_redmine_availability(url, timeout=5):
     """
@@ -171,17 +94,15 @@ def check_redmine_availability(url, timeout=5):
         logger.error(f"Error checking Redmine availability: {str(e)}")
         return False, f"Error checking Redmine availability: {str(e)}"
 
-def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, openai_api_key=None, 
-                       llm_provider='claude', rate_limit_per_minute=60):
+def create_credentials_file(redmine_url, redmine_api_key, mcp_url=None, 
+                       rate_limit_per_minute=60):
     """
     Creates a credentials.yaml file with the provided settings
     
     Args:
         redmine_url (str): The Redmine instance URL
         redmine_api_key (str): The Redmine API key
-        claude_api_key (str, optional): The Claude API key
-        openai_api_key (str, optional): The OpenAI API key
-        llm_provider (str, optional): The LLM provider to use ('claude' or 'openai')
+        mcp_url (str, optional): The MCP service URL
         rate_limit_per_minute (int, optional): Rate limit for API calls
         
     Returns:
@@ -192,16 +113,16 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, o
         credentials = {
             'redmine_url': redmine_url,
             'redmine_api_key': redmine_api_key,
-            'llm_provider': llm_provider,
+            'llm_provider': 'claude-desktop',
             'rate_limit_per_minute': rate_limit_per_minute
         }
         
-        # Add API keys based on provided values
-        if claude_api_key:
-            credentials['claude_api_key'] = claude_api_key
-        
-        if openai_api_key:
-            credentials['openai_api_key'] = openai_api_key
+        # Add MCP URL if provided
+        if mcp_url:
+            credentials['mcp_url'] = mcp_url
+        else:
+            # Default to port 9000
+            credentials['mcp_url'] = 'http://localhost:9000'
         
         # Save to the file
         with open('credentials.yaml', 'w') as file:
@@ -213,12 +134,16 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, o
                 example = {
                     'redmine_url': 'https://redmine.example.com',
                     'redmine_api_key': 'your_redmine_api_key_here',
-                    'claude_api_key': 'your_claude_api_key_here',
-                    'openai_api_key': 'your_openai_api_key_here',
-                    'llm_provider': 'claude',  # or 'openai'
+                    'llm_provider': 'claude-desktop',
+                    'mcp_url': 'http://localhost:9000',
                     'rate_limit_per_minute': 60
                 }
                 yaml.dump(example, file, default_flow_style=False)
+        
+        # Reset the config to force reload in the config module
+        import config
+        if hasattr(config, '_config'):
+            config._config = None
         
         logger.info("Credentials file created successfully")
         return True, "Credentials file created successfully"

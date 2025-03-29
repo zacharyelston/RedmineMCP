@@ -19,10 +19,10 @@
                     <h5><i class="bi bi-check-circle"></i> Configuration Found</h5>
                     <p>The system is configured and ready to use.</p>
                     <ul class="list-unstyled">
-                        <li><strong>Redmine URL:</strong> {{ config.redmine_url }}</li>
+                        <li><strong>Redmine URL:</strong> {{ config.get('redmine_url', 'Not configured') }}</li>
                         <li><strong>API Keys:</strong> Configured</li>
-                        <li><strong>Rate Limit:</strong> {{ config.rate_limit_per_minute }} requests per minute</li>
-                        <li><strong>Last Updated:</strong> {{ config.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</li>
+                        <li><strong>Rate Limit:</strong> {{ config.get('rate_limit_per_minute', 60) }} requests per minute</li>
+                        <li><strong>Configuration:</strong> File-based (credentials.yaml)</li>
                     </ul>
                 </div>
                 {% else %}

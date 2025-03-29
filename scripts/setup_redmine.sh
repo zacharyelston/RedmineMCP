@@ -131,7 +131,7 @@ else
     echo "ℹ️ You can manually configure Redmine later when it becomes available."
 fi
 
-echo "✅ MCP Extension should be accessible at http://localhost:5000"
+echo "✅ MCP Extension should be accessible at http://localhost:9000"
 echo "⚠️ IMPORTANT: Please update your API keys in credentials.yaml"
 
 # Print status summary
@@ -145,7 +145,7 @@ else
 fi
 
 if docker ps | grep -q mcp-extension-local; then
-    echo "MCP Extension: ✅ Running at http://localhost:5000"
+    echo "MCP Extension: ✅ Running at http://localhost:9000"
 else
     echo "MCP Extension: ❌ Not running"
 fi

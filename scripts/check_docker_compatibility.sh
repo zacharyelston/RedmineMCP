@@ -105,7 +105,7 @@ if docker ps | grep -q mcp-extension-local; then
     
     # Test MCP Extension connectivity
     echo "ℹ️ Testing MCP Extension HTTP connection..."
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:5000; then
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:9000; then
         echo "✅ MCP Extension is accessible via HTTP."
     else
         echo "⚠️ MCP Extension is running but HTTP connection failed."

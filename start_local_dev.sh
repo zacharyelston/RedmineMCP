@@ -61,15 +61,14 @@ echo "📋 Development environment setup complete!"
 echo "
 🔗 Access points:
    - Redmine: http://localhost:3000 (default login: admin/admin)
-   - MCP Extension: http://localhost:5000
+   - MCP Extension: http://localhost:9000
 
 📝 Next steps:
    1. Add your LLM provider API key to credentials.yaml:
-      - For Claude: Add 'claude_api_key' and set 'llm_provider' to 'claude'
-      - For OpenAI: Add 'openai_api_key' and set 'llm_provider' to 'openai'
+      - Add 'claude_api_key' to credentials.yaml (Claude is the only supported LLM)
       (if using automated setup, Redmine API key is already set)
-   2. Start the MCP Extension: flask run --host=0.0.0.0 --port=5000
-   3. Or use the workflow: gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
+   2. Start the MCP Extension: flask run --host=0.0.0.0 --port=9000
+   3. Or use the workflow: gunicorn --bind 0.0.0.0:9000 --reuse-port --reload main:app
 
 📕 To view logs:
    - Redmine: docker logs redmine-local -f
@@ -77,9 +76,8 @@ echo "
 
 📡 Testing the APIs:
    - Redmine API: python scripts/test_redmine_api.py --verbose
-   - LLM APIs:
+   - LLM API:
      - Claude API: python scripts/test_claude_api.py --verbose
-     - OpenAI API: python scripts/test_openai_api.py --verbose
    - MCP Integration: python scripts/test_mcp_integration.py --project-id=test
 
 🛑 To stop services:

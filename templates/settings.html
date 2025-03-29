@@ -13,7 +13,7 @@
                         <label for="redmine_url" class="form-label">Redmine URL</label>
                         <input type="url" class="form-control" id="redmine_url" name="redmine_url" 
                                placeholder="https://redmine.example.com" 
-                               value="{{ config.redmine_url if config else '' }}" required>
+                               value="{{ config.get('redmine_url', '') if config else '' }}" required>
                         <div class="form-text">The base URL of your Redmine instance</div>
                     </div>
                     
@@ -21,7 +21,7 @@
                         <label for="redmine_api_key" class="form-label">Redmine API Key</label>
                         <div class="input-group">
                             <input type="password" class="form-control" id="redmine_api_key" name="redmine_api_key"
-                                   value="{{ config.redmine_api_key if config else '' }}" required>
+                                   value="{{ config.get('redmine_api_key', '') if config else '' }}" required>
                             <button class="btn btn-outline-secondary" type="button" onclick="toggleFieldVisibility('redmine_api_key')">
                                 <i class="bi bi-eye"></i>
                             </button>
@@ -30,21 +30,17 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="claude_api_key" class="form-label">Claude API Key</label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="claude_api_key" name="claude_api_key"
-                                   value="{{ config.claude_api_key if config else '' }}" required>
-                            <button class="btn btn-outline-secondary" type="button" onclick="toggleFieldVisibility('claude_api_key')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        <div class="form-text">Your Anthropic Claude API key</div>
+                        <label for="mcp_url" class="form-label">MCP URL</label>
+                        <input type="url" class="form-control" id="mcp_url" name="mcp_url" 
+                               placeholder="http://localhost:9000" 
+                               value="{{ config.get('mcp_url', 'http://localhost:9000') if config else 'http://localhost:9000' }}" required>
+                        <div class="form-text">The URL of the MCP service (defaults to localhost:9000)</div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="rate_limit" class="form-label">Rate Limit (per minute)</label>
                         <input type="number" class="form-control" id="rate_limit" name="rate_limit" 
-                               min="1" max="1000" value="{{ config.rate_limit_per_minute if config else 60 }}" required>
+                               min="1" max="1000" value="{{ config.get('rate_limit_per_minute', 60) if config else 60 }}" required>
                         <div class="form-text">Maximum number of API calls allowed per minute</div>
                     </div>
                     

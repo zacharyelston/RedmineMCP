@@ -56,7 +56,7 @@ services:
     depends_on:
       - redmine
     ports:
-      - "5000:5000"
+      - "9000:9000"
     environment:
       - REDMINE_URL=http://redmine:3000
       - REDMINE_API_KEY=automaticallyconfigured
@@ -67,7 +67,7 @@ services:
       - DATABASE_URL=sqlite:///mcp_extension.db
     volumes:
       - .:/app
-    command: gunicorn --bind 0.0.0.0:5000 --reload main:app
+    command: gunicorn --bind 0.0.0.0:9000 --reload main:app
 
 volumes:
   redmine-db:
@@ -83,12 +83,11 @@ if [ ! -f .env ]; then
 # Environment variables for the Redmine MCP Extension
 # Fill in your API keys below (leave empty if not used)
 
-# LLM Provider - 'claude' or 'openai'
+# LLM Provider - only 'claude' is supported
 LLM_PROVIDER=claude
 
-# API Keys for LLM providers
+# API Key for Claude
 CLAUDE_API_KEY=
-OPENAI_API_KEY=
 
 # Redmine configuration is handled automatically by the Docker setup
 EOF
@@ -133,7 +132,7 @@ fi
 echo "✅ Development environment is running!"
 echo "📋 Access points:"
 echo "   - Redmine: http://localhost:3000 (admin/admin)"
-echo "   - MCP Extension: http://localhost:5000"
+echo "   - MCP Extension: http://localhost:9000"
 echo ""
 echo "📦 To view logs: docker-compose -f docker-compose.dev.yml logs -f"
 echo "🛑 To stop: docker-compose -f docker-compose.dev.yml down"

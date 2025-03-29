@@ -1,9 +1,48 @@
 """
 Database models for the Redmine MCP Extension.
+This module is deprecated - configuration is now file-based.
+Kept for reference only.
 """
 
 from datetime import datetime, timedelta
-from app import db
+
+# This is a stub to prevent import errors
+# The actual database is no longer used
+class DBStub:
+    class Column:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class Model:
+        pass
+    
+    class Integer:
+        pass
+    
+    class String:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class Text:
+        pass
+    
+    class DateTime:
+        pass
+    
+    class Boolean:
+        pass
+    
+    def __init__(self):
+        self.session = self
+        
+    def add(self, *args, **kwargs):
+        pass
+        
+    def commit(self, *args, **kwargs):
+        pass
+
+# Create a stub DB object for compatibility
+db = DBStub()
 
 class Config(db.Model):
     """
@@ -12,9 +51,9 @@ class Config(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     redmine_url = db.Column(db.String(256), nullable=False)
     redmine_api_key = db.Column(db.String(256), nullable=False)
-    claude_api_key = db.Column(db.String(256), nullable=True)
-    openai_api_key = db.Column(db.String(256), nullable=True)
-    llm_provider = db.Column(db.String(64), default='claude', nullable=False)  # 'claude' or 'openai'
+    mcp_url = db.Column(db.String(256), nullable=True)  # Optional MCP service URL
+    claude_api_key = db.Column(db.String(256), nullable=True)  # Kept for backward compatibility but not used
+    llm_provider = db.Column(db.String(64), default='claude-desktop', nullable=False)  # Now using 'claude-desktop'
     rate_limit_per_minute = db.Column(db.Integer, default=60)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -57,7 +96,7 @@ class RateLimitTracker(db.Model):
     Tracks API calls for rate limiting purposes
     """
     id = db.Column(db.Integer, primary_key=True)
-    api_name = db.Column(db.String(64), nullable=False)  # 'redmine', 'claude', or 'openai'
+    api_name = db.Column(db.String(64), nullable=False)  # 'redmine' or 'claude'
     count = db.Column(db.Integer, default=0)
     reset_at = db.Column(db.DateTime, nullable=False)  # When the counter resets
 

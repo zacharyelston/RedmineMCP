@@ -5,7 +5,7 @@ channel = "stable-24_05"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+run = ["gunicorn", "--bind", "0.0.0.0:9000", "main:app"]
 
 [workflows]
 runButton = "Project"
@@ -31,9 +31,13 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
-waitForPort = 5000
+args = "gunicorn --bind 0.0.0.0:9000 --reuse-port --reload main:app"
+waitForPort = 9000
 
 [[ports]]
-localPort = 5000
+localPort = 9000
 externalPort = 80
+
+[[ports]]
+localPort = 9000
+externalPort = 3000

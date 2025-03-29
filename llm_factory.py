@@ -5,33 +5,28 @@ This module provides factory functions to create the appropriate LLM API client.
 
 import logging
 from llm_api import LLMAPI
-from openai_api import OpenAIAPI
+from config import get_config
 
 logger = logging.getLogger(__name__)
 
-def create_llm_client(config):
+def create_llm_client():
     """
-    Create the appropriate LLM client based on the configuration
+    Create the LLM client for ClaudeDesktop MCP connection using file-based configuration
     
-    Args:
-        config (models.Config): The application configuration
-        
     Returns:
-        object: An instance of the appropriate LLM API client
+        object: An instance of the LLM API client
     """
-    provider = config.llm_provider.lower()
+    # Get configuration from file
+    config = get_config()
+    llm_provider = config.get('llm_provider', 'claude-desktop')
     
-    if provider == 'claude':
-        if not config.claude_api_key:
-            raise ValueError("Claude API key is not configured")
-        logger.info("Using Claude as the LLM provider")
-        return LLMAPI(config.claude_api_key)
-    
-    elif provider == 'openai':
-        if not config.openai_api_key:
-            raise ValueError("OpenAI API key is not configured")
-        logger.info("Using OpenAI as the LLM provider")
-        return OpenAIAPI(config.openai_api_key)
-    
+    if not llm_provider or llm_provider == 'claude-desktop':
+        logger.info("Using ClaudeDesktop via MCP connection as the LLM provider")
+        # MCP URL can be customized based on config
+        mcp_url = config.get('mcp_url')
+        
+        return LLMAPI(mcp_url=mcp_url)
     else:
-        raise ValueError(f"Unknown LLM provider: {provider}")
+        # If we get here, it means the user has selected an unsupported LLM provider
+        logger.error(f"Unsupported LLM provider: {llm_provider}")
+        raise ValueError(f"Unsupported LLM provider: {llm_provider}. Currently only 'claude-desktop' is supported.")

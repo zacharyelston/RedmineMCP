@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Default MCP endpoint
-DEFAULT_MCP_URL = "http://localhost:5000"
+DEFAULT_MCP_URL = "http://localhost:9000"
 
 def parse_args():
     """Parse command-line arguments"""

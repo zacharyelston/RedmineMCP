@@ -19,7 +19,7 @@ command -v docker >/dev/null 2>&1 || {
 }
 
 # Check if the MCP extension is running
-curl -s http://localhost:5000 >/dev/null 2>&1 || {
+curl -s http://localhost:9000 >/dev/null 2>&1 || {
     echo "❌ MCP extension is not running. Please start it first."
     exit 1
 }

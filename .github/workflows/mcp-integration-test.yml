@@ -100,10 +100,7 @@ jobs:
         claude:
           api_key: ${CLAUDE_API_KEY:-ci_test_claude_api_key}
         
-        openai:
-          api_key: ${OPENAI_API_KEY:-ci_test_openai_api_key}
-        
-        llm_provider: ${LLM_PROVIDER:-claude}
+        llm_provider: claude
         
         rate_limit: 100
         EOF
@@ -113,11 +110,11 @@ jobs:
         export FLASK_APP=main.py
         export FLASK_ENV=testing
         export FLASK_DEBUG=1
-        nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
+        nohup flask run --host=0.0.0.0 --port=9000 > flask.log 2>&1 &
         sleep 5  # Give the app time to start
         
         # Check if the app is running
-        if curl --output /dev/null --silent --head --fail http://localhost:5000; then
+        if curl --output /dev/null --silent --head --fail http://localhost:9000; then
           echo "Flask app is running."
         else
           echo "::error::Flask app failed to start"
@@ -127,11 +124,11 @@ jobs:
         
     - name: Run MCP integration test
       run: |
-        if [ -z "$CLAUDE_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
-          echo "::warning::No API keys are set. Running in mock mode."
-          python scripts/test_mcp.py --base-url=http://localhost:5000 --all --mock --verbose
+        if [ -z "$CLAUDE_API_KEY" ]; then
+          echo "::warning::No Claude API key is set. Running in mock mode."
+          python scripts/test_mcp.py --base-url=http://localhost:9000 --all --mock --verbose
         else
-          python scripts/test_mcp.py --base-url=http://localhost:5000 --all --verbose
+          python scripts/test_mcp.py --base-url=http://localhost:9000 --all --verbose
         fi
         
     - name: Upload app logs

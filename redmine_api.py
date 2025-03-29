@@ -1,14 +1,34 @@
 """
 Redmine API integration for Redmine Extension.
 This module implements the integration with the Redmine REST API.
+Uses file-based configuration instead of database.
 """
 
 import json
 import logging
 import requests
 from urllib.parse import urljoin
+from config import get_config
 
 logger = logging.getLogger(__name__)
+
+def create_redmine_client():
+    """
+    Create a Redmine API client using file-based configuration
+    
+    Returns:
+        RedmineAPI: An instance of the Redmine API client
+    """
+    # Get configuration from file
+    config = get_config()
+    redmine_url = config.get('redmine_url')
+    redmine_api_key = config.get('redmine_api_key')
+    
+    if not redmine_url or not redmine_api_key:
+        logger.error("Redmine URL or API key not found in configuration")
+        raise ValueError("Missing Redmine configuration. Please check credentials.yaml")
+    
+    return RedmineAPI(redmine_url, redmine_api_key)
 
 class RedmineAPI:
     """
