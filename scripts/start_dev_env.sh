@@ -3,7 +3,7 @@
 
 # Default configuration
 USE_DOCKER=false
-PORT=5000
+PORT=9000
 REDMINE_URL="http://localhost:3000"
 DEBUG=true
 
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "Options:"
       echo "  --docker              Use Docker containers (requires Docker and docker-compose)"
-      echo "  --port PORT           Port to run the application on (default: 5000)"
+      echo "  --port PORT           Port to run the application on (default: 9000)"
       echo "  --redmine-url URL     URL of the Redmine instance (default: http://localhost:3000)"
       echo "  --no-debug            Disable Flask debug mode"
       echo "  --help                Show this help message"
@@ -109,7 +109,7 @@ if $USE_DOCKER; then
     docker-compose up -d
     echo "✅ Docker containers started"
     echo "- Redmine: http://localhost:3000 (admin/admin)"
-    echo "- MCP Extension: http://localhost:5000"
+    echo "- MCP Extension: http://localhost:9000"
   else
     echo "❌ Error: Docker setup scripts not found"
     exit 1

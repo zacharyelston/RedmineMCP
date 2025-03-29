@@ -4,7 +4,7 @@ Unified MCP testing script for Redmine MCP Extension.
 Tests the MCP endpoints and integration.
 
 Usage:
-    python scripts/test_mcp.py --base-url=http://localhost:5000 [options]
+    python scripts/test_mcp.py --base-url=http://localhost:9000 [options]
     
 Options:
     --capabilities - Test capabilities endpoint
@@ -28,8 +28,8 @@ def parse_args():
     """Parse command-line arguments"""
     parser = argparse.ArgumentParser(description="Test MCP integration for Redmine MCP Extension")
     
-    parser.add_argument("--base-url", default="http://localhost:5000",
-                      help="Base URL of the MCP extension (default: http://localhost:5000)")
+    parser.add_argument("--base-url", default="http://localhost:9000",
+                      help="Base URL of the MCP extension (default: http://localhost:9000)")
     parser.add_argument("--capabilities", action="store_true",
                       help="Test capabilities endpoint")
     parser.add_argument("--health", action="store_true", 

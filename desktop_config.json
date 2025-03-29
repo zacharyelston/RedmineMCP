@@ -33,12 +33,12 @@
         "FLASK_DEBUG": "1"
       },
       "waitFor": {
-        "url": "http://localhost:5000",
+        "url": "http://localhost:9000",
         "timeoutSeconds": 30,
         "message": "Waiting for MCP Extension to start..."
       },
       "description": "Model Context Protocol Extension for Redmine",
-      "documentation": "Access URL: http://localhost:5000\nMake sure to update credentials.yaml with your API keys."
+      "documentation": "Access URL: http://localhost:9000\nMake sure to update credentials.yaml with your API keys."
     }
   },
   "mcp": {

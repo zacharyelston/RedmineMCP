@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir pip --upgrade && \
 COPY . /app/
 
 # Expose the Flask port
-EXPOSE 5001
+EXPOSE 9000
 
 # Start the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--reuse-port", "--reload", "main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:9000", "--reuse-port", "--reload", "main:app"]

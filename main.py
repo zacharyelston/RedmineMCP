@@ -27,5 +27,5 @@ with app.app_context():
     logger.info("MCP integration registered")
 
 if __name__ == "__main__":
-    logger.info("Starting Redmine MCP Extension on port 5001")
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    logger.info("Starting Redmine MCP Extension on port 9000")
+    app.run(host="0.0.0.0", port=9000, debug=True)

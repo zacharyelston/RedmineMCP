@@ -7,7 +7,7 @@ echo "=== Testing Redmine MCP Extension Integration ==="
 echo ""
 
 # First check if the extension is running
-MCP_URL="http://localhost:5000"
+MCP_URL="http://localhost:9000"
 echo "Testing MCP extension availability at $MCP_URL..."
 
 if curl -s --head --fail "$MCP_URL" > /dev/null; then

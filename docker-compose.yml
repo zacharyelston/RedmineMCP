@@ -51,7 +51,7 @@ services:
       # REDMINE_URL: http://redmine:3000
       # REDMINE_API_KEY: will be auto-set
     ports:
-      - "5001:5001"
+      - "9000:9000"
     volumes:
       - .:/app
     networks:

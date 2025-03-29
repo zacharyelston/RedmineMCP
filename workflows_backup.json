@@ -1,15 +1,15 @@
 {
   "workflows": [
     {
-      "name": "Start application on port 5001",
+      "name": "Start application on port 9000",
       "tasks": [
         {
           "task": "packager.installForAll"
         },
         {
           "task": "shell.exec",
-          "args": "gunicorn --bind 0.0.0.0:5001 --reuse-port --reload main:app",
-          "waitForPort": 5001
+          "args": "gunicorn --bind 0.0.0.0:9000 --reuse-port --reload main:app",
+          "waitForPort": 9000
         }
       ]
     }

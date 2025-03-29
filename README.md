@@ -62,7 +62,7 @@ This option provides a simple setup for local development with minimal configura
 
 The setup includes:
 - A Redmine instance at http://localhost:3000 (default login: admin/admin)
-- The MCP extension at http://localhost:5000
+- The MCP extension at http://localhost:9000
 - SQLite database for Redmine (for simplicity)
 - Automatic file volumes for persistent storage
 - Pre-configured API key that works out of the box
@@ -92,7 +92,7 @@ This option sets up both Redmine and the MCP extension in Docker containers, pro
 
 The setup includes:
 - A Redmine instance at http://localhost:3000 (admin/admin)
-- The MCP extension at http://localhost:5000
+- The MCP extension at http://localhost:9000
 - Automatic configuration of Redmine API access
 - A sample project for testing
 - PostgreSQL database for Redmine (for production-like environment)
@@ -124,7 +124,7 @@ For standalone development without Docker (requires an existing Redmine instance
    python main.py
    ```
 
-6. Access the web interface at `http://localhost:5000`
+6. Access the web interface at `http://localhost:9000`
 
 ## MCP Integration
 
@@ -165,7 +165,7 @@ payload = {
     "prompt": "Create a bug report for a login page issue where users are experiencing 404 errors after submitting login credentials on the production environment"
 }
 
-response = requests.post("http://localhost:5000/api/llm/create_issue", json=payload)
+response = requests.post("http://localhost:9000/api/llm/create_issue", json=payload)
 print(response.json())
 ```
 
@@ -178,7 +178,7 @@ payload = {
     "prompt": "Change the priority to high and add more information about the browser versions affected"
 }
 
-response = requests.post("http://localhost:5000/api/llm/update_issue/123", json=payload)
+response = requests.post("http://localhost:9000/api/llm/update_issue/123", json=payload)
 print(response.json())
 ```
 
@@ -187,7 +187,7 @@ print(response.json())
 ```python
 import requests
 
-response = requests.post("http://localhost:5000/api/llm/analyze_issue/123", json={})
+response = requests.post("http://localhost:9000/api/llm/analyze_issue/123", json={})
 print(response.json())
 ```
 
@@ -311,7 +311,7 @@ The MCP extension is designed to be resilient to common failure scenarios, inclu
 
 4. **Health Endpoint**: The `/api/health` endpoint provides detailed status information about all services:
    ```bash
-   curl http://localhost:5000/api/health | jq
+   curl http://localhost:9000/api/health | jq
    ```
    
    The health endpoint will show different statuses for Redmine availability:

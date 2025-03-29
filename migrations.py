@@ -39,7 +39,7 @@ def migrate_config_table():
             logger.info("Updated llm_provider value to claude-desktop")
             
             # The MCP port is now fully configurable and should not be enforced
-            # We no longer migrate from port 5001 to 5000 as different environments may need different ports
+            # We no longer migrate from port 9000 to 9000 as different environments may need different ports
             logger.info("MCP URL port is fully configurable - no port migration needed")
             
             return True, "Database migrations completed successfully"
