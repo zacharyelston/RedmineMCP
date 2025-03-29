@@ -1,7 +1,7 @@
 {
   "workflows": [
     {
-      "name": "Start application",
+      "name": "Start application on port 5001",
       "tasks": [
         {
           "task": "packager.installForAll"

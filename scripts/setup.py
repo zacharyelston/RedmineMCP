@@ -2,7 +2,7 @@
 """
 Unified setup script for the Redmine MCP Extension.
 Handles:
-- Setting up credentials (Redmine, Claude)
+- Setting up credentials (Redmine, MCP URL)
 - Configuring development environments (local, Docker)
 - Validating configurations
 
@@ -32,10 +32,10 @@ def parse_args():
                            help="Redmine instance URL")
     creds_parser.add_argument("--redmine-api-key", default="YOUR_REDMINE_API_KEY",
                            help="Redmine API key")
-    creds_parser.add_argument("--claude-api-key", default="YOUR_CLAUDE_API_KEY",
-                           help="Anthropic Claude API key")
-    creds_parser.add_argument("--llm-provider", default="claude", choices=["claude"],
-                           help="Default LLM provider to use")
+    creds_parser.add_argument("--mcp-url", default="http://localhost:5000",
+                           help="Claude Desktop MCP service URL")
+    creds_parser.add_argument("--llm-provider", default="claude-desktop", choices=["claude-desktop"],
+                           help="Default LLM provider to use (only claude-desktop is supported)")
     creds_parser.add_argument("--rate-limit", type=int, default=60,
                            help="API rate limit per minute")
     creds_parser.add_argument("--force", "-f", action="store_true",
@@ -80,12 +80,15 @@ def setup_credentials(args):
     if redmine_url.endswith("/"):
         redmine_url = redmine_url[:-1]
     
+    # Set MCP URL with default localhost:5000 if not provided
+    mcp_url = getattr(args, 'mcp_url', 'http://localhost:5000')
+    
     # Create credentials.yaml file
     credentials = {
         "redmine_url": redmine_url,
         "redmine_api_key": args.redmine_api_key,
-        "claude_api_key": args.claude_api_key,
-        "llm_provider": args.llm_provider,
+        "llm_provider": "claude-desktop",  # We only support claude-desktop now
+        "mcp_url": mcp_url,
         "rate_limit_per_minute": args.rate_limit
     }
     
@@ -97,7 +100,6 @@ def setup_credentials(args):
     if not os.path.exists("credentials.yaml.example"):
         example_creds = credentials.copy()
         example_creds["redmine_api_key"] = "your_redmine_api_key_here"
-        example_creds["claude_api_key"] = "your_claude_api_key_here"
         
         with open("credentials.yaml.example", "w") as f:
             yaml.dump(example_creds, f, default_flow_style=False)
@@ -110,11 +112,11 @@ def setup_credentials(args):
 
 ✨ Next steps:
    1. Make sure Redmine is running at {}
-   2. Add your actual API keys to credentials.yaml:
+   2. Add your actual API key to credentials.yaml:
       - Redmine API key: Get from Redmine > My account > API access key
-      - Claude API key: Get from Anthropic dashboard
-   3. Start the application with: flask run --host=0.0.0.0 --port=5000
-""".format(redmine_url))
+   3. Make sure Claude Desktop with MCP is running at {}
+   4. Start the application with: flask run --host=0.0.0.0 --port=5000
+""".format(redmine_url, mcp_url))
 
 def validate_config():
     """Validate configuration file"""
@@ -138,24 +140,22 @@ def validate_config():
                 print(f"❌ Missing required field: {field}")
                 return False
             
-        # Check that Claude API key is provided
-        if "claude_api_key" not in credentials or credentials["claude_api_key"] == "your_claude_api_key_here":
-            print("❌ Claude API key must be provided")
-            return False
-            
         # Check Redmine URL format
         if not credentials["redmine_url"].startswith(("http://", "https://")):
             print("❌ Invalid Redmine URL format. Must start with http:// or https://")
             return False
             
-        # Check if Claude API key is available since it's the only supported provider
-        llm_provider = credentials.get("llm_provider", "claude")
-        if llm_provider != "claude":
-            print("❌ Only Claude is supported as LLM provider")
+        # Check LLM provider is claude-desktop
+        llm_provider = credentials.get("llm_provider", "claude-desktop")
+        if llm_provider != "claude-desktop":
+            print("❌ Only 'claude-desktop' is supported as LLM provider")
             return False
             
-        if "claude_api_key" not in credentials or credentials["claude_api_key"] == "your_claude_api_key_here":
-            print("❌ Claude API key must be provided")
+        # Check if MCP URL is present
+        if "mcp_url" not in credentials:
+            print("⚠️ MCP URL not specified, will use default: http://localhost:5000")
+        elif not credentials["mcp_url"].startswith(("http://", "https://")):
+            print("❌ Invalid MCP URL format. Must start with http:// or https://")
             return False
         
         print("✅ Configuration validated successfully")
@@ -193,8 +193,8 @@ def setup_dev_environment():
             creds_args = argparse.Namespace(
                 redmine_url="http://localhost:3000",
                 redmine_api_key="YOUR_REDMINE_API_KEY",
-                claude_api_key="YOUR_CLAUDE_API_KEY",
-                llm_provider="claude",
+                mcp_url="http://localhost:5000",
+                llm_provider="claude-desktop",
                 rate_limit=60,
                 force=False
             )
@@ -243,8 +243,8 @@ def setup_docker_environment(build=False):
             creds_args = argparse.Namespace(
                 redmine_url="http://redmine:3000",  # Use Docker service name
                 redmine_api_key="YOUR_REDMINE_API_KEY",
-                claude_api_key="YOUR_CLAUDE_API_KEY",
-                llm_provider="claude",
+                mcp_url="http://localhost:5000",  # MCP typically runs on host, not in Docker
+                llm_provider="claude-desktop",
                 rate_limit=60,
                 force=False
             )

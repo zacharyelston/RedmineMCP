@@ -38,6 +38,29 @@ def migrate_config_table():
             db.session.commit()
             logger.info("Updated llm_provider value to claude-desktop")
             
+            # Update MCP URL to match the actual port (5000) if it's currently set to 5001
+            try:
+                # First, check if the current value contains port 5001
+                result = db.session.execute(text("SELECT id, mcp_url FROM config WHERE mcp_url LIKE '%:5001%'"))
+                rows = result.fetchall()
+                
+                for row in rows:
+                    config_id, current_url = row
+                    # Replace the port manually
+                    new_url = current_url.replace(':5001', ':5000')
+                    # Update with the new URL
+                    db.session.execute(
+                        text("UPDATE config SET mcp_url = :new_url WHERE id = :id"),
+                        {"new_url": new_url, "id": config_id}
+                    )
+                
+                if rows:
+                    db.session.commit()
+                    logger.info(f"Updated {len(rows)} MCP URLs to use port 5000 instead of 5001")
+            except Exception as e:
+                logger.error(f"Error updating MCP URL: {str(e)}")
+                # Continue with other migrations
+            
             return True, "Database migrations completed successfully"
         except Exception as e:
             logger.error(f"Error during migrations: {str(e)}")

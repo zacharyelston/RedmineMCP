@@ -89,7 +89,18 @@ def update_config_from_credentials():
         # Get required fields
         redmine_url = credentials.get('redmine_url')
         redmine_api_key = credentials.get('redmine_api_key')
+        
+        # Get MCP URL and fix port if needed
         mcp_url = credentials.get('mcp_url')
+        if mcp_url and ':5001' in mcp_url:
+            mcp_url = mcp_url.replace(':5001', ':5000')
+            logger.info(f"Corrected MCP URL port from 5001 to 5000: {mcp_url}")
+            
+        # If MCP URL is missing, set a default with the correct port
+        if not mcp_url:
+            mcp_url = 'http://localhost:5000'
+            logger.info(f"Using default MCP URL: {mcp_url}")
+            
         claude_api_key = credentials.get('claude_api_key')  # Kept for backward compatibility
         llm_provider = credentials.get('llm_provider', 'claude-desktop')
         rate_limit = credentials.get('rate_limit_per_minute', 60)
@@ -197,9 +208,14 @@ def create_credentials_file(redmine_url, redmine_api_key, mcp_url=None,
         
         # Add MCP URL if provided
         if mcp_url:
+            # Ensure we're using port 5000 not 5001
+            if ':5001' in mcp_url:
+                mcp_url = mcp_url.replace(':5001', ':5000')
+                logger.info(f"Corrected MCP URL port from 5001 to 5000: {mcp_url}")
             credentials['mcp_url'] = mcp_url
         else:
-            credentials['mcp_url'] = 'http://localhost:5001/api'
+            # Default to port 5000
+            credentials['mcp_url'] = 'http://localhost:5000'
         
         # Save to the file
         with open('credentials.yaml', 'w') as file:
@@ -212,7 +228,7 @@ def create_credentials_file(redmine_url, redmine_api_key, mcp_url=None,
                     'redmine_url': 'https://redmine.example.com',
                     'redmine_api_key': 'your_redmine_api_key_here',
                     'llm_provider': 'claude-desktop',
-                    'mcp_url': 'http://localhost:5001/api',
+                    'mcp_url': 'http://localhost:5000',
                     'rate_limit_per_minute': 60
                 }
                 yaml.dump(example, file, default_flow_style=False)

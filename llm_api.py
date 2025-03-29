@@ -23,7 +23,10 @@ class LLMAPI:
         Args:
             mcp_url (str, optional): The MCP service URL (defaults to localhost:5000)
         """
-        self.mcp_url = mcp_url or "http://localhost:5000/api"
+        base_url = mcp_url or "http://localhost:5000"
+        # Ensure the base URL doesn't end with a slash
+        base_url = base_url.rstrip('/')
+        self.mcp_url = base_url
         logger.debug(f"Claude MCP client initialized with URL: {self.mcp_url}")
     
     def _make_request(self, messages, system_prompt=None, max_tokens=1000):
@@ -48,10 +51,32 @@ class LLMAPI:
         
         try:
             # Use a local endpoint that forwards to ClaudeDesktop via MCP
-            response = requests.post(
-                f"{self.mcp_url}/generate",
-                json=data
-            )
+            # For MCP service, the endpoint should be '/api/generate' but some implementations may use just '/generate'
+            # Try first with the standard MCP endpoint structure
+            try:
+                endpoint = "/api/generate"
+                response = requests.post(
+                    f"{self.mcp_url}{endpoint}",
+                    json=data,
+                    timeout=10
+                )
+                if response.status_code == 404:
+                    # Try fallback to the non-standard endpoint structure
+                    endpoint = "/generate"
+                    response = requests.post(
+                        f"{self.mcp_url}{endpoint}",
+                        json=data,
+                        timeout=10
+                    )
+            except requests.exceptions.RequestException as e:
+                # If the first attempt fails, try the alternative endpoint structure
+                logger.warning(f"First attempt failed with {str(e)}, trying alternative endpoint")
+                endpoint = "/generate"
+                response = requests.post(
+                    f"{self.mcp_url}{endpoint}",
+                    json=data,
+                    timeout=10
+                )
             
             if response.status_code != 200:
                 logger.error(f"MCP error: {response.status_code} - {response.text}")
@@ -60,6 +85,12 @@ class LLMAPI:
             result = response.json()
             return result["content"]
         
+        except requests.exceptions.ReadTimeout:
+            logger.error("Timeout connecting to Claude MCP service - confirm MCP service is running")
+            raise Exception("Failed to communicate with Claude MCP service: Connection timed out. Please ensure the Claude Desktop application is running and the MCP service is active.")
+        except requests.exceptions.ConnectionError:
+            logger.error("Connection error to Claude MCP service - confirm MCP service is running on the configured port")
+            raise Exception("Failed to communicate with Claude MCP service: Connection refused. Please ensure the Claude Desktop application is running and accessible at the configured URL.")
         except Exception as e:
             logger.error(f"Error making MCP request: {str(e)}")
             raise Exception(f"Failed to communicate with Claude via MCP: {str(e)}")
