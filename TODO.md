@@ -21,6 +21,7 @@ This document outlines planned enhancements and features for the Redmine Model C
   - [x] Add detailed error reporting for API connection issues
   - [x] Create visual indicators for connection status
   - [ ] Create comprehensive automated test script for validating Redmine API functionality
+  - [ ] Fix tracker configuration in Redmine API testing (#19)
 
 - [ ] **Improved Error Handling**
   - Add more detailed error messages
