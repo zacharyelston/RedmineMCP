@@ -10,6 +10,7 @@ on:
       - 'docker-compose.yml'
       - 'docker-compose.local.yml'
       - 'scripts/validate_configs.py'
+      - 'scripts/setup.py'
       - '.github/workflows/validate-configs.yml'
   pull_request:
     branches: [ main, develop ]
@@ -20,6 +21,7 @@ on:
       - 'docker-compose.yml'
       - 'docker-compose.local.yml'
       - 'scripts/validate_configs.py'
+      - 'scripts/setup.py'
       - '.github/workflows/validate-configs.yml'
   workflow_dispatch:
 
@@ -43,7 +45,11 @@ jobs:
         
     - name: Run configuration validator
       run: |
+        # Run the legacy validator
         python scripts/validate_configs.py
+        
+        # Run the new validator
+        python scripts/setup.py validate
         
     - name: Check GitHub Actions workflows
       run: |

@@ -5,13 +5,13 @@ on:
     branches: [ main, develop ]
     paths:
       - 'llm_api.py'
-      - 'scripts/test_claude_api.py'
+      - 'scripts/test_api.py'
       - '.github/workflows/claude-api-test.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - 'llm_api.py'
-      - 'scripts/test_claude_api.py'
+      - 'scripts/test_api.py'
       - '.github/workflows/claude-api-test.yml'
   workflow_dispatch:
     inputs:
@@ -66,9 +66,9 @@ jobs:
       run: |
         if [ -z "$CLAUDE_API_KEY" ]; then
           echo "::warning::CLAUDE_API_KEY is not set. Using mock mode for testing."
-          python scripts/test_claude_api.py --mock
+          python scripts/test_api.py claude --mock
         else
-          python scripts/test_claude_api.py --verbose
+          python scripts/test_api.py claude --verbose
         fi
         
     - name: Upload test artifacts

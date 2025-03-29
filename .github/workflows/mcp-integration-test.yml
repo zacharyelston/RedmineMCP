@@ -7,7 +7,7 @@ on:
       - 'mcp.py'
       - 'llm_api.py'
       - 'redmine_api.py'
-      - 'scripts/test_mcp_integration.py'
+      - 'scripts/test_mcp.py'
       - '.github/workflows/mcp-integration-test.yml'
   pull_request:
     branches: [ main, develop ]
@@ -15,7 +15,7 @@ on:
       - 'mcp.py'
       - 'llm_api.py'
       - 'redmine_api.py'
-      - 'scripts/test_mcp_integration.py'
+      - 'scripts/test_mcp.py'
       - '.github/workflows/mcp-integration-test.yml'
   workflow_dispatch:
     inputs:
@@ -31,6 +31,7 @@ jobs:
     
     env:
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     
     services:
       redmine:
@@ -99,6 +100,11 @@ jobs:
         claude:
           api_key: ${CLAUDE_API_KEY:-ci_test_claude_api_key}
         
+        openai:
+          api_key: ${OPENAI_API_KEY:-ci_test_openai_api_key}
+        
+        llm_provider: ${LLM_PROVIDER:-claude}
+        
         rate_limit: 100
         EOF
         
@@ -121,11 +127,11 @@ jobs:
         
     - name: Run MCP integration test
       run: |
-        if [ -z "$CLAUDE_API_KEY" ]; then
-          echo "::warning::CLAUDE_API_KEY is not set. Running in mock mode."
-          python scripts/test_mcp_integration.py --mock --verbose
+        if [ -z "$CLAUDE_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
+          echo "::warning::No API keys are set. Running in mock mode."
+          python scripts/test_mcp.py --base-url=http://localhost:5000 --all --mock --verbose
         else
-          python scripts/test_mcp_integration.py --verbose
+          python scripts/test_mcp.py --base-url=http://localhost:5000 --all --verbose
         fi
         
     - name: Upload app logs

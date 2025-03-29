@@ -5,16 +5,14 @@ on:
     branches: [ main, develop ]
     paths:
       - 'redmine_api.py'
-      - 'scripts/test_redmine_api.py'
-      - 'scripts/test_redmine_api.sh'
+      - 'scripts/test_api.py'
       - 'scripts/setup_redmine_ci.sh'
       - '.github/workflows/redmine-api-test.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - 'redmine_api.py'
-      - 'scripts/test_redmine_api.py'
-      - 'scripts/test_redmine_api.sh'
+      - 'scripts/test_api.py'
       - 'scripts/setup_redmine_ci.sh'
       - '.github/workflows/redmine-api-test.yml'
   workflow_dispatch:
@@ -99,19 +97,9 @@ jobs:
         rate_limit: 100
         EOF
         
-    - name: Run Redmine API test (Python)
+    - name: Run Redmine API test
       run: |
-        python scripts/test_redmine_api.py --mock --verbose
-      
-    - name: Run Redmine API test (Shell)
-      if: always()
-      run: |
-        # Make the script executable
-        chmod +x scripts/test_redmine_api.sh
-        
-        # Run in mock mode since we can't set up API key in test container
-        echo "Running shell-based test in mock mode..."
-        REDMINE_API_KEY=ci_test_api_key scripts/test_redmine_api.sh --verbose || true
+        python scripts/test_api.py redmine --verbose --mock
         
     - name: Upload test artifacts
       if: always()
