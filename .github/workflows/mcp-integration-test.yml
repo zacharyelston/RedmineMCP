@@ -100,10 +100,7 @@ jobs:
         claude:
           api_key: ${CLAUDE_API_KEY:-ci_test_claude_api_key}
         
-        openai:
-          api_key: ${OPENAI_API_KEY:-ci_test_openai_api_key}
-        
-        llm_provider: ${LLM_PROVIDER:-claude}
+        llm_provider: claude
         
         rate_limit: 100
         EOF
@@ -127,8 +124,8 @@ jobs:
         
     - name: Run MCP integration test
       run: |
-        if [ -z "$CLAUDE_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
-          echo "::warning::No API keys are set. Running in mock mode."
+        if [ -z "$CLAUDE_API_KEY" ]; then
+          echo "::warning::No Claude API key is set. Running in mock mode."
           python scripts/test_mcp.py --base-url=http://localhost:5000 --all --mock --verbose
         else
           python scripts/test_mcp.py --base-url=http://localhost:5000 --all --verbose

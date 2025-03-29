@@ -15,7 +15,6 @@ setup(
         "llm_api",
         "llm_factory",
         "redmine_api",
-        "openai_api",
         "utils",
     ],
     python_requires=">=3.9",

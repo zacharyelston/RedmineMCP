@@ -83,12 +83,11 @@ if [ ! -f .env ]; then
 # Environment variables for the Redmine MCP Extension
 # Fill in your API keys below (leave empty if not used)
 
-# LLM Provider - 'claude' or 'openai'
+# LLM Provider - only 'claude' is supported
 LLM_PROVIDER=claude
 
-# API Keys for LLM providers
+# API Key for Claude
 CLAUDE_API_KEY=
-OPENAI_API_KEY=
 
 # Redmine configuration is handled automatically by the Docker setup
 EOF

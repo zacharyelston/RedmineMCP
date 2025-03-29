@@ -33,8 +33,7 @@ def settings():
         redmine_url = request.form.get('redmine_url')
         redmine_api_key = request.form.get('redmine_api_key')
         claude_api_key = request.form.get('claude_api_key')
-        openai_api_key = request.form.get('openai_api_key')
-        llm_provider = request.form.get('llm_provider', 'claude')
+        llm_provider = 'claude'  # Only Claude is supported
         rate_limit = int(request.form.get('rate_limit', 60))
         
         # Create or update config
@@ -42,7 +41,6 @@ def settings():
             config.redmine_url = redmine_url
             config.redmine_api_key = redmine_api_key
             config.claude_api_key = claude_api_key
-            config.openai_api_key = openai_api_key
             config.llm_provider = llm_provider
             config.rate_limit_per_minute = rate_limit
             config.updated_at = datetime.utcnow()
@@ -51,7 +49,6 @@ def settings():
                 redmine_url=redmine_url,
                 redmine_api_key=redmine_api_key,
                 claude_api_key=claude_api_key,
-                openai_api_key=openai_api_key,
                 llm_provider=llm_provider,
                 rate_limit_per_minute=rate_limit
             )
@@ -62,8 +59,6 @@ def settings():
             redmine_url, 
             redmine_api_key, 
             claude_api_key=claude_api_key,
-            openai_api_key=openai_api_key,
-            llm_provider=llm_provider,
             rate_limit_per_minute=rate_limit
         )
         

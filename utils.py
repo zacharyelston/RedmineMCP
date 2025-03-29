@@ -16,7 +16,7 @@ def is_rate_limited(api_name, rate_limit_per_minute):
     Check if the API has exceeded its rate limit
     
     Args:
-        api_name (str): The name of the API ('redmine', 'claude', or 'openai')
+        api_name (str): The name of the API ('redmine' or 'claude')
         rate_limit_per_minute (int): The maximum number of calls allowed per minute
         
     Returns:
@@ -37,7 +37,7 @@ def add_api_call(api_name):
     Increment the API call counter for rate limiting
     
     Args:
-        api_name (str): The name of the API ('redmine', 'claude', or 'openai')
+        api_name (str): The name of the API ('redmine' or 'claude')
     """
     # Get or create the tracker
     tracker = RateLimitTracker.get_or_create(api_name)
@@ -90,19 +90,20 @@ def update_config_from_credentials():
         redmine_url = credentials.get('redmine_url')
         redmine_api_key = credentials.get('redmine_api_key')
         claude_api_key = credentials.get('claude_api_key')
-        openai_api_key = credentials.get('openai_api_key')
         llm_provider = credentials.get('llm_provider', 'claude')
         rate_limit = credentials.get('rate_limit_per_minute', 60)
         
-        # Validate the required credentials based on the provider
+        # Validate the required credentials
         if not redmine_url or not redmine_api_key:
             return False, "Required Redmine credentials are missing"
         
-        if llm_provider == 'claude' and not claude_api_key:
-            return False, "Claude API key is required when using Claude as the provider"
+        if not claude_api_key:
+            return False, "Claude API key is required"
             
-        if llm_provider == 'openai' and not openai_api_key:
-            return False, "OpenAI API key is required when using OpenAI as the provider"
+        # Ensure provider is 'claude'
+        if llm_provider != 'claude':
+            logger.warning("Only 'claude' is supported as the LLM provider. Setting to 'claude'.")
+            llm_provider = 'claude'
         
         # Update or create configuration in the database
         config = Config.query.first()
@@ -112,7 +113,6 @@ def update_config_from_credentials():
             config.redmine_url = redmine_url
             config.redmine_api_key = redmine_api_key
             config.claude_api_key = claude_api_key
-            config.openai_api_key = openai_api_key
             config.llm_provider = llm_provider
             config.rate_limit_per_minute = rate_limit
             config.updated_at = datetime.utcnow()
@@ -122,7 +122,6 @@ def update_config_from_credentials():
                 redmine_url=redmine_url,
                 redmine_api_key=redmine_api_key,
                 claude_api_key=claude_api_key,
-                openai_api_key=openai_api_key,
                 llm_provider=llm_provider,
                 rate_limit_per_minute=rate_limit
             )
@@ -171,8 +170,8 @@ def check_redmine_availability(url, timeout=5):
         logger.error(f"Error checking Redmine availability: {str(e)}")
         return False, f"Error checking Redmine availability: {str(e)}"
 
-def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, openai_api_key=None, 
-                       llm_provider='claude', rate_limit_per_minute=60):
+def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, 
+                       rate_limit_per_minute=60):
     """
     Creates a credentials.yaml file with the provided settings
     
@@ -180,8 +179,6 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, o
         redmine_url (str): The Redmine instance URL
         redmine_api_key (str): The Redmine API key
         claude_api_key (str, optional): The Claude API key
-        openai_api_key (str, optional): The OpenAI API key
-        llm_provider (str, optional): The LLM provider to use ('claude' or 'openai')
         rate_limit_per_minute (int, optional): Rate limit for API calls
         
     Returns:
@@ -192,16 +189,13 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, o
         credentials = {
             'redmine_url': redmine_url,
             'redmine_api_key': redmine_api_key,
-            'llm_provider': llm_provider,
+            'llm_provider': 'claude',
             'rate_limit_per_minute': rate_limit_per_minute
         }
         
-        # Add API keys based on provided values
+        # Add Claude API key if provided
         if claude_api_key:
             credentials['claude_api_key'] = claude_api_key
-        
-        if openai_api_key:
-            credentials['openai_api_key'] = openai_api_key
         
         # Save to the file
         with open('credentials.yaml', 'w') as file:
@@ -214,8 +208,6 @@ def create_credentials_file(redmine_url, redmine_api_key, claude_api_key=None, o
                     'redmine_url': 'https://redmine.example.com',
                     'redmine_api_key': 'your_redmine_api_key_here',
                     'claude_api_key': 'your_claude_api_key_here',
-                    'openai_api_key': 'your_openai_api_key_here',
-                    'llm_provider': 'claude',  # or 'openai'
                     'rate_limit_per_minute': 60
                 }
                 yaml.dump(example, file, default_flow_style=False)

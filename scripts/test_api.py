@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 """
 Unified API testing script for the Redmine MCP Extension.
-Tests connections to Redmine, Claude and OpenAI APIs.
+Tests connections to Redmine and Claude APIs.
 
 Usage:
     python scripts/test_api.py redmine [--verbose] [--create-issue]
     python scripts/test_api.py claude [--verbose]
-    python scripts/test_api.py openai [--verbose]
     python scripts/test_api.py all [--verbose]
     
 Environment Variables:
     REDMINE_URL - If set, this URL will be used instead of reading from credentials.yaml
     REDMINE_API_KEY - If set, this API key will be used instead of reading from credentials.yaml
     CLAUDE_API_KEY - If set, this API key will be used instead of reading from credentials.yaml
-    OPENAI_API_KEY - If set, this API key will be used instead of reading from credentials.yaml
 """
 
 import os
@@ -42,10 +40,7 @@ def parse_args():
     claude_parser.add_argument("--verbose", "-v", action="store_true", 
                             help="Enable verbose output")
     
-    # OpenAI API parser
-    openai_parser = subparsers.add_parser("openai", help="Test OpenAI API connection")
-    openai_parser.add_argument("--verbose", "-v", action="store_true", 
-                            help="Enable verbose output")
+
     
     # All APIs parser
     all_parser = subparsers.add_parser("all", help="Test all API connections")
@@ -305,89 +300,7 @@ def test_claude(args):
     print("All Claude API tests passed successfully!")
     return True
 
-#
-# OpenAI API Functions
-#
-def get_openai_api_key():
-    """Get OpenAI API key from environment or credentials file"""
-    # First check environment variable
-    api_key = os.environ.get("OPENAI_API_KEY")
-    
-    if api_key:
-        print("Using OpenAI API key from environment variable")
-        return api_key
-    
-    # Then check credentials.yaml
-    credentials = load_credentials()
-    
-    # Try both flattened and nested structures
-    api_key = credentials.get("openai_api_key")
-    if not api_key and "openai" in credentials:
-        api_key = credentials["openai"].get("api_key")
-        
-    if api_key and api_key != "your_openai_api_key_here":
-        print("Using OpenAI API key from credentials.yaml")
-        return api_key
-    
-    return None
 
-def test_openai_connection(api_key, verbose=False):
-    """Test connection to OpenAI API"""
-    print("Testing OpenAI API connection...")
-    
-    try:
-        # Dynamically import openai to avoid errors if not installed
-        import openai
-        client = openai.OpenAI(api_key=api_key)
-        
-        print("Sending request to OpenAI API...")
-        # Using simplest model for a quick test
-        response = client.chat.completions.create(
-            model="gpt-4o",  # The newest OpenAI model
-            messages=[
-                {"role": "user", "content": "Hello, GPT!"}
-            ],
-            max_tokens=1
-        )
-        
-        # If we get here, the request was successful
-        print("✅ OpenAI API connection successful!")
-        
-        if verbose:
-            print(f"Response: {response}")
-        
-        return True
-    except Exception as e:
-        print(f"❌ OpenAI API connection failed: {e}")
-        return False
-
-def test_openai(args):
-    """Run OpenAI API tests"""
-    print("\n=== Testing OpenAI API ===")
-    
-    # Get API key
-    api_key = get_openai_api_key()
-    
-    if not api_key:
-        print("❌ No valid OpenAI API key found in environment or credentials.yaml")
-        print("Please set the OPENAI_API_KEY environment variable or add it to credentials.yaml")
-        return False
-    
-    try:
-        # Dynamically try to import OpenAI - require the user to have it installed
-        import openai
-    except ImportError:
-        print("❌ OpenAI Python package not installed. Please install it with 'pip install openai'.")
-        return False
-    
-    # Test the connection
-    success = test_openai_connection(api_key, args.verbose)
-    
-    if not success:
-        return False
-        
-    print("All OpenAI API tests passed successfully!")
-    return True
 
 
 def main():
@@ -399,19 +312,15 @@ def main():
         success = test_redmine(args)
     elif args.api == "claude":
         success = test_claude(args)
-    elif args.api == "openai":
-        success = test_openai(args)
     elif args.api == "all":
         # Test all APIs
         redmine_args = argparse.Namespace(verbose=args.verbose, create_issue=False)
         claude_args = argparse.Namespace(verbose=args.verbose)
-        openai_args = argparse.Namespace(verbose=args.verbose)
         
         redmine_success = test_redmine(redmine_args)
         claude_success = test_claude(claude_args)
-        openai_success = test_openai(openai_args)
         
-        success = redmine_success and claude_success and openai_success
+        success = redmine_success and claude_success
     
     if not success:
         sys.exit(1)
