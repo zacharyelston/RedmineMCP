@@ -222,6 +222,8 @@ The project includes several helper scripts to streamline development:
 - **scripts/test_mcp_integration.py**: Test the MCP integration functionality
 - **scripts/test_redmine_api.sh**: Test the Redmine API connectivity
 - **scripts/test_redmine_availability.py**: Test MCP robustness with unavailable Redmine
+- **scripts/test_redmine_api_functionality.py**: Comprehensive test for Redmine API functionality
+- **scripts/validate_redmine_api.sh**: Easy-to-use wrapper for the Redmine API test script
 - **scripts/test_openai_api.py**: Test OpenAI API integration
 - **scripts/test_claude_api.py**: Test Claude API integration
 - **scripts/check_docker_compatibility.sh**: Diagnose Docker setup and compatibility
@@ -319,6 +321,26 @@ The MCP extension is designed to be resilient to common failure scenarios, inclu
    - `unavailable`: Redmine web server is not responding
    - `api_error`: Redmine is running but API access is failing
    - `unknown`: Status could not be determined
+
+5. **Comprehensive Redmine API Testing**: Test the full functionality of your Redmine instance with the validation script:
+   ```bash
+   # Using the simple wrapper script
+   ./scripts/validate_redmine_api.sh
+   
+   # With custom options
+   ./scripts/validate_redmine_api.sh --redmine-url=http://localhost:3000 --cleanup
+   
+   # Using the Python script directly
+   python scripts/test_redmine_api_functionality.py --redmine-url=http://localhost:3000
+   ```
+   
+   This script performs a comprehensive test of the Redmine API, including:
+   - Creating test projects, issues, versions, and wiki pages
+   - Updating issues with different statuses
+   - Retrieving and validating reference data (trackers, statuses, priorities)
+   - Cleaning up all test resources after completion (with the `--cleanup` flag)
+   
+   It's ideal for validating that your Redmine API key is working correctly and that all required API endpoints are available.
 
 #### ARM64 Compatibility (Apple Silicon / AWS Graviton)
 
