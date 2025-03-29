@@ -21,9 +21,9 @@ class LLMAPI:
         Initialize the Claude MCP client
         
         Args:
-            mcp_url (str, optional): The MCP service URL (defaults to localhost:5001)
+            mcp_url (str, optional): The MCP service URL (defaults to localhost:5000)
         """
-        self.mcp_url = mcp_url or "http://localhost:5001/api"
+        self.mcp_url = mcp_url or "http://localhost:5000/api"
         logger.debug(f"Claude MCP client initialized with URL: {self.mcp_url}")
     
     def _make_request(self, messages, system_prompt=None, max_tokens=1000):

@@ -13,7 +13,6 @@ The extension supports multiple LLM providers (Claude and OpenAI) and runs on bo
 - **AI-Powered Issue Creation**: Generate well-structured Redmine issues from natural language descriptions
 - **Intelligent Issue Updates**: Update existing issues using natural language commands
 - **Issue Analysis**: Get AI-powered insights and recommendations for existing issues
-- **Multi-Provider Support**: Supports both Claude and OpenAI LLM providers
 - **Cross-Platform**: Compatible with both x86 and ARM64 architectures
 - **Web Interface**: Simple dashboard for configuration and monitoring
 - **Rate Limiting**: Built-in protection against API overuse
@@ -25,7 +24,6 @@ The extension supports multiple LLM providers (Claude and OpenAI) and runs on bo
 
 - Python 3.9+ (for local development)
 - Docker and Docker Compose (for containerized setup)
-- Anthropic Claude API key or OpenAI API key
 - Works on x86/x64 and ARM64 architectures (Apple Silicon M1/M2/M3, AWS Graviton, etc.)
   - Special handling for ARM64-specific Docker issues like 'ContainerConfig' KeyError
 

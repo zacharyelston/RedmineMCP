@@ -33,12 +33,58 @@
         "FLASK_DEBUG": "1"
       },
       "waitFor": {
-        "url": "http://localhost:5001",
+        "url": "http://localhost:5000",
         "timeoutSeconds": 30,
         "message": "Waiting for MCP Extension to start..."
       },
       "description": "Model Context Protocol Extension for Redmine",
-      "documentation": "Access URL: http://localhost:5001\nMake sure to update credentials.yaml with your API keys."
+      "documentation": "Access URL: http://localhost:5000\nMake sure to update credentials.yaml with your API keys."
+    }
+  },
+  "mcp": {
+    "redminemcp": {
+      "command": "python",
+      "args": [
+        "main.py"
+      ],
+      "env": {
+        "REDMINE_URL": "http://localhost:3000",
+        "REDMINE_API_KEY": "<YOUR_REDMINE_API_KEY>",
+        "FLASK_DEBUG": "1"
+      },
+      "capabilities": {
+        "create_issue": {
+          "description": "Create a new Redmine issue",
+          "parameters": {
+            "prompt": {
+              "type": "string",
+              "description": "Description of the issue to create"
+            }
+          }
+        },
+        "update_issue": {
+          "description": "Update an existing Redmine issue",
+          "parameters": {
+            "issue_id": {
+              "type": "integer",
+              "description": "The ID of the issue to update"
+            },
+            "prompt": {
+              "type": "string",
+              "description": "Description of the changes to make"
+            }
+          }
+        },
+        "analyze_issue": {
+          "description": "Analyze a Redmine issue",
+          "parameters": {
+            "issue_id": {
+              "type": "integer",
+              "description": "The ID of the issue to analyze"
+            }
+          }
+        }
+      }
     }
   },
   "defaultProfile": "dev",
