@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  redmine:
+    image: redmine:5.0
+    container_name: redmine-dev
+    environment:
+      - REDMINE_DB_SQLITE=/redmine/db/sqlite/redmine.db
+      # Set default admin credentials for development
+      - REDMINE_DB_POSTGRES=
+      - REDMINE_DB_MYSQL=
+      - REDMINE_PLUGINS_MIGRATE=true
+      - REDMINE_SKIP_MIGRATION=false
+      - REDMINE_SECRET_KEY_BASE=supersecretkey
+      - REDMINE_DB_POOL=5
+    ports:
+      - "3000:3000"
+    volumes:
+      - redmine-files:/usr/src/redmine/files
+      - redmine-sqlite:/redmine/db/sqlite
+      # Add configuration scripts to be run at startup
+      - ./scripts/devops/redmine-entrypoint.sh:/docker-entrypoint-init.d/99-custom-setup.sh
+    networks:
+      - redmine-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mcp-extension:
+    build: .
+    container_name: mcp-extension-dev
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/app
+      - ./credentials.yaml:/app/credentials.yaml
+    environment:
+      - FLASK_DEBUG=1
+      - REDMINE_URL=http://redmine:3000
+      - DATABASE_URL=sqlite:////app/mcp.db
+      - PYTEST_ADDOPTS="--capture=no"
+    depends_on:
+      redmine:
+        condition: service_healthy
+    networks:
+      - redmine-mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  redmine-mcp-network:
+    driver: bridge
+
+volumes:
+  redmine-files:
+    name: redmine-dev-files
+  redmine-sqlite:
+    name: redmine-dev-sqlite

@@ -15,12 +15,14 @@ This document outlines planned enhancements and features for the Redmine Model C
   - [x] Include automatic setup of test projects, users, and issues
   - [x] Configure the container to initialize with consistent test data
   - [x] Add documentation for container usage
+  - [ ] Create pre-configured database with trackers and required entities for simplified testing (#19)
 
 - [x] **Test API Connection Functionality**
   - [x] Implement real connection testing for Redmine and Claude APIs
   - [x] Add detailed error reporting for API connection issues
   - [x] Create visual indicators for connection status
   - [ ] Create comprehensive automated test script for validating Redmine API functionality
+  - [ ] Fix tracker configuration in Redmine API testing (#19)
 
 - [ ] **Improved Error Handling**
   - Add more detailed error messages
