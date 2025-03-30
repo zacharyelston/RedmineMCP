@@ -9,6 +9,8 @@ This guide establishes the development processes and procedures for the Redmine 
 3. **Scope Management**: Unrelated changes are moved to separate issues
 4. **Traceability**: All work must be traceable back to requirements
 5. **Process Over Speed**: Follow the process even when a quick fix seems tempting
+6. **Leverage Existing Tools**: Use established tools instead of reinventing the wheel
+7. **Simplicity First**: Prefer simple solutions that work over complex custom implementations
 
 ## Development Workflow
 
@@ -98,7 +100,7 @@ With the issue created and branch established, development can begin.
    docker-compose -f docker-compose.local.yml up -d
    
    # Verify services are running
-   docker-compose -f docker-compose.local.yml ps
+   docker ps
    ```
 
 2. Implement the changes required to address the issue
@@ -119,6 +121,23 @@ With the issue created and branch established, development can begin.
    
    # Run other applicable tests for your changes
    ```
+
+#### Tooling Guidelines
+
+1. **Use Existing Tools**: Before creating a new script or tool, check if an existing solution already exists:
+   - Use built-in Docker commands (`docker ps`, `docker-compose logs`) instead of creating wrapper scripts
+   - Leverage existing libraries rather than writing custom implementations
+   - Search the repository for existing utilities before writing new ones
+
+2. **Simple Over Complex**:
+   - Prefer command-line tools over GUI solutions for automation
+   - Use simple shell commands and existing scripts when possible
+   - Keep custom scripts focused and minimal – single responsibility principle
+
+3. **Documentation Over Code**: Sometimes a well-documented manual process is better than an automated one that's hard to maintain:
+   - Document procedures clearly in markdown
+   - Provide example commands for infrequent operations rather than creating scripts
+   - Reserve coding effort for repeated, complex tasks only
 
 #### Commit Guidelines
 
@@ -246,14 +265,22 @@ git push -u origin fix/19-redmine-trackers
 1. Set up the development environment:
    ```bash
    docker-compose -f docker-compose.local.yml up -d
+   docker ps  # Verify services are running
    ```
 
 2. Investigate the issue:
-   - Run the bootstrap script to reproduce the error
-   - Review logs and error messages
+   - Use existing tools to diagnose the issue:
+     ```bash
+     # Check container logs
+     docker-compose logs redmine
+     
+     # Test API access directly with curl
+     curl -H "X-Redmine-API-Key: your_api_key" http://localhost:3000/trackers.json
+     ```
    - Identify that the 403 Forbidden error is caused by insufficient permissions
 
 3. Implement the solution:
+   - Use the simplest approach that works: modify existing files rather than creating new ones
    - Modify the redmine_api.py file to properly handle authentication
    - Add error handling for permission issues
    - Test the solution incrementally
@@ -302,6 +329,24 @@ python scripts/test_redmine_api_functionality.py
 - Ask for help early when stuck, don't waste time on solved problems
 - Share knowledge and lessons learned with the team
 
+## Anti-Patterns to Avoid
+
+1. **Over-Engineering**: Don't create complex solutions when simple ones will do
+   - Example: Writing a custom wrapper script around Docker commands when direct Docker commands work fine
+   - Better approach: Document the Docker commands to use and their parameters
+
+2. **Not Invented Here Syndrome**: Avoid recreating tools that already exist
+   - Example: Writing a custom test runner instead of using pytest
+   - Better approach: Configure existing tools to meet your specific needs
+
+3. **Too Many Dependencies**: Beware of adding numerous external libraries
+   - Example: Adding multiple specialized libraries for simple tasks
+   - Better approach: Use the standard library when it suffices; only add dependencies for complex functionality
+
+4. **Obscured Documentation**: Avoid burying important procedures in code
+   - Example: Creating complex automation that's hard to understand and maintain
+   - Better approach: Document procedures clearly and automate only what's repeatedly used
+
 ## Conclusion
 
 Following this process ensures our development efforts are:
@@ -309,5 +354,6 @@ Following this process ensures our development efforts are:
 - Properly reviewed and tested
 - Well-documented
 - Maintainable in the long term
+- Focused on simplicity and reuse rather than reinventing solutions
 
-Remember: Process and traceability lead to quality and maintainability. Speed is a byproduct of a good process, not a substitute for it.
+Remember: Process and traceability lead to quality and maintainability. Speed is a byproduct of a good process, not a substitute for it. Use the simplest tools that get the job done effectively.
