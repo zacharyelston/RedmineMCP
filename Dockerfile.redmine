@@ -1,0 +1,24 @@
+FROM redmine:5.0
+
+# Set environment variables
+ENV RAILS_ENV=production
+ENV REDMINE_SECRET_KEY_BASE=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+
+# Create configuration directory
+RUN mkdir -p /usr/src/redmine/config
+
+# Enable REST API
+RUN echo 'production:\n  rest_api_enabled: true\n  jsonp_enabled: true' > /usr/src/redmine/config/configuration.yml
+
+# Set up secrets for the secret_key_base
+RUN echo 'production:\n  secret_key_base: "${REDMINE_SECRET_KEY_BASE}"' > /usr/src/redmine/config/secrets.yml
+
+# Add a custom script to create trackers after database initialization
+COPY scripts/create_trackers.rb /usr/src/redmine/create_trackers.rb
+
+# Create the entry point directory if it doesn't exist
+RUN mkdir -p /docker-entrypoint-init.d/
+
+# Add script to run the tracker creation after initialization
+COPY scripts/create-trackers-init.sh /docker-entrypoint-init.d/create-trackers.sh
+RUN chmod +x /docker-entrypoint-init.d/create-trackers.sh

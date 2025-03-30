@@ -13,8 +13,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - redmine-files:/usr/src/redmine/files
-      - redmine-sqlite:/redmine/db/sqlite
+      - redmine-backup-files:/usr/src/redmine/files
+      - redmine-backup-sqlite:/redmine/db/sqlite
     networks:
       - redmine-mcp-network
     restart: unless-stopped
@@ -54,7 +54,7 @@ networks:
     driver: bridge
 
 volumes:
-  redmine-files:
-    name: redmine-local-files
-  redmine-sqlite:
-    name: redmine-local-sqlite
+  redmine-backup-files:
+    external: true
+  redmine-backup-sqlite:
+    external: true
