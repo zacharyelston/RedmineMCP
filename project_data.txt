@@ -1,0 +1,1 @@
+{"project":{"name":"RedmineMCP Extension","identifier":"redmine-mcp","description":"Model Context Protocol extension for Redmine using LLMs","is_public":true}}
