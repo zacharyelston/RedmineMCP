@@ -1,30 +1,6 @@
 version: '3.8'
 
 services:
-  redmine:
-    build:
-      context: .
-      dockerfile: Dockerfile.redmine
-    container_name: redmine-local
-    environment:
-      - REDMINE_DB_SQLITE=/redmine/db/sqlite/redmine.db
-      - RAILS_ENV=production
-      - REDMINE_SECRET_KEY_BASE=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
-    ports:
-      - "3000:3000"
-    volumes:
-      - redmine-files:/usr/src/redmine/files
-      - redmine-sqlite:/redmine/db/sqlite
-    networks:
-      - redmine-mcp-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000", "||", "exit", "0"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
   mcp-extension:
     build: .
     container_name: mcp-extension-local
@@ -35,12 +11,8 @@ services:
       - ./credentials.yaml:/app/credentials.yaml
     environment:
       - FLASK_DEBUG=1
-      - REDMINE_URL=http://redmine:3000
+      - REDMINE_URL=http://localhost:3000
       - DATABASE_URL=sqlite:////app/mcp.db
-    depends_on:
-      - redmine
-    networks:
-      - redmine-mcp-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/api/health", "||", "exit", "0"]

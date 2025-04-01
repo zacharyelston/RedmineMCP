@@ -40,6 +40,16 @@ We have created the following issues in the RedmineMCP project:
 6. **Test with Claude Desktop client** (Support, Low priority)
    - Complete testing of the MCP integration with the Claude Desktop client
 
+7. **Pre-seed Redmine Database with Essentials** (Feature, High priority) ⚠️ ADDED
+   - Create a script to automatically set up essential Redmine configurations:
+     - Default priorities (low, medium, high)
+     - Required trackers (Bug, Feature, Support)
+     - Time tracking activities (dev, review, waiting)
+     - Default statuses (New, In Progress, Resolved, Closed)
+   - Ensure the script can be run during container initialization
+   - Document the pre-seeding process for developers
+   - Make Docker setup more robust by including these seeds in the initialization
+
 ## API Testing Results
 
 We have successfully tested:
@@ -64,6 +74,7 @@ Based on our progress, the next steps are:
 1. **Continue Implementing High Priority Tasks**:
    - Complete the improved error handling system
    - Implement the user authentication system
+   - Develop the pre-seeding script for Redmine database essentials
    
 2. **Setup for Contributors**:
    - Ensure all development scripts work correctly
@@ -93,6 +104,10 @@ Based on our progress, the next steps are:
    
 3. **Authentication**:
    - Currently relies on API keys; needs more robust authentication system
+
+4. **Initial Setup Issues**:
+   - Redmine requires manual configuration of essential enumerations (priorities, trackers, activities)
+   - No automated way to bootstrap a complete working environment
 
 ## Conclusion
 
