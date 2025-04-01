@@ -15,6 +15,14 @@ This document outlines planned enhancements and features for the Redmine Model C
   - [x] Include automatic setup of test projects, users, and issues
   - [x] Configure the container to initialize with consistent test data
   - [x] Add documentation for container usage
+  
+- [ ] **Redmine Database Bootstrap**
+  - [ ] Create script to initialize Redmine database with required entities
+  - [ ] Set up default users, groups, and permissions
+  - [ ] Configure trackers, issue statuses, and priorities
+  - [ ] Set up projects and project roles
+  - [ ] Initialize custom fields and workflow configuration
+  - [ ] Add validation to verify database setup is complete
 
 - [x] **Test API Connection Functionality**
   - [x] Implement real connection testing for Redmine and Claude APIs

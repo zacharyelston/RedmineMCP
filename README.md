@@ -362,6 +362,40 @@ This will start Redmine at http://localhost:3000 with admin/admin credentials.
 ```
 This will start only the Redmine container for testing the API.
 
+#### Option 2.1: Bootstrapping Redmine for API Access
+After setting up a Redmine container, you can bootstrap it with required entities using:
+```bash
+# Bootstrap with default settings
+./scripts/bootstrap_redmine.sh
+
+# Verify the setup without making changes
+./scripts/bootstrap_redmine.sh --verify
+
+# Custom setup
+./scripts/bootstrap_redmine.sh --url=http://localhost:3000 --api-key=your_api_key --verbose
+```
+
+This bootstrapping script will create:
+- Required users (admin, agent, developer, manager)
+- Trackers (Bug, Feature, Support, Task)
+- Issue statuses (New, In Progress, Resolved, etc.)
+- Priorities (Low, Normal, High, etc.)
+- Roles with appropriate permissions
+- Projects for testing
+- Custom fields for additional metadata
+
+You can also verify if your Redmine instance is properly configured without making any changes:
+
+```bash
+# Verify with default settings
+./scripts/verify_redmine_setup.sh
+
+# Custom verification
+./scripts/verify_redmine_setup.sh --url=http://localhost:3000 --api-key=your_api_key --verbose
+```
+
+The verification script will check if your Redmine instance has all the required components for API connections from agents and provide a detailed report without modifying anything.
+
 #### Option 3: Claude Desktop Integration
 ```bash
 # Import the desktop configuration
