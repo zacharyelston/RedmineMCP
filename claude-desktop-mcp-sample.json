@@ -22,20 +22,17 @@
         "REDMINE_URL": "https://your-redmine-instance.com",
         "LLM_PROVIDER": "claude",
         "RATE_LIMIT": "30"
-      }
-    },
-    "github": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "mcp/github"
-      ],
-      "environment": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "your-github-personal-access-token"
+      },
+      "description": "Redmine issue management with Claude AI integration",
+      "capabilities": {
+        "methods": [
+          "initialize",
+          "capabilities",
+          "health",
+          "llm/create_issue",
+          "llm/update_issue",
+          "llm/analyze_issue"
+        ]
       }
     }
   }

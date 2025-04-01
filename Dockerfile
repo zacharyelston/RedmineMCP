@@ -20,7 +20,8 @@ ENV FLASK_ENV=production
 
 # Set default configuration environment variables
 ENV REDMINE_URL="http://localhost:3000"
-ENV REDMINE_API_KEY=""
+# API key should be passed at runtime as a secret
+# Not predefined in the image
 ENV LLM_PROVIDER="claude-desktop"
 ENV MCP_URL="http://localhost:9000"
 ENV RATE_LIMIT=60

@@ -122,6 +122,10 @@ The application uses a file-based configuration system with settings stored in:
 - `credentials.yaml`: Contains sensitive information (API keys)
 - `manifest.yaml`: Contains application metadata and default configurations
 
+### Developer Diary
+
+For in-depth information about the project's evolution, technical challenges, and best practices, see the [Developer Diary](DEVELOPER_DIARY.md). This document contains valuable insights and lessons learned during development.
+
 ### Test Mode
 
 The application supports a test mode that simulates Redmine and LLM functionality without requiring actual connections to these services. This is useful for development and testing.
