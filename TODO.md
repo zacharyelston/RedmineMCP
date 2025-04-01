@@ -34,6 +34,13 @@ This document outlines planned enhancements and features for the Redmine Model C
   - Implement role-based permissions
   - Secure API endpoints with token authentication
 
+- [ ] **Automated Redmine Initialization**
+  - Create script to pre-seed Redmine database with essential configurations
+  - Automatically set up priorities, trackers, statuses, and activities
+  - Make Docker deployment more robust with built-in initialization
+  - Document the pre-seeding process for developers
+  - Update container startup process to include seed data
+
 ## Medium Priority
 
 - [x] **Enhanced LLM Features**
@@ -82,6 +89,7 @@ This document outlines planned enhancements and features for the Redmine Model C
   - Create API documentation with Swagger/OpenAPI
   - Add detailed developer documentation
   - Create user manual with examples
+  - Organize documentation in a dedicated docs directory
 
 - [x] **MCP Integration**
   - [x] Implement Model Context Protocol endpoints
