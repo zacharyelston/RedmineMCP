@@ -1,87 +1,40 @@
 """
 Routes for the Redmine MCP Extension.
-Defines all API endpoints and web UI routes for the application.
+Defines API endpoints for the MCP functionality.
 Uses file-based configuration instead of database.
 """
 
 import json
 import logging
-from datetime import datetime
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
-from redmine_api import RedmineAPI, create_redmine_client
+from flask import Blueprint, request, jsonify
+from redmine_api import create_redmine_client
 from llm_factory import create_llm_client
-from utils import is_rate_limited, add_api_call, load_credentials, create_credentials_file, update_config_from_credentials
-from config import get_config, get_action_logs, log_action, get_prompt_template
+from utils import is_rate_limited, add_api_call
+from config import get_config, log_action, get_prompt_template
 
 logger = logging.getLogger(__name__)
 
-# Create blueprint for main application routes
+# Create blueprint for API routes
 main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    """Main page - overview of the integration"""
+    """API root - basic service info"""
     config = get_config()
-    return render_template('index.html', config=config)
-
-@main.route('/settings', methods=['GET', 'POST'])
-def settings():
-    """Configuration page for the integration"""
-    config = get_config()
-    
-    if request.method == 'POST':
-        # Update configuration from form submission
-        redmine_url = request.form.get('redmine_url')
-        redmine_api_key = request.form.get('redmine_api_key')
-        mcp_url = request.form.get('mcp_url', 'http://localhost:9000')
-        rate_limit = int(request.form.get('rate_limit', 60))
-        
-        # Update credentials.yaml for persistence
-        success, message = create_credentials_file(
-            redmine_url, 
-            redmine_api_key, 
-            mcp_url=mcp_url,
-            rate_limit_per_minute=rate_limit
-        )
-        
-        if success:
-            flash('Configuration saved successfully!', 'success')
-            # Force reload configuration
-            update_config_from_credentials()
-        else:
-            flash(f'Error saving configuration: {message}', 'error')
-        
-        return redirect(url_for('main.settings'))
-    
-    return render_template('settings.html', config=config)
-
-@main.route('/logs')
-def logs():
-    """View action logs"""
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    
-    # Get logs without pagination
-    logs_data = get_action_logs(limit=per_page)
-    
-    # Simple pagination by slicing the list
-    start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
-    logs = logs_data[start_idx:end_idx]
-    
-    return render_template('logs.html', logs=logs, page=page, has_next=len(logs_data) > end_idx)
-
-@main.route('/prompts', methods=['GET', 'POST'])
-def prompts():
-    """Manage prompt templates"""
-    # In file-based configuration, prompt templates are read-only
-    # They are defined in manifest.yaml
-    templates = []
-    config = get_config()
-    if config and 'prompt_templates' in config:
-        templates = config['prompt_templates']
-    
-    return render_template('prompts.html', templates=templates)
+    service_info = {
+        "name": "Redmine MCP Extension",
+        "version": "1.0.0",
+        "description": "API service for Redmine with MCP integration",
+        "endpoints": [
+            "/api/prompts/<template_name>",
+            "/api/issues",
+            "/api/issues/<issue_id>",
+            "/api/llm/create_issue",
+            "/api/llm/update_issue/<issue_id>",
+            "/api/llm/analyze_issue/<issue_id>"
+        ]
+    }
+    return jsonify(service_info)
 
 @main.route('/api/prompts/<path:template_name>', methods=['GET'])
 def get_prompt_template_api(template_name):
