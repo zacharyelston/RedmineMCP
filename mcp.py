@@ -14,10 +14,10 @@ from config import get_config, log_action, get_prompt_template
 
 logger = logging.getLogger(__name__)
 
-# Create a Flask Blueprint for MCP-specific routes
-mcp = Blueprint('mcp', __name__)
+# Create a Flask Blueprint for MCP-specific routes with /mcp prefix
+mcp = Blueprint('mcp', __name__, url_prefix='/mcp')
 
-@mcp.route('/api/capabilities', methods=['GET'])
+@mcp.route('/', methods=['GET'])
 def mcp_capabilities():
     """
     Standard MCP endpoint that returns the capabilities of this extension.
@@ -34,19 +34,19 @@ def mcp_capabilities():
             {
                 "name": "issue_creation",
                 "description": "Create Redmine issues from natural language prompts",
-                "endpoint": "/api/llm/create_issue",
+                "endpoint": "/mcp/llm/create_issue",
                 "method": "POST"
             },
             {
                 "name": "issue_update",
                 "description": "Update existing Redmine issues from natural language prompts",
-                "endpoint": "/api/llm/update_issue/{issue_id}",
+                "endpoint": "/mcp/llm/update_issue/{issue_id}",
                 "method": "POST"
             },
             {
                 "name": "issue_analyze",
                 "description": "Analyze Redmine issues for insights",
-                "endpoint": "/api/llm/analyze_issue/{issue_id}",
+                "endpoint": "/mcp/llm/analyze_issue/{issue_id}",
                 "method": "POST"
             }
         ],
@@ -59,7 +59,7 @@ def mcp_capabilities():
         }
     })
 
-@mcp.route('/api/health', methods=['GET'])
+@mcp.route('/health', methods=['GET'])
 def mcp_health():
     """
     Health check endpoint for the MCP integration.
@@ -186,7 +186,7 @@ def mcp_health():
 
 # LLM API Endpoints for MCP
 
-@mcp.route('/api/llm/create_issue', methods=['POST'])
+@mcp.route('/llm/create_issue', methods=['POST'])
 def llm_create_issue():
     """
     MCP endpoint for creating a Redmine issue using LLM
@@ -219,7 +219,7 @@ def llm_create_issue():
         logger.error(f"Error in create_issue: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@mcp.route('/api/llm/update_issue/<int:issue_id>', methods=['POST'])
+@mcp.route('/llm/update_issue/<int:issue_id>', methods=['POST'])
 def llm_update_issue(issue_id):
     """
     MCP endpoint for updating a Redmine issue using LLM
@@ -252,7 +252,7 @@ def llm_update_issue(issue_id):
         logger.error(f"Error in update_issue: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@mcp.route('/api/llm/analyze_issue/<int:issue_id>', methods=['POST'])
+@mcp.route('/llm/analyze_issue/<int:issue_id>', methods=['POST'])
 def llm_analyze_issue(issue_id):
     """
     MCP endpoint for analyzing a Redmine issue using LLM

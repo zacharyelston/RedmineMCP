@@ -64,46 +64,82 @@ def get_config():
     Get the current configuration
     
     Returns:
-        dict: The current configuration with values from both credentials.yaml and manifest.yaml
+        dict: The current configuration from environment variables, then credentials.yaml, then manifest.yaml
     """
     global _config
     
     if _config is None:
         _config = {}
-        credentials = load_credentials()
-        manifest = get_manifest()
         
-        if credentials:
-            # Copy credentials into config
-            _config['redmine_url'] = credentials.get('redmine_url')
-            _config['redmine_api_key'] = credentials.get('redmine_api_key')
+        # Try environment variables first
+        env_redmine_url = os.environ.get('REDMINE_URL')
+        env_redmine_api_key = os.environ.get('REDMINE_API_KEY')
+        env_llm_provider = os.environ.get('LLM_PROVIDER')
+        env_mcp_url = os.environ.get('MCP_URL')
+        env_rate_limit = os.environ.get('RATE_LIMIT')
+        
+        # Check if we have environment variables
+        using_env_vars = env_redmine_url is not None
+        
+        # If using environment variables, load configuration from them
+        if using_env_vars:
+            logger.info("Loading configuration from environment variables")
+            _config['redmine_url'] = env_redmine_url
+            _config['redmine_api_key'] = env_redmine_api_key or ""
+            _config['mcp_url'] = env_mcp_url or 'http://localhost:9000'
+            _config['llm_provider'] = env_llm_provider or 'claude-desktop'
             
-            # Get MCP URL from credentials first, then fall back to manifest
-            _config['mcp_url'] = credentials.get('mcp_url')
+            # Parse rate limit as integer with fallback
+            try:
+                _config['rate_limit_per_minute'] = int(env_rate_limit) if env_rate_limit else 60
+            except (ValueError, TypeError):
+                _config['rate_limit_per_minute'] = 60
+                logger.warning(f"Invalid RATE_LIMIT environment variable: {env_rate_limit}. Using default: 60")
+        
+        # If not from environment variables, load from credentials file
+        if not using_env_vars:
+            logger.info("Loading configuration from credentials.yaml")
+            credentials = load_credentials()
+            manifest = get_manifest()
             
-            # If MCP URL is missing, use the default from manifest
-            if not _config['mcp_url'] and manifest and 'mcp' in manifest:
-                _config['mcp_url'] = manifest['mcp'].get('default_url')
-                logger.info(f"Using manifest default MCP URL: {_config['mcp_url']}")
-            
-            # If still missing, use hardcoded default as last resort
-            if not _config['mcp_url']:
-                _config['mcp_url'] = 'http://localhost:9000'
-                logger.info(f"Using hardcoded default MCP URL: {_config['mcp_url']}")
+            if credentials:
+                # Copy credentials into config
+                _config['redmine_url'] = credentials.get('redmine_url')
+                _config['redmine_api_key'] = credentials.get('redmine_api_key')
                 
-            # Kept for backward compatibility
-            _config['claude_api_key'] = credentials.get('claude_api_key')
-            
-            # Set the LLM provider from credentials
-            _config['llm_provider'] = credentials.get('llm_provider', 'claude-desktop')
-            
-            # Support 'mock' as a valid provider
-            valid_providers = ['claude-desktop', 'mock']
-            if _config['llm_provider'] not in valid_providers:
-                logger.warning(f"Unsupported LLM provider: {_config['llm_provider']}. Using 'claude-desktop' as default.")
-                _config['llm_provider'] = 'claude-desktop'
-            else:
-                logger.info(f"Using '{_config['llm_provider']}' as the LLM provider.")
+                # Get MCP URL from credentials first, then fall back to manifest
+                _config['mcp_url'] = credentials.get('mcp_url')
+                
+                # If MCP URL is missing, use the default from manifest
+                if not _config['mcp_url'] and manifest and 'mcp' in manifest:
+                    _config['mcp_url'] = manifest['mcp'].get('default_url')
+                    logger.info(f"Using manifest default MCP URL: {_config['mcp_url']}")
+                
+                # If still missing, use hardcoded default as last resort
+                if not _config['mcp_url']:
+                    _config['mcp_url'] = 'http://localhost:9000'
+                    logger.info(f"Using hardcoded default MCP URL: {_config['mcp_url']}")
+                    
+                # Kept for backward compatibility
+                _config['claude_api_key'] = credentials.get('claude_api_key')
+                
+                # Set the LLM provider from credentials
+                _config['llm_provider'] = credentials.get('llm_provider', 'claude-desktop')
+                
+                # Rate limit from credentials
+                if 'rate_limit_per_minute' in credentials:
+                    _config['rate_limit_per_minute'] = credentials.get('rate_limit_per_minute')
+        
+        # Support 'mock' as a valid provider (regardless of source)
+        valid_providers = ['claude-desktop', 'mock']
+        if _config.get('llm_provider') not in valid_providers:
+            logger.warning(f"Unsupported LLM provider: {_config.get('llm_provider')}. Using 'claude-desktop' as default.")
+            _config['llm_provider'] = 'claude-desktop'
+        else:
+            logger.info(f"Using '{_config.get('llm_provider')}' as the LLM provider.")
+        
+        # Get manifest data
+        manifest = get_manifest()
         
         # Add server configuration from manifest
         if manifest and 'server' in manifest:
@@ -145,13 +181,26 @@ def get_manifest():
 
 def update_config_from_credentials():
     """
-    Updates the application configuration from credentials.yaml file
+    Updates the application configuration from credentials.yaml file or environment variables
     
     Returns:
         tuple: (bool, str) - Success status and message
     """
+    global _config
+    
     try:
-        # Load credentials from file
+        # Check environment variables first
+        env_redmine_url = os.environ.get('REDMINE_URL')
+        env_redmine_api_key = os.environ.get('REDMINE_API_KEY')
+        
+        # If environment variables are set, use them
+        if env_redmine_url:
+            logger.info("Using configuration from environment variables")
+            # Reset the config to force reload
+            _config = None
+            return True, "Configuration updated successfully"
+        
+        # Fall back to credentials file
         credentials = load_credentials()
         
         if not credentials:
@@ -166,7 +215,6 @@ def update_config_from_credentials():
             return False, "Required Redmine credentials are missing"
         
         # Reset the config to force reload
-        global _config
         _config = None
         
         return True, "Configuration updated successfully"

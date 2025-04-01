@@ -199,9 +199,11 @@ class RedmineAPI:
         params = {}
         if include:
             if isinstance(include, list):
-                params["include"] = ",".join(include)
+                include_str = ",".join(include)
+                params.update({"include": include_str})
             else:
-                params["include"] = str(include)
+                include_str = str(include)
+                params.update({"include": include_str})
         
         try:
             response = self._make_request('GET', f'issues/{issue_id}.json', params=params)
@@ -514,16 +516,22 @@ class RedmineAPI:
         Returns:
             list: List of project dictionaries
         """
-        params = {
-            "limit": limit,
-            "offset": offset
-        }
+        params = {}
         
+        # Add limit and offset as integers
+        if limit is not None:
+            params["limit"] = int(limit)
+        if offset is not None:
+            params["offset"] = int(offset)
+        
+        # Handle include parameter properly
         if include:
             if isinstance(include, list):
-                params["include"] = ",".join(include)
+                include_str = ",".join(include)
+                params.update({"include": include_str})
             else:
-                params["include"] = str(include)
+                include_str = str(include)
+                params.update({"include": include_str})
         
         try:
             response = self._make_request('GET', 'projects.json', params=params)
@@ -547,9 +555,11 @@ class RedmineAPI:
         params = {}
         if include:
             if isinstance(include, list):
-                params["include"] = ",".join(include)
+                include_str = ",".join(include)
+                params.update({"include": include_str})
             else:
-                params["include"] = str(include)
+                include_str = str(include)
+                params.update({"include": include_str})
         
         try:
             response = self._make_request('GET', f'projects/{project_id}.json', params=params)
@@ -861,9 +871,11 @@ class RedmineAPI:
         params = {}
         if include:
             if isinstance(include, list):
-                params["include"] = ",".join(include)
+                include_str = ",".join(include)
+                params.update({"include": include_str})
             else:
-                params["include"] = str(include)
+                include_str = str(include)
+                params.update({"include": include_str})
         
         try:
             response = self._make_request('GET', f'users/{user_id}.json', params=params)

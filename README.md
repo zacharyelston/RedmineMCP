@@ -91,6 +91,8 @@ Once configured, Claude Desktop will be able to:
 
 ## API Documentation
 
+### Redmine API
+
 All Redmine REST API endpoints are implemented in the `redmine_api.py` module. The API wrapper provides comprehensive access to:
 
 - Issues API
@@ -103,12 +105,43 @@ All Redmine REST API endpoints are implemented in the `redmine_api.py` module. T
 - Issue Relations API
 - Issue Attachments API
 
+### MCP Endpoints
+
+The MCP extension provides the following endpoints:
+
+- `GET /mcp/`: Returns MCP capabilities
+- `GET /mcp/health`: Returns health status of the MCP service
+- `POST /mcp/llm/create_issue`: Create a Redmine issue using LLM
+- `POST /mcp/llm/update_issue/{issue_id}`: Update a specific Redmine issue using LLM
+- `POST /mcp/llm/analyze_issue/{issue_id}`: Analyze a specific Redmine issue using LLM
+
 ## Development
 
 The application uses a file-based configuration system with settings stored in:
 
 - `credentials.yaml`: Contains sensitive information (API keys)
 - `manifest.yaml`: Contains application metadata and default configurations
+
+### Test Mode
+
+The application supports a test mode that simulates Redmine and LLM functionality without requiring actual connections to these services. This is useful for development and testing.
+
+To enable test mode:
+
+1. Set the Redmine URL in `credentials.yaml` to include the domain `test-redmine-instance.local`:
+   ```yaml
+   redmine_url: 'http://test-redmine-instance.local:3000'
+   ```
+
+2. Set the LLM provider to `mock`:
+   ```yaml
+   llm_provider: 'mock'
+   ```
+
+In test mode:
+- Health checks will report all systems as healthy
+- Create issue calls will return simulated successful responses
+- Update and analyze calls will process without requiring a real Redmine connection
 
 ## Troubleshooting
 

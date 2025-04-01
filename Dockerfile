@@ -18,20 +18,32 @@ RUN pip install --no-cache-dir -r docker-requirements.txt
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_ENV=production
 
-# Create a config directory
-RUN mkdir -p /app/config
+# Set default configuration environment variables
+ENV REDMINE_URL="http://localhost:3000"
+ENV REDMINE_API_KEY=""
+ENV LLM_PROVIDER="claude-desktop"
+ENV MCP_URL="http://localhost:9000"
+ENV RATE_LIMIT=60
+
+# Create config and logs directories
+RUN mkdir -p /app/config /app/logs
 
 # Create entrypoint script
 RUN echo '#!/bin/bash\n\
-# Generate credentials.yaml from environment variables\n\
-echo "redmine_url: ${REDMINE_URL:-\"http://localhost:3000\"}"\n > /app/credentials.yaml\n\
-echo "redmine_api_key: ${REDMINE_API_KEY:-\"\"}"\n >> /app/credentials.yaml\n\
-echo "llm_provider: \"claude-desktop\""\n >> /app/credentials.yaml\n\
-echo "mcp_url: \"http://localhost:9000\""\n >> /app/credentials.yaml\n\
-echo "rate_limit_per_minute: 60"\n >> /app/credentials.yaml\n\
+\n\
+# Create logs directory if it doesn'"'"'t exist\n\
+mkdir -p /app/logs\n\
+\n\
+# Output environment configuration for debugging\n\
+echo "Starting with the following configuration:"\n\
+echo "REDMINE_URL: ${REDMINE_URL}"\n\
+echo "REDMINE_API_KEY: [REDACTED]"\n\
+echo "LLM_PROVIDER: ${LLM_PROVIDER}"\n\
+echo "MCP_URL: ${MCP_URL}"\n\
+echo "RATE_LIMIT: ${RATE_LIMIT}"\n\
 \n\
 # Start the application\n\
-exec gunicorn --bind 0.0.0.0:9000 --reuse-port main:app\n\
+exec gunicorn --bind 0.0.0.0:9000 --reuse-port --access-logfile - --error-logfile - main:app\n\
 ' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Expose the MCP service port

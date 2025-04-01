@@ -11,11 +11,17 @@
         "REDMINE_API_KEY",
         "-e",
         "REDMINE_URL",
+        "-e",
+        "LLM_PROVIDER",
+        "-e",
+        "RATE_LIMIT",
         "redmine-mcp-extension:latest"
       ],
       "environment": {
         "REDMINE_API_KEY": "your-redmine-api-key",
-        "REDMINE_URL": "https://your-redmine-instance.com"
+        "REDMINE_URL": "https://your-redmine-instance.com",
+        "LLM_PROVIDER": "claude",
+        "RATE_LIMIT": "30"
       }
     },
     "github": {
