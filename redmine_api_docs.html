@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<title>Rest api - Redmine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Redmine" />
+<meta name="keywords" content="issue,bug,tracker" />
+<meta name="csrf-param" content="authenticity_token" />
+<meta name="csrf-token" content="YBpVGeb8W2x+I3JuKvl7cIecbfxBsEy+B+KrztjmDsu95p9LwnPY+I1W7wsbISRZPnxC/KfBhFCDsloEXaD37A==" />
+<link rel='shortcut icon' href='/favicon.ico?1679302129' />
+<link rel="stylesheet" media="all" href="/stylesheets/jquery/jquery-ui-1.13.2.css?1679302129" />
+<link rel="stylesheet" media="all" href="/stylesheets/tribute-5.1.3.css?1679302129" />
+<link rel="stylesheet" media="all" href="/stylesheets/application.css?1679302129" />
+<link rel="stylesheet" media="all" href="/stylesheets/responsive.css?1679302129" />
+
+<script src="/javascripts/jquery-3.6.1-ui-1.13.2-ujs-5.2.8.1.js?1679302129"></script>
+<script src="/javascripts/jquery-migrate-3.3.2.min.js?1679302129"></script>
+<script src="/javascripts/tribute-5.1.3.min.js?1679302129"></script>
+<script src="/javascripts/tablesort-5.2.1.min.js?1679302129"></script>
+<script src="/javascripts/tablesort-5.2.1.number.min.js?1679302129"></script>
+<script src="/javascripts/application.js?1679302129"></script>
+<script src="/javascripts/responsive.js?1679302129"></script>
+<script>
+//<![CDATA[
+$(window).on('load', function(){ warnLeavingUnsaved('The current page contains unsaved text that will be lost if you leave this page.'); });
+//]]>
+</script>
+
+<script>
+//<![CDATA[
+rm = window.rm || {};rm.AutoComplete = rm.AutoComplete || {};rm.AutoComplete.dataSources = '{"issues":"/issues/auto_complete?project_id=redmine\u0026q=","wiki_pages":"/wiki_pages/auto_complete?project_id=redmine\u0026q="}';
+//]]>
+</script>
+
+<!-- page specific tags -->
+
+</head>
+<body class="project-redmine has-main-menu controller-wiki action-show avatars-on">
+
+<div id="wrapper">
+
+<div class="flyout-menu js-flyout-menu">
+
+        <div class="flyout-menu__search">
+            <form action="/projects/redmine/search" accept-charset="UTF-8" name="form-0fcd09e0" method="get"><input name="utf8" type="hidden" value="&#x2713;" />
+            <input type="hidden" name="wiki_pages" value="1" />
+            <label class="search-magnifier search-magnifier--flyout" for="flyout-search">&#9906;</label>
+            <input type="text" name="q" id="flyout-search" class="small js-search-input" placeholder="Search" />
+</form>        </div>
+
+
+        <h3>Project</h3>
+        <span class="js-project-menu"></span>
+
+    <h3>General</h3>
+    <span class="js-general-menu"></span>
+
+    <span class="js-sidebar flyout-menu__sidebar"></span>
+
+    <h3>Profile</h3>
+    <span class="js-profile-menu"></span>
+
+</div>
+
+<div id="wrapper2">
+<div id="wrapper3">
+<div id="top-menu">
+    <div id="account">
+        <ul><li><a class="login" href="/login">Sign in</a></li><li><a class="register" href="/account/register">Register</a></li></ul>    </div>
+    
+    <ul><li><a class="home" href="/">Home</a></li><li><a class="projects" href="/projects">Projects</a></li><li><a class="help" href="https://www.redmine.org/guide">Help</a></li></ul></div>
+
+<div id="header">
+
+    <a href="#" class="mobile-toggle-button js-flyout-menu-toggle-button"></a>
+
+    <div id="quick-search">
+        <form action="/projects/redmine/search" accept-charset="UTF-8" name="form-635c55de" method="get"><input name="utf8" type="hidden" value="&#x2713;" />
+        <input type="hidden" name="scope" value="subprojects" />
+        <input type="hidden" name="wiki_pages" value="1" />
+        <label for='q'>
+          <a accesskey="4" href="/projects/redmine/search?scope=subprojects">Search</a>:
+        </label>
+        <input type="text" name="q" id="q" size="20" class="small" accesskey="f" data-auto-complete="true" />
+</form>        <div id="project-jump" class="drdn"><span class="drdn-trigger">Redmine</span><div class="drdn-content"><div class="quick-search"><input type="text" name="q" id="projects-quick-search" value="" class="autocomplete" data-automcomplete-url="/projects/autocomplete.js?jump=wiki" autocomplete="off" /></div><div class="drdn-items projects selection"></div><div class="drdn-items all-projects selection"><a href="/projects?jump=wiki">All Projects</a></div></div></div>
+    </div>
+
+    <h1><span class="current-project">Redmine</span></h1>
+
+    <div id="main-menu" class="tabs">
+        <ul><li><a class="overview" href="/projects/redmine">Overview</a></li><li><a class="download" href="/projects/redmine/wiki/Download">Download</a></li><li><a class="activity" href="/projects/redmine/activity">Activity</a></li><li><a class="roadmap" href="/projects/redmine/roadmap">Roadmap</a></li><li><a class="issues" href="/projects/redmine/issues">Issues</a></li><li><a class="news" href="/projects/redmine/news">News</a></li><li><a class="wiki selected" href="/projects/redmine/wiki">Wiki</a></li><li><a class="boards" href="/projects/redmine/boards">Forums</a></li><li><a class="repository" href="/projects/redmine/repository">Repository</a></li></ul>
+        <div class="tabs-buttons" style="display:none;">
+            <button class="tab-left" onclick="moveTabLeft(this); return false;"></button>
+            <button class="tab-right" onclick="moveTabRight(this); return false;"></button>
+        </div>
+    </div>
+</div>
+
+<div id="main" class="">
+    <div id="sidebar">
+          
+  <div class="wiki">
+    <a name="Latest-releases"></a>
+<h3 >Latest releases<a href="#Latest-releases" class="wiki-anchor">&para;</a></h3>
+
+
+	<p><a class="wiki-page" href="/projects/redmine/wiki/Download">5.0.12 (2025-03-10)</a><br /><a class="wiki-page" href="/projects/redmine/wiki/Download">5.1.7 (2025-03-10)</a><br /><a class="wiki-page" href="/projects/redmine/wiki/Download">6.0.4 (2025-03-10)</a></p>
+
+
+	<a name="Resources"></a>
+<h3 >Resources<a href="#Resources" class="wiki-anchor">&para;</a></h3>
+
+
+	<p><a class="wiki-page" href="/projects/redmine/wiki/Guide">User's Guide</a><br /><a class="wiki-page" href="/projects/redmine/wiki/Developer_Guide">Developer's Guide</a><br /><a class="wiki-page" href="/projects/redmine/wiki/Changelog">Changelog</a>, <a class="wiki-page" href="/projects/redmine/wiki/Security_Advisories">Security</a><br /><a class="wiki-page" href="/projects/redmine/wiki/FAQ">FAQ</a>, <a class="wiki-page" href="/projects/redmine/wiki/HowTos">HowTo's</a><br /><a href="/plugins">Plugins</a>, <a class="wiki-page" href="/projects/redmine/wiki/Theme_List">Themes</a><br /><a class="wiki-page" href="/projects/redmine/wiki/PrivacyPolicy">Privacy Policy</a></p>
+  </div>
+
+<h3>Wiki</h3>
+<ul>
+  <li><a href="/">Start page</a></li>
+  <li><a href="/projects/redmine/wiki/index">Index by title</a></li>
+  <li><a href="/projects/redmine/wiki/date_index">Index by date</a></li>
+</ul>
+
+
+
+		<br />
+		<script type="text/javascript"><!--
+		google_ad_client = "pub-0447284344517370";
+		google_alternate_color = "FFFFFF";
+		google_ad_width = 160;
+		google_ad_height = 600;
+		google_ad_format = "160x600_as";
+		google_ad_type = "text_image";
+		google_ad_channel = "";
+		google_color_border = "EEEEEE";
+		google_color_bg = "FFFFFF";
+		google_color_link = "484848";
+		google_color_text = "484848";
+		google_color_url = "2A5685";
+		//-->
+		</script>
+		<script type="text/javascript"
+		  src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+		</script>
+                <br />
+
+        
+    </div>
+
+    <div id="content">
+        
+        <div class="contextual">
+
+
+  <span class="drdn"><span class="drdn-trigger"><span class="icon-only icon-actions" title="Actions">Actions</span></span><div class="drdn-content"><div class="drdn-items">
+    <a class="icon icon-history" href="/projects/redmine/wiki/Rest_api/history">History</a>
+
+
+</div></div></span></div>
+
+<p class="breadcrumb"><a href="/projects/redmine/wiki/Guide">Guide</a> » <a href="/projects/redmine/wiki/Developer_Guide">Developer Guide</a> » </p>
+
+
+<div class="wiki wiki-page">
+  <ul class="toc right"><li><strong>Table of contents</strong></li><li><a href="#Redmine-API">Redmine API</a><ul><li><a href="#API-Description">API Description</a></li><li><a href="#General-topics">General topics</a><ul><li><a href="#Specify-Content-Type-on-POSTPUT-requests">Specify Content-Type on POST/PUT requests</a></li><li><a href="#Authentication">Authentication</a></li><li><a href="#User-Impersonation">User Impersonation</a></li><li><a href="#Collection-resources-and-pagination">Collection resources and pagination</a></li><li><a href="#Fetching-associated-data">Fetching associated data</a></li><li><a href="#Working-with-custom-fields">Working with custom fields</a></li><li><a href="#Attaching-files">Attaching files</a></li><li><a href="#Validation-errors">Validation errors</a></li><li><a href="#JSONP-Support">JSONP Support</a></li></ul>
+</li><li><a href="#API-Usage-in-various-languagestools">API Usage in various languages/tools</a></li><li><a href="#API-Change-history">API Change history</a><ul><li><a href="#2012-01-29-Multiselect-custom-fields-r8721-140">2012-01-29: Multiselect custom fields (r8721, 1.4.0)</a></li></ul></li></ul></li></ul>
+
+
+	<a name="Redmine-API"></a>
+<h1 >Redmine API<a href="#Redmine-API" class="wiki-anchor">&para;</a></h1>
+
+
+	<p>Redmine exposes some of its data through a REST API. This API provides access and basic CRUD operations (create, update, delete) for the resources described below. The API supports both <a href="http://en.wikipedia.org/wiki/Xml" class="external">XML</a> and <a href="http://en.wikipedia.org/wiki/JSON" class="external">JSON</a> formats.</p>
+
+
+	<a name="API-Description"></a>
+<h2 >API Description<a href="#API-Description" class="wiki-anchor">&para;</a></h2>
+
+
+	<table>
+		<tr>
+			<th>Resource                     </th>
+			<th>Status     </th>
+			<th>Notes  </th>
+			<th>Availability</th>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Issues">Issues</a>         </td>
+			<td> Stable        </td>
+			<td>  </td>
+			<td> 1.0 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Projects">Projects</a>     </td>
+			<td> Stable        </td>
+			<td>   </td>
+			<td> 1.0 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Memberships">Project Memberships</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 1.4 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Users">Users</a>           </td>
+			<td> Stable </td>
+			<td> </td>
+			<td> 1.1 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_TimeEntries">Time Entries</a>           </td>
+			<td> Stable </td>
+			<td> </td>
+			<td> 1.1 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_News">News</a>             </td>
+			<td> Prototype </td>
+			<td> Prototype implementation for <code>index</code> only </td>
+			<td> 1.1 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_IssueRelations">Issue Relations</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 1.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Versions">Versions</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 1.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_WikiPages">Wiki Pages</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 2.2 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Queries">Queries</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 1.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Attachments">Attachments</a>  </td>
+			<td> Beta </td>
+			<td> Adding attachments via the API added in 1.4 </td>
+			<td> 1.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_IssueStatuses">Issue Statuses</a>  </td>
+			<td> Alpha </td>
+			<td> Provides the list of all statuses </td>
+			<td> 1.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Trackers">Trackers</a>  </td>
+			<td> Alpha </td>
+			<td> Provides the list of all trackers </td>
+			<td> 1.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Enumerations">Enumerations</a>  </td>
+			<td> Alpha </td>
+			<td> Provides the list of issue priorities and time tracking activities </td>
+			<td> 2.2 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_IssueCategories">Issue Categories</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 1.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Roles">Roles</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 1.4 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Groups">Groups</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 2.1 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_CustomFields">Custom Fields</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 2.4 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Search">Search</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 3.3 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_Files">Files</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 3.4 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page" href="/projects/redmine/wiki/Rest_MyAccount">My account</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 4.1 </td>
+		</tr>
+		<tr>
+			<td><a class="wiki-page new" href="/projects/redmine/wiki/Rest_Journals?parent=Rest_api">Journals</a>  </td>
+			<td> Alpha </td>
+			<td> </td>
+			<td> 5.0 </td>
+		</tr>
+	</table>
+
+
+
+
+	<p>Status legend:</p>
+
+
+	<ul>
+	<li>Stable - feature complete, no major changes planned</li>
+		<li>Beta - usable for integrations with some bugs or missing minor functionality</li>
+		<li>Alpha - major functionality in place, needs feedback from API users and integrators</li>
+		<li>Prototype - very rough implementation, possible major breaking changes mid-version. <strong>Not recommended for integration</strong></li>
+		<li>Planned - planned in a future version, depending on developer availability</li>
+	</ul>
+
+
+	<p>You can review the list of all the <a href="/projects/redmine/issues?set_filter=1&#38;status_id=c&#38;fixed_version_id=*&#38;category_id=32&#38;c[]=tracker&#38;c[]=subject&#38;c[]=author&#38;group_by=fixed_version&#38;sort=fixed_version:desc,id">API changes for each version</a>.</p>
+
+
+	<a name="General-topics"></a>
+<h2 >General topics<a href="#General-topics" class="wiki-anchor">&para;</a></h2>
+
+
+	<a name="Specify-Content-Type-on-POSTPUT-requests"></a>
+<h3 >Specify <code>Content-Type</code> on <code>POST</code>/<code>PUT</code> requests<a href="#Specify-Content-Type-on-POSTPUT-requests" class="wiki-anchor">&para;</a></h3>
+
+
+When creating or updating a remote element, the <code>Content-Type</code> of the request <strong>MUST</strong> be specified even if the remote URL is suffixed accordingly (e.g. <code>POST ../issues.json</code>):
+	<ul>
+	<li>for JSON content, it must be set to <code>Content-Type: application/json</code>.</li>
+		<li>for XML content, to <code>Content-Type: application/xml</code>.</li>
+	</ul>
+
+
+	<a name="Authentication"></a>
+<h3 >Authentication<a href="#Authentication" class="wiki-anchor">&para;</a></h3>
+
+
+Most of the time, the API requires authentication. To enable the API-style authentication, you have to check <strong>Enable REST API</strong> in Administration -> Settings -> API. Then, authentication can be done in 2 different ways:
+	<ul>
+	<li>using your regular login/password via HTTP Basic authentication.</li>
+		<li>using your API key which is a handy way to avoid putting a password in a script. The API key may be attached to each request in one of the following way:
+	<ul>
+	<li>passed in as a "key" parameter</li>
+		<li>passed in as a username with a random password via HTTP Basic authentication</li>
+		<li>passed in as a "X-Redmine-API-Key" HTTP header (added in Redmine 1.1.0)</li>
+	</ul></li>
+	</ul>
+
+
+	<p>You can find your API key on your account page ( /my/account ) when logged in, on the right-hand pane of the default layout.</p>
+
+
+	<a name="User-Impersonation"></a>
+<h3 >User Impersonation<a href="#User-Impersonation" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>As of Redmine 2.2.0, you can impersonate user through the REST API by setting the <code>X-Redmine-Switch-User</code> header of your API request. It must be set to a user login (eg. <code>X-Redmine-Switch-User: jsmith</code>). This only works when using the API with an administrator account, this header will be ignored when using the API with a regular user account.</p>
+
+
+	<p>If the login specified with the <code>X-Redmine-Switch-User</code> header does not exist or is not active, you will receive a 412 error response.</p>
+
+
+	<a name="Collection-resources-and-pagination"></a>
+<h3 >Collection resources and pagination<a href="#Collection-resources-and-pagination" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>The response to a GET request on a collection resources (eg. <code>/issues.xml</code>, <code>/users.xml</code>) generally won't return all the objects available in your database. Redmine <a class="version" href="/versions/20">1.1.0</a> introduces a common way to query such resources using the following parameters:</p>
+
+
+	<ul>
+	<li><code>offset</code>: the offset of the first object to retrieve</li>
+		<li><code>limit</code>: the number of items to be present in the response (default is 25, maximum is 100)</li>
+	</ul>
+
+
+	<p>Examples:</p>
+
+
+<pre>
+GET /issues.xml
+=&gt; returns the 25 first issues
+
+GET /issues.xml?limit=100
+=&gt; returns the 100 first issues
+
+GET /issues.xml?offset=30&#38;limit=10
+=&gt; returns 10 issues from the 30th
+</pre>
+
+	<p>Responses to GET requests on collection resources provide information about the total object count available in Redmine and the offset/limit used for the response. Examples:</p>
+
+
+<pre>
+GET /issues.xml
+
+&lt;issues type="array" total_count="2595" limit="25" offset="0"&gt;
+  ...
+&lt;/issues&gt;
+</pre>
+
+<pre>
+GET /issues.json
+
+{ "issues":[...], "total_count":2595, "limit":25, "offset":0 }
+</pre>
+
+	<p>Note: if you're using a REST client that does not support such top level attributes (total_count, limit, offset), you can set the <code>nometa</code> parameter or <code>X-Redmine-Nometa</code> HTTP header to 1 to get responses without them. Example:</p>
+
+
+<pre>
+GET /issues.xml?nometa=1
+
+&lt;issues type="array"&gt;
+  ...
+&lt;/issues&gt;
+</pre>
+
+	<a name="Fetching-associated-data"></a>
+<h3 >Fetching associated data<a href="#Fetching-associated-data" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>Since of <a class="version" href="/versions/20">1.1.0</a>, you have to explicitly specify the associations you want to be included in the query result by appending the <code>include</code> parameter to the query url :</p>
+
+
+	<p>Example:</p>
+
+
+	<p>To retrieve issue journals with its description:</p>
+
+
+<pre>
+GET /issues/296.xml?include=journals
+
+&lt;issue&gt;
+  &lt;id&gt;296&lt;/id&gt;
+  ...
+  &lt;journals type="array"&gt;
+  ...
+  &lt;/journals&gt;
+&lt;/issue&gt;
+</pre>
+
+	<p>You can also load multiple associations using a comma separated list of items.</p>
+
+
+	<p>Example:</p>
+
+
+<pre>
+GET /issues/296.xml?include=journals,changesets
+
+&lt;issue&gt;
+  &lt;id&gt;296&lt;/id&gt;
+  ...
+  &lt;journals type="array"&gt;
+  ...
+  &lt;/journals&gt;
+  &lt;changesets type="array"&gt;
+  ...
+  &lt;/changesets&gt;
+&lt;/issue&gt;
+</pre>
+
+	<a name="Working-with-custom-fields"></a>
+<h3 >Working with custom fields<a href="#Working-with-custom-fields" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>Most of the Redmine objects support custom fields. Their values can be found in the <code>custom_fields</code> attributes.</p>
+
+
+	<p>XML Example:</p>
+
+
+<pre>
+GET /issues/296.xml      # an issue with 2 custom fields
+
+&lt;issue&gt;
+  &lt;id&gt;296&lt;/id&gt;
+  ...
+  &lt;custom_fields type="array"&gt;
+    &lt;custom_field name="Affected version" id="1"&gt;
+      &lt;value&gt;1.0.1&lt;/value&gt;
+    &lt;/custom_field&gt;
+    &lt;custom_field name="Resolution" id="2"&gt;
+      &lt;value&gt;Fixed&lt;/value&gt;
+    &lt;/custom_field&gt;
+  &lt;/custom_fields&gt;
+&lt;/issue&gt;
+</pre>
+
+	<p>JSON Example:</p>
+
+
+<pre>
+GET /issues/296.json      # an issue with 2 custom fields
+
+{"issue":
+  {
+    "id":8471,
+    ...
+    "custom_fields":
+      [
+        {"value":"1.0.1","name":"Affected version","id":1},
+        {"value":"Fixed","name":"Resolution","id":2}
+      ]
+  }
+}
+</pre>
+
+	<p>You can also set/change the values of the custom fields when creating/updating an object using the same syntax (except that the custom field name is not required).</p>
+
+
+	<p>XML Example:</p>
+
+
+<pre>
+PUT /issues/296.xml
+
+&lt;issue&gt;
+  &lt;subject&gt;Updating custom fields of an issue&lt;/subject&gt;
+  ...
+  &lt;custom_fields type="array"&gt;
+    &lt;custom_field id="1"&gt;
+      &lt;value&gt;1.0.2&lt;/value&gt;
+    &lt;/custom_field&gt;
+    &lt;custom_field id="2"&gt;
+      &lt;value&gt;Invalid&lt;/value&gt;
+    &lt;/custom_field&gt;
+  &lt;/custom_fields&gt;
+&lt;/issue&gt;
+</pre>
+
+	<p>Note: the <code>type="array"</code> attribute on <code>custom_fields</code> XML tag is strictly required.</p>
+
+
+	<p>JSON Example:</p>
+
+
+<pre>
+PUT /issues/296.json
+
+{"issue":
+  {
+    "subject":"Updating custom fields of an issue",
+    ...
+    "custom_fields":
+      [
+        {"value":"1.0.2","id":1},
+        {"value":"Invalid","id":2}
+      ]
+  }
+}
+</pre>
+
+	<a name="Attaching-files"></a>
+<h3 >Attaching files<a href="#Attaching-files" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>Support for adding attachments through the REST API is added in Redmine <a class="version" href="/versions/40">1.4.0</a>.</p>
+
+
+	<p>First, you need to upload each file with a POST request to <code>/uploads.xml</code> (or <code>/uploads.json</code>). The request body should be the content of the file you want to attach and the <code>Content-Type</code> header must be set to <code>application/octet-stream</code> (otherwise you'll get a <code>406 Not Acceptable</code> response). If the upload succeeds, you get a 201 response that contains a token for your uploaded file.</p>
+
+
+	<p>Then you can use this token to attach your uploaded file to a new or an existing issue.</p>
+
+
+	<p><ins>XML Example</ins></p>
+
+
+	<p>First, upload your file:</p>
+
+
+<pre>
+POST /uploads.xml?filename=image.png
+Content-Type: application/octet-stream
+...
+(request body is the file content)
+
+# 201 response
+&lt;upload&gt;
+  &lt;token&gt;7167.ed1ccdb093229ca1bd0b043618d88743&lt;/token&gt;
+&lt;/upload&gt;
+</pre>
+
+	<p>Then create the issue using the upload token:</p>
+
+
+<pre>
+POST /issues.xml
+&lt;issue&gt;
+  &lt;project_id&gt;1&lt;/project_id&gt;
+  &lt;subject&gt;Creating an issue with a uploaded file&lt;/subject&gt;
+  &lt;uploads type="array"&gt;
+    &lt;upload&gt;
+      &lt;token&gt;7167.ed1ccdb093229ca1bd0b043618d88743&lt;/token&gt;
+      &lt;filename&gt;image.png&lt;/filename&gt;
+      &lt;description&gt;An optional description here&lt;/description&gt;
+      &lt;content_type&gt;image/png&lt;/content_type&gt;
+    &lt;/upload&gt;
+  &lt;/uploads&gt;
+&lt;/issue&gt;
+</pre>
+
+	<p>If you try to upload a file that exceeds the maximum size allowed, you get a 422 response:</p>
+
+
+<pre>
+POST /uploads.xml?filename=image.png
+Content-Type: application/octet-stream
+...
+(request body larger than the maximum size allowed)
+
+# 422 response
+&lt;errors&gt;
+  &lt;error&gt;This file cannot be uploaded because it exceeds the maximum allowed file size (1024000)&lt;/error&gt;
+&lt;/errors&gt;
+</pre>
+
+	<p><ins>JSON Example</ins></p>
+
+
+	<p>First, upload your file:</p>
+
+
+<pre>
+POST /uploads.json?filename=image.png
+Content-Type: application/octet-stream
+...
+(request body is the file content)
+
+# 201 response
+{"upload":{"token":"7167.ed1ccdb093229ca1bd0b043618d88743"}}
+</pre>
+
+	<p>Then create the issue using the upload token:</p>
+
+
+<pre>
+POST /issues.json
+{
+  "issue": {
+    "project_id": "1",
+    "subject": "Creating an issue with a uploaded file",
+    "uploads": [
+      {"token": "7167.ed1ccdb093229ca1bd0b043618d88743", "filename": "image.png", "content_type": "image/png"}
+    ]
+  }
+}
+</pre>
+
+	<p>You can also upload multiple files (by doing multiple POST requests to <code>/uploads.json</code>), then create an issue with multiple attachments:</p>
+
+
+<pre>
+POST /issues.json
+{
+  "issue": {
+    "project_id": "1",
+    "subject": "Creating an issue with a uploaded file",
+    "uploads": [
+      {"token": "7167.ed1ccdb093229ca1bd0b043618d88743", "filename": "image1.png", "content_type": "image/png"},
+      {"token": "7168.d595398bbb104ed3bba0eed666785cc6", "filename": "image2.png", "content_type": "image/png"}
+    ]
+  }
+}
+</pre>
+
+	<a name="Validation-errors"></a>
+<h3 >Validation errors<a href="#Validation-errors" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>When trying to create or update an object with invalid or missing attribute parameters, you will get a <code>422 Unprocessable Entity</code> response. That means that the object could not be created or updated. In such cases, the response body contains the corresponding error messages:</p>
+
+
+	<p><ins>XML Example</ins>:</p>
+
+
+<pre>
+# Request with invalid or missing attributes
+POST /users.xml
+&lt;user&gt;
+  &lt;login&gt;john&lt;/login&gt;
+  &lt;lastname&gt;Smith&lt;/lastname&gt;
+  &lt;mail&gt;john&lt;/mail&gt;
+&lt;/uer&gt;
+
+# 422 response with the error messages in its body
+&lt;errors type="array"&gt;
+  &lt;error&gt;First name can't be blank&lt;/error&gt;
+  &lt;error&gt;Email is invalid&lt;/error&gt;
+&lt;/errors&gt;
+</pre>
+
+	<p><ins>JSON Example</ins>:</p>
+
+
+<pre>
+# Request with invalid or missing attributes
+POST /users.json
+{
+  "user":{
+    "login":"john",
+    "lastname":"Smith",
+    "mail":"john" 
+  }
+}
+
+# 422 response with the error messages in its body
+{
+  "errors":[
+    "First name can't be blank",
+    "Email is invalid" 
+  ]
+}
+</pre>
+
+	<a name="JSONP-Support"></a>
+<h3 >JSONP Support<a href="#JSONP-Support" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>Redmine 2.1.0+ API supports <a href="http://en.wikipedia.org/wiki/JSONP" class="external">JSONP</a> to request data from a Redmine server in a different domain (say, with JQuery). The callback can be passed using the <code>callback</code> or <code>jsonp</code> parameter. As of Redmine 2.3.0, JSONP support is optional and disabled by default, you can enable it by checking <strong>Enable JSONP support</strong> in Administration -> Settings -> API.</p>
+
+
+	<p>Example:</p>
+
+
+<pre>
+GET /issues.json?callback=myHandler
+
+myHandler({"issues":[ ... ]})
+</pre>
+
+	<a name="API-Usage-in-various-languagestools"></a>
+<h2 >API Usage in various languages/tools<a href="#API-Usage-in-various-languagestools" class="wiki-anchor">&para;</a></h2>
+
+
+	<ul>
+	<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_ruby">Ruby</a></li>
+		<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_php">PHP</a></li>
+		<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_python">Python</a></li>
+		<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_perl">Perl</a></li>
+		<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_java">Java</a></li>
+		<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_curl">cURL</a></li>
+		<li><a href="http://drupal.org/project/redmine" title="currently not stable" class="external">Drupal Redmine API module, 2.x branch</a></li>
+		<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_csharp">.NET</a></li>
+		<li><a class="wiki-page" href="/projects/redmine/wiki/Rest_api_with_delphi">Delphi</a></li>
+	</ul>
+
+
+	<a name="API-Change-history"></a>
+<h2 >API Change history<a href="#API-Change-history" class="wiki-anchor">&para;</a></h2>
+
+
+	<p>This section lists changes to the existing API features that may have broken backward compatibility. New features of the API are listed in the <a class="wiki-page" href="#API-Description">API Description</a>.</p>
+
+
+	<a name="2012-01-29-Multiselect-custom-fields-r8721-140"></a>
+<h3 >2012-01-29: Multiselect custom fields (<a class="changeset" title="Adds support for multiselect custom fields (#1189)." href="/projects/redmine/repository/svn/revisions/8721">r8721</a>, <a class="version" href="/versions/40">1.4.0</a>)<a href="#2012-01-29-Multiselect-custom-fields-r8721-140" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>Custom fields with multiple values are now supported in Redmine and may be found in API responses. These custom fields have a <code>multiple=true attribute</code> and their <code>value</code> attribute is an array.</p>
+
+
+	<p>Example:</p>
+
+
+<pre>
+GET /issues/296.json
+
+{"issue":
+  {
+    "id":8471,
+    ...
+    "custom_fields":
+      [
+        {"value":["1.0.1","1.0.2"],"multiple":true,"name":"Affected version","id":1},
+        {"value":"Fixed","name":"Resolution","id":2}
+      ]
+  }
+}
+</pre>
+</div>
+
+
+<fieldset class="collapsible collapsed hide-when-print">
+  <legend onclick="toggleFieldset(this);" class="icon icon-collapsed">Files (0)</legend>
+  <div style="display: none;">
+
+  
+
+</div>
+</fieldset>
+
+<p class="wiki-update-info">
+    Updated by <a class="user active" href="/users/332">Go MAEDA</a> <a title="2022-03-23 15:29" href="/projects/redmine/activity?from=2022-03-23">about 3 years</a> ago
+    · <a href="/projects/redmine/wiki/Rest_api/history">102 revisions</a>
+    <span class="badge badge-status-locked">locked</span>
+</p>
+
+
+
+
+
+        
+        <div style="clear:both;"></div>
+    </div>
+</div>
+<div id="footer">
+    Powered by <a href="https://www.redmine.org/">Redmine</a> &copy; 2006-2023 Jean-Philippe Lang
+</div>
+</div>
+
+<div id="ajax-indicator" style="display:none;"><span>Loading...</span></div>
+<div id="ajax-modal" style="display:none;"></div>
+
+</div>
+</div>
+
+</body>
+</html>

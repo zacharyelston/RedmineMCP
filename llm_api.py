@@ -22,11 +22,19 @@ class LLMAPI:
         Initialize the Claude MCP client
         
         Args:
-            mcp_url (str, optional): The MCP service URL (defaults to localhost:9000)
+            mcp_url (str, optional): The MCP service URL (uses manifest default if not provided)
         """
-        base_url = mcp_url or "http://localhost:9000"
+        # Import here to avoid circular imports
+        from config import get_config
+        
+        # Get MCP URL from the provided arg or from config
+        if not mcp_url:
+            config = get_config()
+            mcp_defaults = config.get('mcp', {})
+            mcp_url = config.get('mcp_url') or mcp_defaults.get('default_url', "http://localhost:9000")
+            
         # Ensure the base URL doesn't end with a slash
-        base_url = base_url.rstrip('/')
+        base_url = mcp_url.rstrip('/')
         self.mcp_url = base_url
         logger.debug(f"Claude MCP client initialized with URL: {self.mcp_url}")
     

@@ -174,6 +174,12 @@ wheels = [
 ]
 
 [[package]]
+name = "flask-blueprint"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c5/38/0fe1153e2b2422788340ac4728ee523ee46c0005d30cf9504c5e9f073222/flask-blueprint-1.3.0.tar.gz", hash = "sha256:deb67594014c7dce1f0741317a942442f2791c1c4950e43c235f518e2dc4ed42", size = 3496 }
+
+[[package]]
 name = "flask-sqlalchemy"
 version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -789,6 +795,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "flask" },
+    { name = "flask-blueprint" },
     { name = "flask-sqlalchemy" },
     { name = "gunicorn" },
     { name = "openai" },
@@ -811,6 +818,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "flask" },
+    { name = "flask-blueprint", specifier = ">=1.3.0" },
     { name = "flask-sqlalchemy" },
     { name = "gunicorn" },
     { name = "openai", specifier = ">=1.69.0" },

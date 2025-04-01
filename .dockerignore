@@ -1,0 +1,51 @@
+# Git files
+.git
+.gitignore
+
+# Editor files
+.vscode
+.idea
+
+# Credentials and environment files
+credentials.yaml
+.env
+*.env
+
+# Python cache files
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+.coverage.*
+htmlcov/
+
+# Logs
+logs/
+*.log
+
+# Development and build files
+.github/
+.replit
+replit.nix
+build/
+dist/
+*.egg-info/
+
+# Documentation and storage
+storage/
+attached_assets/
+
+# Docker specific
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# MCP configuration examples
+claude-desktop-mcp-sample.json
+
+# Don't ignore these crucial files
+!docker-requirements.txt
+!manifest.yaml
+!credentials.yaml.example

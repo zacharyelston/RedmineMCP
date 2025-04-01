@@ -1,0 +1,36 @@
+{
+  "config_version": 1,
+  "mcps": {
+    "redmine": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "REDMINE_API_KEY",
+        "-e",
+        "REDMINE_URL",
+        "redmine-mcp-extension:latest"
+      ],
+      "environment": {
+        "REDMINE_API_KEY": "your-redmine-api-key",
+        "REDMINE_URL": "https://your-redmine-instance.com"
+      }
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "mcp/github"
+      ],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your-github-personal-access-token"
+      }
+    }
+  }
+}

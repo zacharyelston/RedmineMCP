@@ -2,6 +2,7 @@ from app import app
 from utils import update_config_from_credentials
 from mcp import register_mcp
 from routes import register_routes
+from config import get_config
 import logging
 import os
 
@@ -28,5 +29,12 @@ with app.app_context():
     logger.info("MCP integration registered")
 
 if __name__ == "__main__":
-    logger.info("Starting Redmine MCP Extension on port 9000")
-    app.run(host="0.0.0.0", port=9000, debug=True)
+    # Load server configuration from manifest.yaml
+    config = get_config()
+    server_config = config.get('server', {})
+    host = server_config.get('host', '0.0.0.0')
+    port = server_config.get('port', 9000)
+    debug = server_config.get('debug', True)
+    
+    logger.info(f"Starting Redmine MCP Extension on {host}:{port}")
+    app.run(host=host, port=port, debug=debug)

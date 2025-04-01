@@ -64,35 +64,68 @@ def get_config():
     Get the current configuration
     
     Returns:
-        dict: The current configuration
+        dict: The current configuration with values from both credentials.yaml and manifest.yaml
     """
     global _config
     
     if _config is None:
         _config = {}
         credentials = load_credentials()
+        manifest = get_manifest()
         
         if credentials:
             # Copy credentials into config
             _config['redmine_url'] = credentials.get('redmine_url')
             _config['redmine_api_key'] = credentials.get('redmine_api_key')
             
-            # Get MCP URL
+            # Get MCP URL from credentials first, then fall back to manifest
             _config['mcp_url'] = credentials.get('mcp_url')
-                
-            # If MCP URL is missing, set a default port 9000
+            
+            # If MCP URL is missing, use the default from manifest
+            if not _config['mcp_url'] and manifest and 'mcp' in manifest:
+                _config['mcp_url'] = manifest['mcp'].get('default_url')
+                logger.info(f"Using manifest default MCP URL: {_config['mcp_url']}")
+            
+            # If still missing, use hardcoded default as last resort
             if not _config['mcp_url']:
                 _config['mcp_url'] = 'http://localhost:9000'
-                logger.info(f"Using default MCP URL: {_config['mcp_url']}")
+                logger.info(f"Using hardcoded default MCP URL: {_config['mcp_url']}")
                 
             # Kept for backward compatibility
             _config['claude_api_key'] = credentials.get('claude_api_key')
+            
+            # Set the LLM provider from credentials
             _config['llm_provider'] = credentials.get('llm_provider', 'claude-desktop')
-                
-            # Ensure provider is 'claude-desktop'
-            if _config['llm_provider'] != 'claude-desktop':
-                logger.warning("Using 'claude-desktop' as the LLM provider.")
+            
+            # Support 'mock' as a valid provider
+            valid_providers = ['claude-desktop', 'mock']
+            if _config['llm_provider'] not in valid_providers:
+                logger.warning(f"Unsupported LLM provider: {_config['llm_provider']}. Using 'claude-desktop' as default.")
                 _config['llm_provider'] = 'claude-desktop'
+            else:
+                logger.info(f"Using '{_config['llm_provider']}' as the LLM provider.")
+        
+        # Add server configuration from manifest
+        if manifest and 'server' in manifest:
+            _config['server'] = manifest['server']
+        else:
+            # Default server settings if not in manifest
+            _config['server'] = {
+                'host': '0.0.0.0',
+                'port': 9000,
+                'debug': True
+            }
+            
+        # Add redmine default configuration from manifest
+        if manifest and 'redmine' in manifest:
+            _config['redmine_defaults'] = manifest['redmine']
+        else:
+            # Default redmine settings if not in manifest
+            _config['redmine_defaults'] = {
+                'default_host': 'localhost',
+                'default_port': 3000,
+                'default_protocol': 'http'
+            }
     
     return _config
 

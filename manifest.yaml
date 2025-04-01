@@ -5,6 +5,22 @@
 app_name: Redmine MCP Extension
 version: 0.1.0
 
+# Server configuration
+server:
+  host: 0.0.0.0
+  port: 9000
+  debug: true
+
+# Redmine default configuration
+redmine:
+  default_host: localhost
+  default_port: 3000
+  default_protocol: http
+
+# MCP configuration
+mcp:
+  default_url: http://localhost:9000
+
 # Rate limiting
 rate_limit_per_minute: 60
 
