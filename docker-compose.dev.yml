@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  # Redmine service for development testing
+  redmine:
+    image: redmine:6.0-alpine
+    ports:
+      - "3000:3000"
+    environment:
+      - REDMINE_DB_POSTGRES=db
+      - REDMINE_DB_USERNAME=postgres
+      - REDMINE_DB_PASSWORD=password
+      - REDMINE_DB_DATABASE=redmine
+    depends_on:
+      - db
+    volumes:
+      - redmine_files:/usr/src/redmine/files
+      - redmine_plugins:/usr/src/redmine/plugins
+    restart: unless-stopped
+
+  # PostgreSQL database for Redmine
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=redmine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # MCP extension service
+  mcp_extension:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      - REDMINE_URL=http://redmine:3000
+      - REDMINE_API_KEY=GENERATED_API_KEY # This will need to be updated after Redmine setup
+      - LLM_PROVIDER=mock # Use mock provider for testing
+      - MCP_URL=http://mcp_extension:9000
+      - RATE_LIMIT=60
+    depends_on:
+      - redmine
+    volumes:
+      - ./:/app
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  redmine_files:
+  redmine_plugins:
+  postgres_data:

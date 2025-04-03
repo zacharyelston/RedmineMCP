@@ -133,11 +133,17 @@ For future contributions:
    - The Dockerfile was refactored to remove hardcoded REDMINE_API_KEY environment variable
    - Documentation now clearly emphasizes passing sensitive data at runtime
 
-2. **Environment Configuration**
+2. **MCP JSON Communication**
+   - Ensure all logging output is directed to stderr, not stdout, in MCP Docker containers
+   - JSON communication between Claude Desktop and the MCP container happens via stdout
+   - Non-JSON content on stdout can cause JSON parsing errors in the MCP client
+   - The entrypoint script was updated to redirect all logs to stderr using `>&2` and gunicorn's `--log-file -` option
+
+3. **Environment Configuration**
    - Use environment variables for runtime configuration
    - Provide clear examples for integrating with different systems
 
-3. **Build Process**
+4. **Build Process**
    - Simple, reproducible build process with clear documentation
    - Include security notices in build scripts
 

@@ -1,0 +1,95 @@
+name: Test MCP Server
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-mcp-server:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f docker-requirements.txt ]; then pip install -r docker-requirements.txt; fi
+        
+    - name: Create test credentials file
+      run: |
+        cat > credentials.yaml << EOL
+        redmine_url: 'http://test-redmine-instance.local:3000'
+        redmine_api_key: 'test-api-key'
+        llm_provider: 'mock'
+        EOL
+        
+    - name: Start MCP server in background
+      run: |
+        gunicorn --bind 0.0.0.0:9000 --reuse-port --reload main:app &
+        sleep 5
+        
+    - name: Test health endpoint
+      run: |
+        HEALTH_RESPONSE=$(curl -s http://localhost:9000/mcp/health)
+        echo "Health Response: $HEALTH_RESPONSE"
+        if ! echo "$HEALTH_RESPONSE" | grep -q '"status":"healthy"'; then
+          echo "Health check failed!"
+          exit 1
+        fi
+        
+    - name: Test create issue endpoint
+      run: |
+        CREATE_RESPONSE=$(curl -s -X POST http://localhost:9000/mcp/llm/create_issue -H "Content-Type: application/json" -d '{"prompt": "Create a bug issue for testing"}')
+        echo "Create Issue Response: $CREATE_RESPONSE"
+        if ! echo "$CREATE_RESPONSE" | grep -q '"message":"Issue created successfully'; then
+          echo "Create issue test failed!"
+          exit 1
+        fi
+        ISSUE_ID=$(echo "$CREATE_RESPONSE" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
+        echo "ISSUE_ID=$ISSUE_ID" >> $GITHUB_ENV
+        
+    - name: Test update issue endpoint
+      run: |
+        UPDATE_RESPONSE=$(curl -s -X POST http://localhost:9000/mcp/llm/update_issue/${{ env.ISSUE_ID }} -H "Content-Type: application/json" -d '{"prompt": "Change status to In Progress"}')
+        echo "Update Issue Response: $UPDATE_RESPONSE"
+        if ! echo "$UPDATE_RESPONSE" | grep -q '"message":"Issue updated successfully'; then
+          echo "Update issue test failed!"
+          exit 1
+        fi
+        
+    - name: Test analyze issue endpoint
+      run: |
+        ANALYZE_RESPONSE=$(curl -s -X POST http://localhost:9000/mcp/llm/analyze_issue/${{ env.ISSUE_ID }} -H "Content-Type: application/json" -d '{"prompt": "Analyze this issue"}')
+        echo "Analyze Issue Response: $ANALYZE_RESPONSE"
+        if ! echo "$ANALYZE_RESPONSE" | grep -q '"analysis"'; then
+          echo "Analyze issue test failed!"
+          exit 1
+        fi
+        
+    - name: Test MCP capabilities endpoint
+      run: |
+        CAPABILITIES_RESPONSE=$(curl -s http://localhost:9000/mcp/)
+        echo "Capabilities Response: $CAPABILITIES_RESPONSE"
+        if ! echo "$CAPABILITIES_RESPONSE" | grep -q '"capabilities"'; then
+          echo "Capabilities test failed!"
+          exit 1
+        fi
+        
+    - name: Output summary
+      run: |
+        echo "All MCP server tests passed!"
+        echo "The server successfully:"
+        echo "✅ Reported healthy status"
+        echo "✅ Created an issue"
+        echo "✅ Updated the issue"
+        echo "✅ Provided issue analysis"
+        echo "✅ Returned MCP capabilities"
