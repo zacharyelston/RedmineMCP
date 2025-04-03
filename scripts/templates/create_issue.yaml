@@ -1,0 +1,15 @@
+# Template for creating a new issue
+description: New Issue
+method: POST
+endpoint: issues.json
+data:
+  issue:
+    project_id: 1
+    subject: "New Issue Title"
+    description: "Description of the new issue"
+    tracker_id: 2  # Feature
+    # Additional fields can be set here
+    # priority_id: 2
+    # assigned_to_id: 1
+    # status_id: 1
+    # fixed_version_id: 1  # Phase 1

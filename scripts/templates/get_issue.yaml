@@ -1,0 +1,6 @@
+# Template for retrieving a specific issue
+description: Single Issue
+method: GET
+endpoint: issues/{item_id}.json
+# item_id will be replaced with value from command line or template
+item_id: null

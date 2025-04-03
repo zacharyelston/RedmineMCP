@@ -1,0 +1,6 @@
+# Template for retrieving a wiki page
+description: Wiki Page
+method: GET
+endpoint: projects/1/wiki/{page_title}.json
+# page_title will be provided as item_id
+item_id: null

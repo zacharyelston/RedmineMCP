@@ -1,0 +1,11 @@
+# Template for creating or updating a wiki page
+description: Wiki Page
+method: PUT
+endpoint: projects/1/wiki/{page_title}.json
+# page_title will be provided as item_id
+item_id: null
+data:
+  wiki_page:
+    text: "h1. Wiki Page Title\n\nWiki page content goes here.\n\nh2. Section\n\nSection content."
+    comments: "Page created via API"
+    # version: 1  # Optional version number

@@ -1,0 +1,10 @@
+# Template for retrieving issues for a specific project
+description: Project Issues
+method: GET
+endpoint: projects/1/issues.json
+params:
+  limit: 100
+  offset: 0
+  # Additional query parameters can be specified here
+  # status_id: 1  # New issues only
+  # tracker_id: 2  # Features only

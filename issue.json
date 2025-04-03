@@ -1,0 +1,1 @@
+{"issue":{"project_id":1,"subject":"MCP Server Foundation","description":"Set up the core Model Context Protocol server framework including:\n\n- Basic MCP server implementation\n- Authentication system integration\n- Configuration management\n- Logging and error handling\n- Health check endpoints","tracker_id":2,"priority_id":2}}

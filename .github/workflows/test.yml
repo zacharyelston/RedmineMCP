@@ -1,0 +1,81 @@
+name: Redmine-MCP Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      - name: Run unit tests
+        run: |
+          pytest tests/unit --cov=. --cov-report=xml
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    services:
+      redmine:
+        image: redmine:5.1
+        ports:
+          - 3000:3000
+        env:
+          REDMINE_DB_POSTGRES: redmine-postgres
+          REDMINE_DB_USERNAME: postgres
+          REDMINE_DB_PASSWORD: postgres
+      redmine-postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: redmine
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      - name: Set up test config
+        run: |
+          cp credentials.yaml.example credentials.yaml
+          sed -i 's|http://localhost:3000|http://redmine:3000|g' credentials.yaml
+          sed -i 's/redmine_api_key:.*/redmine_api_key: test_api_key/g' credentials.yaml
+          sed -i 's/llm_provider:.*/llm_provider: mock/g' credentials.yaml
+      - name: Run integration tests
+        run: |
+          pytest tests/integration --cov=. --cov-report=xml
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+
+  docker-build-test:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: |
+          docker build -t redmine-mcp-extension:test .
+      - name: Run Docker image tests
+        run: |
+          docker run --rm redmine-mcp-extension:test pytest tests/unit

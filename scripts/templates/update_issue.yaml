@@ -1,0 +1,14 @@
+# Template for updating an existing issue
+description: Issue Update
+method: PUT
+endpoint: issues/{item_id}.json
+# item_id will be replaced with value from command line or template
+item_id: null
+data:
+  issue:
+    # Fields to update
+    # subject: "Updated Title"
+    # description: "Updated description"
+    # status_id: 2  # In Progress
+    # assigned_to_id: 1
+    # notes: "This is a note that will be added to the issue"
