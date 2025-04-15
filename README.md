@@ -2,6 +2,8 @@
 
 A modern integration between Claude AI and Redmine using the Model Context Protocol (MCP).
 
+![claudePrompt](redmine-mcp-server/docs/ex1.jpg)
+
 ## Overview
 
 The Redmine MCP project provides a seamless connection between Claude AI and Redmine project management system. It allows Claude to access and manipulate Redmine data through a TypeScript implementation of the Model Context Protocol.
