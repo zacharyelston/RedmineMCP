@@ -1,0 +1,28 @@
+name: Sync to GitLab
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Push to GitLab
+        env:
+          GITLAB_URL: ${{ secrets.GITLAB_URL }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
+        run: |
+          # Configure Git to use HTTPS with credentials
+          git config --global credential.helper store
+          echo "https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}" > ~/.git-credentials
+          
+          # Add GitLab as a remote and force push
+          git remote add gitlab ${GITLAB_URL}
+          git push --force gitlab HEAD:${GITHUB_REF#refs/heads/}

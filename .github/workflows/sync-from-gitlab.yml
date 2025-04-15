@@ -1,0 +1,60 @@
+name: Sync from GitLab
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Fetch from GitLab and sync
+        env:
+          GITLAB_URL: ${{ secrets.GITLAB_URL }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SYNC_GITHUB_TOKEN }}
+        run: |
+          # Configure Git for the GitHub action
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          
+          # Add GitLab remote with credentials
+          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
+          
+          # Fetch from GitLab
+          git fetch gitlab
+          
+          # Create a branch name based on the date
+          SYNC_BRANCH="sync-from-gitlab-$(date +%Y%m%d-%H%M%S)"
+          
+          # Create branch for the changes
+          git checkout -b ${SYNC_BRANCH}
+          
+          # Get current branch (usually main or master)
+          CURRENT_BRANCH=${GITHUB_REF#refs/heads/}
+          
+          # Merge from GitLab's main branch into our sync branch
+          # Using --allow-unrelated-histories in case repositories have diverged
+          git merge gitlab/${CURRENT_BRANCH} --allow-unrelated-histories -m "Sync from GitLab (${CURRENT_BRANCH})"
+          
+          # Push to GitHub
+          git push origin ${SYNC_BRANCH}
+          
+          # Create Pull Request using GitHub CLI or API
+          # This requires additional secrets or GitHub token permissions
+          curl -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls \
+            -d '{
+              "title": "Sync from GitLab ('"${CURRENT_BRANCH}"')",
+              "body": "Automated sync from GitLab repository.",
+              "head": "'"${SYNC_BRANCH}"'",
+              "base": "'"${CURRENT_BRANCH}"'"
+            }'

@@ -1,0 +1,10 @@
+{
+  "issue": {
+    "project_id": 1,
+    "subject": "Add GitHub Workflows for GitLab Sync",
+    "description": "Implement GitHub Actions workflows to mirror GitLab CI/CD pipeline and sync repositories.\n\n## Requirements\n\n1. Create main CI/CD workflow that mirrors GitLab pipeline\n2. Implement GitHub to GitLab sync workflow\n3. Implement GitLab to GitHub sync workflow\n4. Document the setup and usage\n\n## Implementation\nSee attached file: rmcp-github-workflows.md",
+    "tracker_id": 2,
+    "priority_id": 2,
+    "status_id": 2
+  }
+}

@@ -1,0 +1,438 @@
+metadata:
+  title: "Edit Guidelines"
+  description: |
+    PLEASE READ BEFORE MODIFYING THIS REPOSITORY
+
+    DEVELOPMENT PRACTICES:
+    1. ALWAYS create a new branch before making changes:
+       git checkout -b feature/your-feature-name
+
+    2. Make small, atomic commits with clear messages:
+       git commit -m "fix: resolve ContainerConfig issue in vectorizer"
+
+    3. Follow these commit message prefixes:
+       - feat: (new feature)
+       - fix: (bug fix)
+       - docs: (documentation changes)
+       - style: (formatting, no code change)
+       - refactor: (code change that neither fixes a bug nor adds a feature)
+       - test: (adding or updating tests)
+       - chore: (maintenance tasks)
+
+    4. Create a pull request for code review before merging to main
+
+    5. IMPORTANT: Validate each step works BEFORE moving to the next task
+       - Work slowly and methodically
+       - Test all changes immediately
+       - Document any issues encountered
+
+    NOTE: MCP (ModelContextProtocol) is the protocol used by this toolkit for operation.
+    When using MCP-enabled tools, take extra care to follow these guidelines.
+
+
+title: "ModelContextProtocol (MCP) for redmine-mcp - MVP"
+
+introduction: "This document outlines the basic commands for interacting with the toolkit through the ModelContextProtocol. The toolkit provides utilities for system administration, file manipulation, and Docker operations."
+
+notes:
+  - the comments in this file are for everyone.  use the methods above and below 
+  - always think deeply about the end goal and asks questions to gain clarity
+  - design, then design again, then ask for feedback, then design again
+  - always work in the project directory you were given.  working outside of it is a bad idea.
+  - if things are not going well, stop and think about why you are doing what you are doing.  
+  - we want to stay on task - so we try to design as much as possible before we start coding.
+  - comments in code are great.  tests are even better.  
+  - AND we want to make sure we are not just writing tests for the sake of writing tests. 
+  - tests should run in pipelines 
+
+required_tools:
+  desktop_commander:
+    - name: "read_file"
+      description: "Read the contents of a file from the file system"
+      usage: "Used to examine configuration files and data"
+    - name: "write_file"
+      description: "Write content to a file on the file system"
+      usage: "Used to create or update configuration files and scripts"
+    - name: "list_directory"
+      description: "Get a listing of files and directories"
+      usage: "Used to explore directory structures"
+    - name: "create_directory"
+      description: "Create a new directory"
+      usage: "Used to set up directory structures for projects"
+    - name: "execute_command"
+      description: "Execute a single shell command with arguments"
+      usage: "Used for simple command execution"
+    - name: "execute_full_command"
+      description: "Execute a complete shell command string"
+      usage: "Used for complex commands with pipes, redirections, etc."
+  file_system_tools:
+    - name: "find"
+      description: "Recursively search for files and directories"
+      usage: "find /path/to/search -type f -not -path '*/\\.*' # Find all non-hidden files"
+      example: "find rmcp -type f -not -path '*/\\.*' # Find all non-hidden files in RMCP directory"
+    - name: "grep"
+      description: "Search for patterns in files"
+      usage: "grep -r 'pattern' /path/to/search # Recursively search for pattern"
+    - name: "ls"
+      description: "List directory contents"
+      usage: "ls -la /path/to/directory # List all files with details"
+  docker_management:
+    - name: "docker-compose"
+      description: "Docker Compose for multi-container applications"
+      usage: "Used to define and run multi-container Docker applications"
+    - name: "dockerd"
+      description: "Docker daemon"
+      usage: "Core Docker service that manages containers"
+    - name: "docker-desktop"
+      description: "Docker Desktop application"
+      usage: "GUI for managing Docker resources and settings"
+  development_tools:
+    - name: "git"
+      description: "Git version control system"
+      usage: "Used for source code management"
+    - name: "python"
+      description: "Python interpreter"
+      usage: "Used for running Python scripts and applications"
+    - name: "pip"
+      description: "Python package installer"
+      usage: "Used for installing Python dependencies"
+
+mcp_command_structure:
+  format: |
+    [MCP]
+    Command: rmcp.<module>.<action>
+    Parameters:
+      <parameter1>: <value1>
+      <parameter2>: <value2>
+    [/MCP]
+
+basic_command_examples:
+  redmine:
+    list_projects:
+      command: "redmine_projects_list"
+      parameters:
+        limit: 10
+        offset: 0
+        sort: "name:asc"
+      actual_script: "redmcp-typescript/src/index.ts"
+    get_project:
+      command: "redmine_projects_get"
+      parameters:
+        identifier: "mcp-project"
+        include: ["trackers", "issue_categories"]
+      actual_script: "redmcp-typescript/src/index.ts"
+    list_issues:
+      command: "redmine_issues_list"
+      parameters:
+        project_id: "mcp-project"
+        limit: 10
+        sort: "updated_on:desc"
+      actual_script: "redmcp-typescript/src/index.ts"
+    create_issue:
+      command: "redmine_issues_create"
+      parameters:
+        project_id: 1
+        subject: "New Feature Request"
+        description: "Implement feature X to improve workflow"
+        tracker_id: 2
+        priority_id: 2
+      actual_script: "redmcp-typescript/src/index.ts"
+    update_issue:
+      command: "redmine_issues_update"
+      parameters:
+        issue_id: 1
+        subject: "Updated Feature Request"
+        priority_id: 3
+      actual_script: "redmcp-typescript/src/index.ts"
+
+available_mcp_tools:
+    system_tools:
+    - name: "execute_command"
+      description: "Execute a whitelisted shell command"
+    - name: "get_whitelist"
+      description: "Retrieve the list of whitelisted commands"
+    - name: "add_to_whitelist"
+      description: "Add a command to the whitelist"
+    - name: "update_security_level"
+      description: "Update a command's security level"
+    - name: "remove_from_whitelist"
+      description: "Remove a command from the whitelist"
+    - name: "get_pending_commands"
+      description: "List commands pending approval"
+    - name: "approve_command"
+      description: "Approve a pending command"
+    - name: "deny_command"
+      description: "Deny a pending command"
+    
+    redmine_tools:
+    - name: "redmine_projects_list"
+      description: "List all accessible Redmine projects"
+      parameters:
+        - name: "limit"
+          description: "Number of projects to return (default: 25)"
+          required: false
+        - name: "offset"
+          description: "Pagination offset (default: 0)"
+          required: false
+        - name: "sort"
+          description: "Field to sort by with direction (default: name:asc)"
+          required: false
+    
+    - name: "redmine_projects_get"
+      description: "Get details of a specific Redmine project"
+      parameters:
+        - name: "identifier"
+          description: "Project identifier"
+          required: true
+        - name: "include"
+          description: "Related data to include (e.g. trackers, issue_categories)"
+          required: false
+    
+    - name: "redmine_issues_list"
+      description: "List issues with optional filtering"
+      parameters:
+        - name: "project_id"
+          description: "Filter by project identifier"
+          required: false
+        - name: "status_id"
+          description: "Filter by status"
+          required: false
+        - name: "tracker_id"
+          description: "Filter by tracker"
+          required: false
+        - name: "limit"
+          description: "Number of issues to return (default: 25)"
+          required: false
+        - name: "offset"
+          description: "Pagination offset (default: 0)"
+          required: false
+        - name: "sort"
+          description: "Field to sort by with direction (default: updated_on:desc)"
+          required: false
+    
+    - name: "redmine_issues_get"
+      description: "Get details of a specific issue"
+      parameters:
+        - name: "issue_id"
+          description: "Issue ID"
+          required: true
+        - name: "include"
+          description: "Related data to include"
+          required: false
+    
+    - name: "redmine_issues_create"
+      description: "Create a new issue"
+      parameters:
+        - name: "project_id"
+          description: "Project ID"
+          required: true
+        - name: "subject"
+          description: "Issue subject"
+          required: true
+        - name: "description"
+          description: "Issue description"
+          required: false
+        - name: "tracker_id"
+          description: "Tracker ID"
+          required: false
+        - name: "status_id"
+          description: "Status ID"
+          required: false
+        - name: "priority_id"
+          description: "Priority ID (required in practice)"
+          required: true
+        - name: "assigned_to_id"
+          description: "Assignee ID"
+          required: false
+    
+    - name: "redmine_issues_update"
+      description: "Update an existing issue"
+      parameters:
+        - name: "issue_id"
+          description: "Issue ID"
+          required: true
+        - name: "subject"
+          description: "New issue subject"
+          required: false
+        - name: "description"
+          description: "New issue description"
+          required: false
+        - name: "status_id"
+          description: "New status ID"
+          required: false
+        - name: "priority_id"
+          description: "New priority ID"
+          required: false
+        - name: "assigned_to_id"
+          description: "New assignee ID"
+          required: false
+    
+    - name: "redmine_users_current"
+      description: "Get information about the current user"
+      parameters: []
+node_path: /Users/zacelston/.nvm/versions/node/v22.14.0/bin/node 
+
+command_whitelist:
+  description: "For security purposes?"
+  required_whitelist_entries:
+    basic_system_commands:
+      - command: "ls"
+        description: "List directory contents"
+      - command: "pwd"
+        description: "Print working directory"
+      - command: "echo"
+        description: "Print text to standard output"
+      - command: "cat"
+        description: "Concatenate and print files"
+      - command: "cd"
+        description: "Change directory"
+    redmine_mcp_tools:
+      - command: "redmine_projects_list"
+        description: "List all accessible Redmine projects"
+      - command: "redmine_projects_get"
+        description: "Get details of a specific Redmine project"
+      - command: "redmine_issues_list"
+        description: "List issues with optional filtering"
+      - command: "redmine_issues_get"
+        description: "Get details of a specific issue"
+      - command: "redmine_issues_create"
+        description: "Create a new issue"
+      - command: "redmine_issues_update"
+        description: "Update an existing issue"
+      - command: "redmine_users_current"
+        description: "Get information about the current user"
+    file_manipulation_commands:
+      - command: "mkdir -p"
+        description: "Create directories with parent directories"
+      - command: "cp -r"
+        description: "Copy directories recursively"
+      - command: "touch"
+        description: "Create empty files"
+      - command: "mv"
+        description: "Move files and directories"
+      - command: "find"
+        description: "Search for files and directories recursively"
+        example: "find rmcp -type f -not -path '*/\\.*'"
+    git_commands:
+      - command: "git init"
+        description: "Initialize git repository"
+      - command: "git add"
+        description: "Add files to git staging"
+      - command: "git commit"
+        description: "Commit changes to git"
+      - command: "git push"
+        description: "Push changes to remote repository"
+      - command: "git pull"
+        description: "Pull changes from remote repository"
+      - command: "git clone"
+        description: "Clone a repository"
+      - command: "git checkout"
+        description: "Switch branches"
+      - command: "git branch"
+        description: "List or create branches"
+    nodejs_commands:
+      - command: "npm install"
+        description: "Install Node.js dependencies"
+      - command: "npm start"
+        description: "Start the application"
+      - command: "npm run build"
+        description: "Build the application"
+      - command: "node"
+        description: "Execute Node.js code"
+    docker_commands:
+      - command: "docker-compose up"
+        description: "Start Docker containers"
+      - command: "docker-compose down"
+        description: "Stop Docker containers"
+      - command: "docker build"
+        description: "Build Docker images"
+      - command: "docker run"
+        description: "Run Docker containers"
+      - command: "docker ps"
+        description: "List running containers"
+      - command: "docker rm"
+        description: "Remove containers"
+      - command: "docker rmi"
+        description: "Remove images"
+      - command: "docker stop"
+        description: "Stop containers"
+      - command: "docker network"
+        description: "Manage Docker networks"
+      - command: "docker volume"
+        description: "Manage Docker volumes"
+    utility_commands:
+      - command: "curl"
+        description: "Transfer data with URLs"
+      - command: "grep"
+        description: "Search for patterns in files"
+      - command: "find"
+        description: "Search for files"
+        example: "find rmcp -type f -not -path '*/\\.*' # Find all non-hidden files"
+      - command: "tar"
+        description: "Create tar archives"
+      - command: "gzip"
+        description: "Compress files"
+      - command: "awk"
+        description: "Pattern scanning and processing language"
+      - command: "sed"
+        description: "Stream editor for filtering/transforming text"
+  
+  security_levels:
+    - level: "safe"
+      description: "Commands that are safe to execute without additional review"
+    - level: "requires_approval"
+      description: "Commands that require review before execution"
+    - level: "forbidden"
+      description: "Commands that should never be executed"
+  
+  example_whitelist_addition:
+    command: "add_to_whitelist"
+    parameters:
+      command: "find"
+      description: "Search for files and directories recursively"
+      securityLevel: "safe"
+      example: "find rmcp -type f -not -path '*/\\.*'"
+
+best_practices:
+  - name: "Work on One Task at a Time"
+    description: "Complete and validate each task before moving to the next"
+  - name: "Validate builds & Results"
+    description: "Always check that operations completed"
+  - name: "Clean Up Resources"
+    description: "Remove temporary files and Docker resources when done"
+  - name: "Command Safety"
+    description: "Use safe commands when possible, and request approval for potentially dangerous operations"
+  - name: "Error Handling"
+    description: "Properly handle and report errors in executed commands"
+  - name: "Careful Cleanup"
+    description: "Be careful when using commands that can remove files or Docker resources"
+  - name: "File Organization"
+    description: "Do NOT create issue-specific directories (fixes/issue-XX). Store issue-related files directly in appropriate locations with descriptive filenames that include the issue number."
+
+mcp_best_practices:
+  - name: "MCP stands for ModelContextProtocol"
+    description: "Always remember what MCP means"
+  - name: "Work Methodically"
+    description: "Focus on one task at a time and validate before moving on"
+  - name: "Ask Before New Tasks"
+    description: "Always ask if a new task is needed before starting it"
+  - name: "Show Your Work"
+    description: "Demonstrate careful execution by showing the validation of each step"
+  - name: "Slower Execution is Better"
+    description: "Taking time to be careful is better than making mistakes"
+  - name: "Proper File Organization"
+    description: "Never create issue-specific directories like fixes/issue-XX. Add implementation details as notes directly to the Redmine issue whenever possible. For any necessary files, store them directly with descriptive names including issue numbers."
+
+security_considerations:
+  - name: "Directory Access"
+    description: "Be careful when accessing system directories"
+  - name: "Command Whitelisting"
+    description: "Only use whitelisted commands for security"
+  - name: "Docker Safety"
+    description: "Be careful when managing Docker resources to avoid disrupting the system"
+  - name: "Cleanup Operations"
+    description: "Be extra careful with cleanup operations that remove files or resources"
+  - name: "Temporary Files"
+    description: "Properly manage temporary files and directories"
+  - name: "Permissions"
+    description: "The RMCP toolkit operates with the permissions of the executing user, so be careful when executing commands that could modify system resources"

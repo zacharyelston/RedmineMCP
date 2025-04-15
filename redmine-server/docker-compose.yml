@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: redmine-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-redmine}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-redmine_password}
+      POSTGRES_DB: ${POSTGRES_DB:-redmine}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/pgdata
+      # Map SQL migrations directory for Flyway
+      - ./sql/migrations:/docker-entrypoint-initdb.d/migrations
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-redmine}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - redmine-network
+    restart: unless-stopped
+
+  # Redmine Application
+  redmine:
+    image: redmine:5.0-alpine
+    container_name: redmine-app
+    depends_on:
+      - postgres
+    environment:
+      REDMINE_DB_POSTGRES: postgres
+      REDMINE_DB_DATABASE: ${POSTGRES_DB:-redmine}
+      REDMINE_DB_USERNAME: ${POSTGRES_USER:-redmine}
+      REDMINE_DB_PASSWORD: ${POSTGRES_PASSWORD:-redmine_password}
+      REDMINE_SECRET_KEY_BASE: ${REDMINE_SECRET_KEY_BASE:-c8219c3a7a1a3e5d41f4a16d8276c2e518433a855dbe385d4c610681202d3429c71e6152da8ad6fbd9d5a3fa3318c7f52c2f4c3c960a9b14e5f66f31fe9828b3}
+    ports:
+      - "${REDMINE_PORT:-3000}:3000"
+    volumes:
+      - redmine-files:/usr/src/redmine/files
+      - redmine-plugins:/usr/src/redmine/plugins
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - redmine-network
+    restart: unless-stopped
+
+  # Flyway for database migrations
+  flyway:
+    image: flyway/flyway:9-alpine
+    container_name: redmine-flyway
+    depends_on:
+      - postgres
+    volumes:
+      - ./sql/migrations:/flyway/sql
+      - ./sql/callbacks:/flyway/callbacks
+      - ./flyway.conf:/flyway/conf/flyway.conf
+    command: -configFiles=/flyway/conf/flyway.conf migrate
+    networks:
+      - redmine-network
+
+volumes:
+  postgres-data:
+  redmine-files:
+  redmine-plugins:
+
+networks:
+  redmine-network:
+    driver: bridge

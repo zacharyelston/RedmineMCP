@@ -1,0 +1,139 @@
+name: Redmine MCP CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: redmcp-typescript/package-lock.json
+      - name: Install dependencies
+        run: |
+          cd redmcp-typescript
+          npm ci
+          npm install yaml
+          npm install --save-dev @types/jest
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: redmcp-typescript/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('redmcp-typescript/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+  lint:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: redmcp-typescript/package-lock.json
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: redmcp-typescript/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('redmcp-typescript/package-lock.json') }}
+      - name: Run linting
+        run: |
+          cd redmcp-typescript
+          npm run lint || echo "Linting issues found, but continuing build"
+        continue-on-error: true
+
+  build:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: redmcp-typescript/package-lock.json
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: redmcp-typescript/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('redmcp-typescript/package-lock.json') }}
+      - name: Build
+        run: |
+          cd redmcp-typescript
+          npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: redmcp-typescript/build/
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: redmcp-typescript/package-lock.json
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: redmcp-typescript/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('redmcp-typescript/package-lock.json') }}
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: redmcp-typescript/build/
+      - name: Run tests
+        run: |
+          cd redmcp-typescript
+          npm test
+
+  test-subproject-creation:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: redmcp-typescript/package-lock.json
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: redmcp-typescript/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('redmcp-typescript/package-lock.json') }}
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: redmcp-typescript/build/
+      - name: Install ts-node globally
+        run: npm i -g ts-node
+      - name: Run subproject creation test
+        run: |
+          cd redmcp-typescript
+          cp -r ../fixes/subproject-test.ts ./src/tests/
+          ts-node src/tests/subproject-test.ts
+        continue-on-error: true

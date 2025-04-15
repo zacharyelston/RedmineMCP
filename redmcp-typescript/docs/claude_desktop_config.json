@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "redmine": {
+      "command": "node",
+      "args": ["/redmine-mcp/redmcp-typescript/build/index.js"],
+      "env": {
+        "REDMINE_URL": "http://localhost:3000",
+        "REDMINE_API_KEY": "7a4ed5c91b405d30fda60909dbc86c2651c38217",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

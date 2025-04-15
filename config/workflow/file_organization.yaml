@@ -1,0 +1,67 @@
+### File Organization Configuration ###
+# This file defines rules for organizing files within the redmine-mcp project
+# Version: 1.0.0
+# Last Updated: 2025-04-15
+
+# FILE ORGANIZATION RULES
+file_organization:
+  # DISABLE issue-specific directories in the fixes folder
+  issue_directories:
+    enabled: false  # Set to false to disable creation of issue-specific directories
+    notes: >
+      Creating individual issue directories (fixes/issue-XX) has been disabled
+      per project requirements. All issue-related files should be organized 
+      according to the alternative structure defined below.
+  
+  # ALTERNATIVE ORGANIZATION STRUCTURE
+  alternative_structure:
+    implementation_plans:
+      path: "docs/implementation-plans"
+      format: "implementation-plan-issue-{issue_number}.md"
+      description: "Store implementation plans in the docs directory with standardized naming"
+    
+    implementation_summaries:
+      path: "docs/implementation-summaries"  
+      format: "implementation-summary-issue-{issue_number}.md"
+      description: "Store implementation summaries in the docs directory with standardized naming"
+    
+    pr_descriptions:
+      path: "docs/pr-descriptions"
+      format: "pr-description-issue-{issue_number}.md"
+      description: "Store PR descriptions in the docs directory with standardized naming"
+    
+    status_reports:
+      path: "docs/status-reports"
+      format: "status-report-issue-{issue_number}.md"
+      description: "Store status reports in the docs directory with standardized naming"
+    
+    issue_tracking:
+      path: "docs/issues"
+      format: "issue-{issue_number}-{status}.md"
+      description: "Track issue status in the docs/issues directory"
+
+# WORKFLOW GUIDELINES
+workflow_guidelines:
+  - "Always reference issue numbers in commit messages using the format 'Issue #XX: Description'"
+  - "Store all documentation according to the alternative structure defined above"
+  - "Do not create issue-specific directories in the fixes folder"
+  - "Always validate file location before creating new files"
+  - "When updating an issue's status, update the corresponding file in docs/issues"
+  - "Commit all related files together with a clear message referencing the issue number"
+
+# MIGRATION GUIDELINES
+migration_guidelines:
+  - "Existing issue directories should remain intact to maintain project history"
+  - "New issues should follow the alternative structure defined above"
+  - "When updating an existing issue, add new files according to the new structure"
+  - "Eventually, old issue directories can be archived or refactored according to the new structure"
+
+# IMPLEMENTATION NOTES
+implementation_notes: >
+  This configuration is designed to prevent the creation of issue-specific directories
+  while maintaining a clean, organized project structure. The alternative structure
+  organizes files by type rather than by issue, making it easier to find specific types
+  of documentation.
+  
+  By disabling issue-specific directories, we reduce clutter and unnecessary directory creation
+  while ensuring all files are organized in a logical, consistent manner.

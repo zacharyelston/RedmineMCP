@@ -1,0 +1,71 @@
+version: 1.0.0
+updated: 2025-04-15T22:30:00.000Z
+tasks:
+  - id: 1
+    title: "Add GitHub Workflows for GitLab Sync"
+    description: "Implement GitHub Actions workflows to mirror GitLab CI/CD pipeline and enable bi-directional sync"
+    status: "completed"
+    created_at: 2025-04-15T22:15:00.000Z
+    completed_at: 2025-04-15T22:30:00.000Z
+    priority: "normal"
+    components:
+      - "CI/CD"
+      - "GitHub"
+      - "GitLab"
+    related_issue: "See redmine-issue-github-workflows.json"
+    notes: "Created GitHub workflows for CI/CD that mirror GitLab pipeline and implemented bi-directional sync between GitHub and GitLab repositories"
+errors:
+  - timestamp: 2025-04-15T07:01:39.939Z
+    level: error
+    component: RedmineClient
+    operation: updateIssue
+    error_message: "Failed to update Redmine issue: Request failed with status code 422"
+    stack_trace: ""
+    context:
+      issueId: 105
+      params: {}
+    action: Investigate and fix the issue
+  - timestamp: 2025-04-15T07:01:39.943Z
+    level: error
+    component: MCP Server
+    operation: redmine_issues_update
+    error_message: "Failed to update issue: Failed to update Redmine issue: Request failed with status code 422"
+    stack_trace: >-
+      Error: Failed to update Redmine issue: Request failed with status code 422
+          at RedmineClient.updateIssue (file:///redmine-mcp/redmcp-typescript/build/lib/RedmineClient.js:848:23)
+          at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async file:///redmine-mcp/redmcp-typescript/build/index.js:545:33
+          at async file:///redmine-mcp/redmcp-typescript/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js:73:28
+    context:
+      issue_id: 105
+      updateParams: {}
+  - timestamp: 2025-04-15T18:24:08.682Z
+    level: critical
+    component: MCP Server
+    operation: startup
+    error_message: "Failed to start Redmine MCP server: __dirname is not defined"
+    stack_trace: >-
+      ReferenceError: __dirname is not defined
+          at new BaseRedmineClient (file:///redmine-mcp/redmcp-typescript/build/client/base.js:22:42)
+          at new RedmineClient (file:///redmine-mcp/redmcp-typescript/build/client/index.js:29:27)
+          at main (file:///redmine-mcp/redmcp-typescript/build/index.js:157:35)
+          at file:///redmine-mcp/redmcp-typescript/build/index.js:248:1
+          at ModuleJob.run (node:internal/modules/esm/module_job:271:25)
+          at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:578:26)
+          at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)
+    action: Check server configuration and restart
+  - timestamp: 2025-04-15T21:15:52.486Z
+    level: critical
+    component: MCP Server
+    operation: startup
+    error_message: "Failed to start Redmine MCP server: __dirname is not defined"
+    stack_trace: >-
+      ReferenceError: __dirname is not defined
+          at new BaseRedmineClient (file:///redmine-mcp/redmcp-typescript/build/client/base.js:22:42)
+          at new RedmineClient (file:///redmine-mcp/redmcp-typescript/build/client/index.js:29:27)
+          at main (file:///redmine-mcp/redmcp-typescript/build/index.js:157:35)
+          at file:///redmine-mcp/redmcp-typescript/build/index.js:248:1
+          at ModuleJob.run (node:internal/modules/esm/module_job:271:25)
+          at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:578:26)
+          at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)
+    action: Check server configuration and restart

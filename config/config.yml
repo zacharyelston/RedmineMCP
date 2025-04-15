@@ -1,0 +1,65 @@
+# Redmine MCP Server Configuration
+
+# Default configuration for all environments
+default: &default
+  # Server configuration
+  server:
+    host: 0.0.0.0
+    port: 4000
+    max_threads: 5
+    min_threads: 1
+    workers: 2
+    timeout: 30
+  
+  # MCP protocol configuration
+  mcp:
+    protocol_version: "1.0"
+    max_message_size: 1048576  # 1MB
+    timeout: 30
+    rate_limit: 100  # requests per minute
+  
+  # Redmine API configuration
+  redmine:
+    url: http://redmine:3000
+    api_version: "4.2"
+    timeout: 10
+    
+  # Logging configuration
+  logging:
+    level: info
+    format: json
+
+# Development environment
+development:
+  <<: *default
+  server:
+    host: 0.0.0.0
+    port: 4000
+    max_threads: 1
+    min_threads: 1
+    workers: 1
+    timeout: 60
+  logging:
+    level: debug
+    format: text
+
+# Test environment
+test:
+  <<: *default
+  server:
+    host: 0.0.0.0
+    port: 4001
+    max_threads: 1
+    min_threads: 1
+    workers: 1
+    timeout: 5
+  logging:
+    level: warn
+    format: text
+
+# Production environment
+production:
+  <<: *default
+  logging:
+    level: info
+    format: json
