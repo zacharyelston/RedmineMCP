@@ -2,7 +2,7 @@
 
 A modern integration between Claude AI and Redmine using the Model Context Protocol (MCP).
 
-![claudePrompt](redmine-mcp-server/docs/ex1.jpg)
+![claudePrompt](./docs/ex1.jpg)
 
 ## Overview
 
