@@ -1,6 +1,6 @@
 # Redmine MCP Server - Claude Integration
 
-The Company in a Box.
+[Company in a Box](https://zacharyelston.github.io/RedmineMCP/)
 Designed to breathe. 
 Built to think. 
 Yours to evolve.
