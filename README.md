@@ -1,9 +1,15 @@
 # Redmine MCP Server - Claude Integration
 
-[Company in a Box](https://zacharyelston.github.io/RedmineMCP/)
-Designed to breathe. 
-Built to think. 
-Yours to evolve.
+---
+
+## Welcome to the NASCAR Era of DevOps
+
+- [Company in a Box](https://zacharyelston.github.io/RedmineMCP/)
+- Designed to breathe. 
+- Built to think. 
+- Yours to evolve.
+
+---
 
 An integration between Claude AI (or any MCP client - Like Windsurf) and Redmine using the Model Context Protocol (MCP).
 ![RedmineIssue](./docs/ex2.jpg)
