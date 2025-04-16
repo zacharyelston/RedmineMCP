@@ -1,0 +1,303 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Role Configuration Schema",
+  "description": "Schema for role-based MCP server configuration",
+  "type": "object",
+  "required": ["role", "mcp_server_config"],
+  "properties": {
+    "role": {
+      "type": "object",
+      "required": ["name", "description", "permissions"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the role",
+          "minLength": 2,
+          "maxLength": 30
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the role"
+        },
+        "permissions": {
+          "type": "array",
+          "description": "List of permissions for the role",
+          "items": {
+            "type": "string",
+            "enum": [
+              "view_project",
+              "manage_project",
+              "edit_project",
+              "close_project",
+              "select_project_modules",
+              "manage_members",
+              "create_subprojects",
+              "view_issues",
+              "add_issues",
+              "edit_issues",
+              "delete_issues",
+              "manage_issue_relations",
+              "manage_subtasks",
+              "set_issues_private",
+              "set_own_issues_private",
+              "add_issue_notes",
+              "edit_issue_notes",
+              "edit_own_issue_notes",
+              "view_private_notes",
+              "set_notes_private",
+              "move_issues",
+              "delete_issues",
+              "manage_related_issues",
+              "log_time",
+              "view_time_entries",
+              "edit_time_entries",
+              "edit_own_time_entries",
+              "manage_project_activities",
+              "manage_news",
+              "comment_news",
+              "manage_documents",
+              "view_documents",
+              "manage_files",
+              "view_files",
+              "manage_wiki",
+              "rename_wiki_pages",
+              "delete_wiki_pages",
+              "view_wiki_pages",
+              "export_wiki_pages",
+              "view_wiki_edits",
+              "edit_wiki_pages",
+              "delete_wiki_pages_attachments",
+              "protect_wiki_pages",
+              "manage_repository",
+              "browse_repository",
+              "view_changesets",
+              "commit_access",
+              "manage_boards",
+              "add_messages",
+              "edit_messages",
+              "edit_own_messages",
+              "delete_messages",
+              "delete_own_messages",
+              "view_calendar",
+              "view_gantt",
+              "manage_issue_statuses",
+              "manage_workflow",
+              "add_project",
+              "edit_project",
+              "select_project_modules",
+              "manage_categories",
+              "manage_versions"
+            ]
+          }
+        },
+        "issues_visibility": {
+          "type": "string",
+          "enum": ["all", "default", "own"],
+          "default": "all",
+          "description": "Issue visibility level"
+        },
+        "users_visibility": {
+          "type": "string",
+          "enum": ["all", "members_of_visible_projects"],
+          "default": "all",
+          "description": "User visibility level"
+        },
+        "time_entries_visibility": {
+          "type": "string",
+          "enum": ["all", "own"],
+          "default": "all",
+          "description": "Time entries visibility level"
+        },
+        "custom_fields": {
+          "type": "array",
+          "description": "Custom fields for this role",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the custom field"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["string", "text", "int", "float", "date", "bool", "list", "user", "version", "attachment"],
+                "description": "Type of the custom field"
+              },
+              "possible_values": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Possible values for list type fields"
+              },
+              "default_value": {
+                "description": "Default value for the field"
+              },
+              "is_required": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether the field is required"
+              },
+              "is_filter": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether the field can be used as a filter"
+              },
+              "searchable": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether the field is searchable"
+              },
+              "multiple": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether the field can have multiple values"
+              },
+              "min_length": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Minimum input length for string/text fields"
+              },
+              "max_length": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum input length for string/text fields"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the field purpose"
+              }
+            }
+          }
+        },
+        "behavioral_patterns": {
+          "type": "object",
+          "description": "Behavioral patterns for AI agents with this role",
+          "properties": {
+            "focus_areas": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Areas of focus for this role"
+            },
+            "communication_style": {
+              "type": "object",
+              "description": "Communication style preferences",
+              "properties": {
+                "formality": {
+                  "type": "string",
+                  "description": "Formality level in communication"
+                },
+                "technical_depth": {
+                  "type": "string",
+                  "description": "Technical depth in communication"
+                },
+                "code_examples": {
+                  "type": "string",
+                  "description": "Frequency of code examples"
+                }
+              }
+            },
+            "decision_making": {
+              "type": "object",
+              "description": "Decision-making guidelines",
+              "properties": {
+                "autonomy_level": {
+                  "type": "string",
+                  "description": "Level of autonomy in decision making"
+                },
+                "escalation_threshold": {
+                  "type": "string",
+                  "description": "When to escalate decisions"
+                },
+                "risk_tolerance": {
+                  "type": "string",
+                  "description": "Tolerance for risk in decisions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mcp_server_config": {
+      "type": "object",
+      "required": ["instance_name", "api_key", "available_tools"],
+      "properties": {
+        "instance_name": {
+          "type": "string",
+          "description": "Name of the MCP server instance"
+        },
+        "api_key": {
+          "type": "string",
+          "description": "API key for Redmine authentication"
+        },
+        "port": {
+          "type": "integer",
+          "default": 3001,
+          "description": "Port for the MCP server to listen on"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["development", "testing", "production"],
+          "default": "development",
+          "description": "Environment mode"
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"],
+          "default": "info",
+          "description": "Logging level"
+        },
+        "project_access": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": ["all"],
+              "description": "Access to all projects"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "description": "Access to specific project IDs"
+            },
+            {
+              "type": "object",
+              "required": ["identifiers"],
+              "properties": {
+                "identifiers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Project identifiers to grant access to"
+                }
+              },
+              "description": "Project identifiers-based access"
+            }
+          ],
+          "default": "all",
+          "description": "Project access configuration"
+        },
+        "available_tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "MCP tools available to this role"
+        },
+        "allowed_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Commands allowed for the execute_command tool"
+        }
+      }
+    }
+  }
+}

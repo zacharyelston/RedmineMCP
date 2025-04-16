@@ -1,0 +1,21 @@
+{
+  "name": "redmine-mcp-roles-sync",
+  "version": "1.0.0",
+  "description": "Tools for generating role-based MCP server configurations",
+  "main": "yaml_to_sql.js",
+  "scripts": {
+    "start": "node yaml_to_sql.js",
+    "validate": "node yaml_to_sql.js --validate --config ./samples",
+    "generate": "node yaml_to_sql.js --config ./samples --output ./sql-output",
+    "test": "echo \"No tests implemented yet\" && exit 0"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

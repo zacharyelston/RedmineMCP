@@ -1,0 +1,192 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WorkspacePackage",
+  "description": "Schema for workspace package contents",
+  "type": "object",
+  "required": [
+    "metadata",
+    "tree",
+    "index",
+    "content"
+  ],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Workspace metadata",
+      "required": [
+        "workspaceId",
+        "createdAt",
+        "sourceDirectory",
+        "fileCount",
+        "totalSize"
+      ],
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "Unique identifier for the workspace",
+          "format": "uuid"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Date and time when the workspace was created",
+          "format": "date-time"
+        },
+        "sourceDirectory": {
+          "type": "string",
+          "description": "Original source directory path"
+        },
+        "fileCount": {
+          "type": "integer",
+          "description": "Number of files in the workspace",
+          "minimum": 0
+        },
+        "totalSize": {
+          "type": "integer",
+          "description": "Total size of all files in bytes",
+          "minimum": 0
+        },
+        "customMetadata": {
+          "type": "object",
+          "description": "Optional custom metadata for the workspace"
+        }
+      }
+    },
+    "tree": {
+      "type": "object",
+      "description": "Directory tree structure",
+      "required": [
+        "name",
+        "path",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the file or directory"
+        },
+        "path": {
+          "type": "string",
+          "description": "Path to the file or directory"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the node",
+          "enum": ["file", "directory"]
+        },
+        "size": {
+          "type": "integer",
+          "description": "Size of the file in bytes (for files only)",
+          "minimum": 0
+        },
+        "modified": {
+          "type": "string",
+          "description": "Last modified date and time",
+          "format": "date-time"
+        },
+        "children": {
+          "type": "array",
+          "description": "Child nodes (for directories only)",
+          "items": {
+            "$ref": "#/properties/tree"
+          }
+        }
+      }
+    },
+    "index": {
+      "type": "object",
+      "description": "File index",
+      "required": [
+        "rootDir",
+        "totalSize",
+        "fileCount",
+        "indexedAt",
+        "files"
+      ],
+      "properties": {
+        "rootDir": {
+          "type": "string",
+          "description": "Root directory path"
+        },
+        "totalSize": {
+          "type": "integer",
+          "description": "Total size of all files in bytes",
+          "minimum": 0
+        },
+        "fileCount": {
+          "type": "integer",
+          "description": "Number of files indexed",
+          "minimum": 0
+        },
+        "indexedAt": {
+          "type": "string",
+          "description": "Date and time when the index was created",
+          "format": "date-time"
+        },
+        "files": {
+          "type": "object",
+          "description": "Map of file paths to file metadata",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "path",
+              "relativePath",
+              "size",
+              "modified",
+              "created",
+              "extension",
+              "hash",
+              "type"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Absolute path to the file"
+              },
+              "relativePath": {
+                "type": "string",
+                "description": "Path relative to the root directory"
+              },
+              "size": {
+                "type": "integer",
+                "description": "Size of the file in bytes",
+                "minimum": 0
+              },
+              "modified": {
+                "type": "string",
+                "description": "Last modified date and time",
+                "format": "date-time"
+              },
+              "created": {
+                "type": "string",
+                "description": "Creation date and time",
+                "format": "date-time"
+              },
+              "extension": {
+                "type": "string",
+                "description": "File extension"
+              },
+              "mimeType": {
+                "type": "string",
+                "description": "MIME type of the file"
+              },
+              "hash": {
+                "type": "string",
+                "description": "SHA-256 hash of the file contents"
+              },
+              "type": {
+                "type": "string",
+                "description": "Type of the file",
+                "enum": ["script", "config", "document", "image", "audio", "video", "archive", "other"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "content": {
+      "type": "object",
+      "description": "Directory containing all workspace files",
+      "additionalProperties": true
+    }
+  }
+}
