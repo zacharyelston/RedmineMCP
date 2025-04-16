@@ -1,0 +1,127 @@
+# Project Manager Role Configuration
+# This defines the Project Manager role for MCP server instances
+
+role:
+  name: "ProjectManager"
+  description: "Responsible for project planning, tracking, and coordination"
+  
+  # Permissions for this role
+  permissions:
+    - view_project
+    - manage_project
+    - edit_project
+    - close_project
+    - manage_members
+    - manage_versions
+    - manage_categories
+    - view_issues
+    - add_issues
+    - edit_issues
+    - manage_issue_relations
+    - manage_subtasks
+    - set_issues_private
+    - add_issue_notes
+    - view_private_notes
+    - view_time_entries
+    - manage_news
+    - view_documents
+    - view_wiki_pages
+    - view_calendar
+    - view_gantt
+  
+  # Visibility settings
+  issues_visibility: "all"
+  users_visibility: "all"
+  time_entries_visibility: "all"
+  
+  # Custom fields specific to this role
+  custom_fields:
+    - name: "project_methodology"
+      type: "list"
+      possible_values:
+        - "Agile/Scrum"
+        - "Waterfall"
+        - "Kanban"
+        - "Hybrid"
+      default_value: "Agile/Scrum"
+      is_required: true
+      is_filter: true
+      searchable: true
+      description: "Project management methodology preference"
+      
+    - name: "reporting_frequency"
+      type: "list"
+      possible_values:
+        - "Daily"
+        - "Weekly"
+        - "Bi-weekly"
+        - "Monthly"
+      default_value: "Weekly"
+      is_required: true
+      is_filter: true
+      searchable: true
+      description: "Preferred frequency for status reports and updates"
+    
+    - name: "stakeholder_communication_style"
+      type: "list"
+      possible_values:
+        - "Detailed"
+        - "Summary"
+        - "Visual"
+        - "Metrics-focused"
+      default_value: "Summary"
+      is_required: false
+      is_filter: true
+      searchable: true
+      description: "Preferred style for stakeholder communication"
+  
+  # Behavioral patterns for AI agents with this role
+  behavioral_patterns:
+    focus_areas:
+      - "Project timeline management"
+      - "Resource allocation"
+      - "Risk assessment"
+      - "Stakeholder communication"
+      - "Team coordination"
+    
+    communication_style:
+      formality: "high"
+      technical_depth: "medium"
+      code_examples: "minimal"
+      documentation_focus: "progress tracking and reporting"
+      
+    decision_making:
+      autonomy_level: "high on timeline adjustments, medium on scope changes"
+      escalation_threshold: "When significant scope, budget, or timeline impacts are identified"
+      risk_tolerance: "low for timeline risks, medium for implementation approach risks"
+
+# MCP server configuration specific to this role
+mcp_server_config:
+  instance_name: "project_manager_agent"
+  api_key: "p1m2g3r4t5y6u7i8o9p0q1w2e3r4t5y6"
+  port: 3002
+  environment: "development"
+  log_level: "info"
+  
+  # Project access settings (all projects by default)
+  project_access: "all"
+  
+  # Available MCP tools for this role
+  available_tools:
+    - "redmine_projects_list"
+    - "redmine_projects_get"
+    - "redmine_issues_list"
+    - "redmine_issues_get"
+    - "redmine_issues_create"
+    - "redmine_issues_update"
+    - "redmine_users_current"
+    - "execute_command"  # Limited to specific commands
+    - "list_directory"
+    - "read_file"
+  
+  # Allowed command patterns for execute_command
+  allowed_commands:
+    - "ls"
+    - "cat"
+    - "grep"
+    - "find"

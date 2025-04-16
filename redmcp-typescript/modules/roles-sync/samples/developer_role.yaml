@@ -1,0 +1,144 @@
+# Developer Role Configuration
+# This defines the Developer role for MCP server instances
+
+role:
+  name: "Developer"
+  description: "Technical role focused on code implementation and technical solutions"
+  
+  # Permissions for this role
+  permissions:
+    - view_issues
+    - add_issues
+    - edit_issues
+    - add_issue_notes
+    - view_private_notes
+    - set_issues_private
+    - manage_issue_relations
+    - manage_subtasks
+    - view_roadmap
+    - manage_repository
+    - commit_access
+    - view_calendar
+    - view_gantt
+    - browse_repository
+    - view_changesets
+    - log_time
+    - view_time_entries
+    - edit_own_time_entries
+  
+  # Visibility settings
+  issues_visibility: "all"
+  users_visibility: "all"
+  time_entries_visibility: "all"
+  
+  # Custom fields specific to this role
+  custom_fields:
+    - name: "expertise_areas"
+      type: "list"
+      possible_values:
+        - "Frontend"
+        - "Backend"
+        - "Database"
+        - "DevOps"
+        - "AI/ML"
+      default_value: ""
+      is_required: false
+      is_filter: true
+      searchable: true
+      description: "Areas of technical expertise for this developer"
+      
+    - name: "code_review_focus"
+      type: "list"
+      possible_values:
+        - "Performance"
+        - "Security"
+        - "Maintainability"
+        - "Testability"
+      default_value: "Maintainability"
+      is_required: true
+      is_filter: true
+      searchable: true
+      description: "Primary focus during code reviews"
+    
+    - name: "preferred_languages"
+      type: "list"
+      possible_values:
+        - "JavaScript/TypeScript"
+        - "Python"
+        - "Java"
+        - "C#"
+        - "Ruby"
+        - "Go"
+        - "Rust"
+        - "PHP"
+        - "SQL"
+      default_value: ""
+      multiple: true
+      is_required: false
+      is_filter: true
+      searchable: true
+      description: "Programming languages this developer is proficient in"
+  
+  # Behavioral patterns for AI agents with this role
+  behavioral_patterns:
+    focus_areas:
+      - "Code quality"
+      - "Testing coverage"
+      - "Technical documentation"
+      - "Architecture considerations"
+      - "Performance optimization"
+    
+    communication_style:
+      formality: "medium"
+      technical_depth: "high"
+      code_examples: "frequent"
+      documentation_focus: "implementation details"
+      
+    decision_making:
+      autonomy_level: "high on technical details, medium on architectural decisions"
+      escalation_threshold: "When architectural changes are needed or when requirements are unclear"
+      risk_tolerance: "medium for implementation approaches, low for production changes"
+
+# MCP server configuration specific to this role
+mcp_server_config:
+  instance_name: "developer_agent"
+  api_key: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+  port: 3001
+  environment: "development"
+  log_level: "info"
+  
+  # Project access settings (all projects by default)
+  project_access: "all"
+  # Alternative project access examples:
+  # project_access: [1, 2, 3]  # Specific project IDs
+  # project_access:
+  #   identifiers: ["mcp-project", "bugs", "features"]  # Project identifiers
+  
+  # Available MCP tools for this role
+  available_tools:
+    - "redmine_projects_list"
+    - "redmine_projects_get"
+    - "redmine_issues_list"
+    - "redmine_issues_get"
+    - "redmine_issues_create"
+    - "redmine_issues_update"
+    - "redmine_users_current"
+    - "execute_command"  # Limited to specific commands
+    - "list_directory"
+    - "read_file"
+    - "write_file"
+    - "git_status"
+    - "git_diff"
+  
+  # Allowed command patterns for execute_command
+  allowed_commands:
+    - "git status"
+    - "git diff"
+    - "git log"
+    - "git show"
+    - "npm test"
+    - "npm run lint"
+    - "find"
+    - "grep"
+    - "ls"
+    - "cat"

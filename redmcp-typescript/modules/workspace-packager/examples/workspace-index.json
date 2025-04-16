@@ -1,0 +1,136 @@
+{
+  "rootDir": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager",
+  "totalSize": 60647,
+  "fileCount": 16,
+  "indexedAt": "2025-04-16T13:47:00.000Z",
+  "files": {
+    "lib/tree-generator.ts": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/lib/tree-generator.ts",
+      "relativePath": "lib/tree-generator.ts",
+      "size": 3125,
+      "modified": "2025-04-16T13:20:00.000Z",
+      "created": "2025-04-16T13:20:00.000Z",
+      "extension": ".ts",
+      "mimeType": "application/typescript",
+      "hash": "f8c3a4d5b6e7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3",
+      "type": "script"
+    },
+    "lib/file-indexer.ts": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/lib/file-indexer.ts",
+      "relativePath": "lib/file-indexer.ts",
+      "size": 6784,
+      "modified": "2025-04-16T13:22:00.000Z",
+      "created": "2025-04-16T13:22:00.000Z",
+      "extension": ".ts",
+      "mimeType": "application/typescript",
+      "hash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "type": "script"
+    },
+    "lib/packager.ts": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/lib/packager.ts",
+      "relativePath": "lib/packager.ts",
+      "size": 7210,
+      "modified": "2025-04-16T13:24:00.000Z",
+      "created": "2025-04-16T13:24:00.000Z",
+      "extension": ".ts",
+      "mimeType": "application/typescript",
+      "hash": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+      "type": "script"
+    },
+    "lib/workspace-loader.ts": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/lib/workspace-loader.ts",
+      "relativePath": "lib/workspace-loader.ts",
+      "size": 8356,
+      "modified": "2025-04-16T13:26:00.000Z",
+      "created": "2025-04-16T13:26:00.000Z",
+      "extension": ".ts",
+      "mimeType": "application/typescript",
+      "hash": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+      "type": "script"
+    },
+    "lib/github-integration.ts": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/lib/github-integration.ts",
+      "relativePath": "lib/github-integration.ts",
+      "size": 7152,
+      "modified": "2025-04-16T13:28:00.000Z",
+      "created": "2025-04-16T13:28:00.000Z",
+      "extension": ".ts",
+      "mimeType": "application/typescript",
+      "hash": "g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8",
+      "type": "script"
+    },
+    "lib/index.ts": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/lib/index.ts",
+      "relativePath": "lib/index.ts",
+      "size": 4321,
+      "modified": "2025-04-16T13:30:00.000Z",
+      "created": "2025-04-16T13:30:00.000Z",
+      "extension": ".ts",
+      "mimeType": "application/typescript",
+      "hash": "i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0",
+      "type": "script"
+    },
+    "schema/workspace-metadata.json": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/schema/workspace-metadata.json",
+      "relativePath": "schema/workspace-metadata.json",
+      "size": 1234,
+      "modified": "2025-04-16T13:32:00.000Z",
+      "created": "2025-04-16T13:32:00.000Z",
+      "extension": ".json",
+      "mimeType": "application/json",
+      "hash": "k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2",
+      "type": "config"
+    },
+    "schema/workspace-package.json": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/schema/workspace-package.json",
+      "relativePath": "schema/workspace-package.json",
+      "size": 4567,
+      "modified": "2025-04-16T13:34:00.000Z",
+      "created": "2025-04-16T13:34:00.000Z",
+      "extension": ".json",
+      "mimeType": "application/json",
+      "hash": "m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4",
+      "type": "config"
+    },
+    "samples/create-workspace.js": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/samples/create-workspace.js",
+      "relativePath": "samples/create-workspace.js",
+      "size": 1850,
+      "modified": "2025-04-16T13:36:00.000Z",
+      "created": "2025-04-16T13:36:00.000Z",
+      "extension": ".js",
+      "mimeType": "application/javascript",
+      "hash": "o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5t6",
+      "type": "script"
+    },
+    "samples/load-workspace.js": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/samples/load-workspace.js",
+      "relativePath": "samples/load-workspace.js",
+      "size": 2200,
+      "modified": "2025-04-16T13:38:00.000Z",
+      "created": "2025-04-16T13:38:00.000Z",
+      "extension": ".js",
+      "mimeType": "application/javascript",
+      "hash": "q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5t6u7v8",
+      "type": "script"
+    },
+    "samples/commit-workspace.js": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/samples/commit-workspace.js",
+      "relativePath": "samples/commit-workspace.js",
+      "size": 2560,
+      "modified": "2025-04-16T13:40:00.000Z",
+      "created": "2025-04-16T13:40:00.000Z",
+      "extension": ".js",
+      "mimeType": "application/javascript",
+      "hash": "s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5t6u7v8w9x0",
+      "type": "script"
+    },
+    "samples/full-workflow.js": {
+      "path": "/Users/zacelston/AlZacAI/redmine-mcp-server/redmcp-typescript/modules/workspace-packager/samples/full-workflow.js",
+      "relativePath": "samples/full-workflow.js",
+      "size": 4980,
+      "modified": "2025-04-16T13:42:00.000Z",
+      "created": "2025-04-16T13:42:00.000Z",
+      "extension": ".js",
+      "mimeType": "application/javascript",
+      "hash": "u1v2w3x4y5z6a7b8

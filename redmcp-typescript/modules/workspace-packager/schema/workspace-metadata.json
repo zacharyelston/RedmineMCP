@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WorkspaceMetadata",
+  "description": "Metadata for a workspace package",
+  "type": "object",
+  "required": [
+    "workspaceId",
+    "createdAt",
+    "sourceDirectory",
+    "fileCount",
+    "totalSize"
+  ],
+  "properties": {
+    "workspaceId": {
+      "type": "string",
+      "description": "Unique identifier for the workspace",
+      "format": "uuid"
+    },
+    "createdAt": {
+      "type": "string",
+      "description": "Date and time when the workspace was created",
+      "format": "date-time"
+    },
+    "sourceDirectory": {
+      "type": "string",
+      "description": "Original source directory path"
+    },
+    "fileCount": {
+      "type": "integer",
+      "description": "Number of files in the workspace",
+      "minimum": 0
+    },
+    "totalSize": {
+      "type": "integer",
+      "description": "Total size of all files in bytes",
+      "minimum": 0
+    },
+    "customMetadata": {
+      "type": "object",
+      "description": "Optional custom metadata for the workspace"
+    }
+  }
+}
