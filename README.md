@@ -1,13 +1,33 @@
-# Redmine MCP - Claude Integration
+# Redmine MCP Server - Claude Integration
 
-A modern integration between Claude AI and Redmine using the Model Context Protocol (MCP).
+The Company in a Box.
+Designed to breathe. 
+Built to think. 
+Yours to evolve.
+
+An integration between Claude AI (or any MCP client - Like Windsurf) and Redmine using the Model Context Protocol (MCP).
 ![RedmineIssue](./docs/ex2.jpg)
 ![claudePrompt](./docs/ex1.jpg)
 
 
 ## Overview
+You can use the existing tooling like Jira MCP servers to accomplish this.  We disagree with Jira's structure and design as Redmine allows entire Projects to be shifted or rehomed without issue.  If you want an 100% OpenSource solution, keep reading.
 
 The Redmine MCP project provides a seamless connection between Claude AI and Redmine project management system. It allows Claude to access and manipulate Redmine data through a TypeScript implementation of the Model Context Protocol.
+
+This project represents a paradigm shift in how organizations structure collaboration between humans and AI. As described in our [NASCAR DevOps philosophy](./docs/nascar_devops.md), we've entered an era where "everyone's driving the same car" through standardized protocols like MCP. The difference now lies in the team—how humans and AI coordinate, communicate, and collectively solve problems.
+
+By implementing this system, you're not just deploying a tool but creating a [Company in a Box](./docs/company-in-a-box/index.html)—a central nervous system where:
+
+- AI agents handle routine operations while humans focus on strategy and creativity
+- Work becomes visible, traceable, and continuously improvable
+- Human value shifts from task execution to mentorship and process improvement
+- Organizational knowledge persists beyond individual contributors
+- Teams build a collective intelligence that compounds over time
+
+The Redmine MCP integration transforms your organization into one where technology handles the routine, while humans focus on creativity, foresight, and meaning.
+
+and NO - it's not 100% complete yet.  There is about - 90% more to go for full functionality and V2 will be where we start working on Modules.  So maybe jump in and help out. 
 
 ## Key Components
 
