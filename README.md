@@ -17,7 +17,7 @@ The Redmine MCP project provides a seamless connection between Claude AI and Red
 
 This project represents a paradigm shift in how organizations structure collaboration between humans and AI. As described in our [NASCAR DevOps philosophy](./docs/nascar_devops.md), we've entered an era where "everyone's driving the same car" through standardized protocols like MCP. The difference now lies in the team—how humans and AI coordinate, communicate, and collectively solve problems.
 
-By implementing this system, you're not just deploying a tool but creating a [Company in a Box](./docs/company-in-a-box/index.html)—a central nervous system where:
+By implementing this system, you're not just deploying a tool but creating a [Company in a Box](https://zacharyelston.github.io/RedmineMCP/) —a central nervous system where:
 
 - AI agents handle routine operations while humans focus on strategy and creativity
 - Work becomes visible, traceable, and continuously improvable
@@ -27,7 +27,7 @@ By implementing this system, you're not just deploying a tool but creating a [Co
 
 The Redmine MCP integration transforms your organization into one where technology handles the routine, while humans focus on creativity, foresight, and meaning.
 
-and NO - it's not 100% complete yet.  There is about - 90% more to go for full functionality and V2 will be where we start working on Modules.  So maybe jump in and help out. 
+and NO - it's not 100% complete yet.  There is ~ 90% more to go for full functionality and V2 will be where we start working on plugins.  So jump in and help out. 
 
 ## Key Components
 
