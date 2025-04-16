@@ -1,8 +1,9 @@
 # Redmine MCP - Claude Integration
 
 A modern integration between Claude AI and Redmine using the Model Context Protocol (MCP).
-
+![RedmineIssue](./docs/ex2.jpg)
 ![claudePrompt](./docs/ex1.jpg)
+
 
 ## Overview
 
