@@ -1,7 +1,7 @@
 # Redmine MCP: The Company in a Box
 
 ## Reimagining Organizational Collaboration
-
+![TheNapkin](napkin.jpg)
 The Redmine MCP server represents more than just a technical integration—it's a paradigm shift in how humans and AI systems collaborate within an organization. This document explores how this platform creates a "Company in a Box" that fundamentally transforms collaborative work.
 
 ## The Central Nervous System for AI-Human Teamwork
